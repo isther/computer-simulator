@@ -1,22 +1,22 @@
 use super::Wire;
 
 #[derive(Debug)]
-struct OR {
+pub struct OR {
     output: Wire,
 }
 
 impl OR {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             output: Wire::new("Z".to_string(), false),
         }
     }
 
-    fn get(&self) -> bool {
+    pub fn get(&self) -> bool {
         self.output.get()
     }
 
-    fn update(&mut self, a: bool, b: bool) -> bool {
+    pub fn update(&mut self, a: bool, b: bool) -> bool {
         self.output.update(a | b);
         self.output.get()
     }

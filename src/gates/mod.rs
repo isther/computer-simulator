@@ -1,26 +1,33 @@
-mod not;
 mod and;
 mod nand;
-mod or;
 mod nor;
+mod not;
+mod or;
 mod xor;
 
+pub use and::AND;
+pub use nand::NAND;
+pub use nor::NOR;
+pub use not::NOT;
+pub use or::OR;
+pub use xor::XOR;
+
 #[derive(Debug)]
-struct Wire {
+pub struct Wire {
     name: String,
     value: bool,
 }
 
 impl Wire {
-    fn new(name: String, value: bool) -> Self {
+    pub fn new(name: String, value: bool) -> Self {
         Self { name, value }
     }
 
-    fn get(&self) -> bool {
+    pub fn get(&self) -> bool {
         self.value
     }
 
-    fn update(&mut self, value: bool) {
+    pub fn update(&mut self, value: bool) {
         self.value = value
     }
 }

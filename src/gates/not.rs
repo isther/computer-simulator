@@ -1,22 +1,22 @@
 use super::Wire;
 
 #[derive(Debug)]
-struct NOT {
+pub struct NOT {
     output: Wire,
 }
 
 impl NOT {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             output: Wire::new("Z".to_string(), false),
         }
     }
 
-    fn get(&self) -> bool {
+    pub fn get(&self) -> bool {
         self.output.get()
     }
 
-    fn update(&mut self, a: bool) -> bool {
+    pub fn update(&mut self, a: bool) -> bool {
         self.output.update(!a);
         self.output.get()
     }

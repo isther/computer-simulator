@@ -1,23 +1,24 @@
 use super::Wire;
 
 #[derive(Debug)]
-struct XOR {
+pub struct XOR {
     output: Wire,
 }
 
 impl XOR {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             output: Wire::new("Z".to_string(), false),
         }
     }
 
-    fn get(&self) -> bool {
+    pub fn get(&self) -> bool {
         self.output.get()
     }
 
-    fn update(&mut self, a: bool, b: bool) -> bool {
-        self.output.update(!(a | b));
+    pub fn update(&mut self, a: bool, b: bool) -> bool {
+        self.output.update(!((!a & !b) || (a & b)));
+        // g.output.Update(!((!inputA && !inputB) || (inputA && inputB)))
         self.output.get()
     }
 }
