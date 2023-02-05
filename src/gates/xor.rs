@@ -1,6 +1,6 @@
 use super::Wire;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct XOR {
     output: Wire,
 }

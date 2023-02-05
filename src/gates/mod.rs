@@ -12,7 +12,7 @@ pub use not::NOT;
 pub use or::OR;
 pub use xor::XOR;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Wire {
     name: String,
     value: bool,

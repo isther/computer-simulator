@@ -1,18 +1,19 @@
-use super::{get_output_value, set_component_value_32, Component, EmptyComponent, BUS_WIDTH};
+use super::Component;
 use crate::gates::{Wire, AND, OR, XOR};
 use std::fmt::Display;
 
-struct Adder {
+#[derive(Clone)]
+pub struct Adder {
     inputs: [Wire; 32],
     carry_in: Wire,
     adds: [FullAdder; 16],
     carry_out: Wire,
     outputs: [Wire; 16],
-    next: Box<dyn Component>,
+    next: Option<Box<dyn Component>>,
 }
 
 impl Adder {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             inputs: (0..32)
                 .map(|_| Wire::new("Z".to_string(), false))
@@ -31,21 +32,20 @@ impl Adder {
                 .collect::<Vec<Wire>>()
                 .try_into()
                 .unwrap(),
-            next: Box::new(EmptyComponent::new()),
+            next: None,
         }
     }
 
-    fn get_carry_out(&self) -> bool {
+    pub fn get_carry_out(&self) -> bool {
         self.carry_out.get()
     }
 
-    fn update(&mut self, carry_in: bool) {
+    pub fn update(&mut self, carry_in: bool) {
         self.carry_in.update(carry_in);
 
         let mut a_wire: i32 = 31;
         let mut b_wire: i32 = 15;
-        let mut i: i32 = self.adds.len() as i32 - 1;
-        while i >= 0 {
+        for i in (0..self.adds.len()).rev() {
             let a_val = self.inputs[a_wire as usize].get();
             let b_val = self.inputs[b_wire as usize].get();
 
@@ -56,7 +56,6 @@ impl Adder {
 
             a_wire = a_wire - 1;
             b_wire = b_wire - 1;
-            i = i - 1;
         }
     }
 }
@@ -91,18 +90,17 @@ carry_out: {}",
 
 impl Component for Adder {
     fn connect_output(&mut self, component: Box<dyn Component>) {
-        self.next = component
-    }
-
-    fn get_output_wire(&self, i: i32) -> bool {
-        self.outputs[i as usize].get()
+        self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
+    fn get_output_wire(&self, i: i32) -> bool {
+        self.outputs[i as usize].get()
+    }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct FullAdder {
     input_a: Wire,
     input_b: Wire,
@@ -162,6 +160,7 @@ impl FullAdder {
 
 #[cfg(test)]
 mod tests {
+    use super::super::*;
     use super::*;
 
     fn test_one_full_adder(
