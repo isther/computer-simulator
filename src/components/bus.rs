@@ -35,7 +35,6 @@ impl Bus {
 }
 
 impl Component for Bus {
-    fn connect_output(&mut self, _: Box<dyn Component>) {}
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.wires[i as usize].update(value)
     }

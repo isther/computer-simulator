@@ -1,4 +1,4 @@
-use crate::gates::{Wire, AND, NOT};
+use crate::gates::{Wire, AND, NAND, NOT};
 
 mod adder;
 mod bus;
@@ -6,18 +6,22 @@ mod comparator;
 mod decoder;
 mod gaters;
 mod gates;
+mod register;
+mod storage;
 
 pub use adder::Adder;
 pub use bus::Bus;
 pub use comparator::Comparator;
-pub use decoder::Decoder3x8;
+pub use decoder::{Decoder3x8, Decoder8x256};
 pub use gaters::{ANDer, NOTer, ORer, XORer};
-pub use gates::ANDGate3;
+pub use gates::{ANDGate3, ANDGate4};
+pub use register::Register;
+pub use storage::Bit16;
 
 pub const BUS_WIDTH: i32 = 16;
 
 pub trait Component: ComponentClone {
-    fn connect_output(&mut self, component: Box<dyn Component>);
+    // fn connect_output(&mut self, component: Box<dyn Component>);
     fn set_input_wire(&mut self, i: i32, value: bool);
     fn get_output_wire(&self, i: i32) -> bool;
 }
@@ -131,10 +135,6 @@ impl Enabler {
 }
 
 impl Component for Enabler {
-    fn connect_output(&mut self, component: Box<dyn Component>) {
-        self.next = Some(component)
-    }
-
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -189,10 +189,6 @@ impl LeftShifter {
 }
 
 impl Component for LeftShifter {
-    fn connect_output(&mut self, component: Box<dyn Component>) {
-        self.next = Some(component)
-    }
-
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -247,10 +243,6 @@ impl RightShifter {
 }
 
 impl Component for RightShifter {
-    fn connect_output(&mut self, component: Box<dyn Component>) {
-        self.next = Some(component)
-    }
-
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -310,7 +302,6 @@ impl IsZero {
 }
 
 impl Component for IsZero {
-    fn connect_output(&mut self, _: Box<dyn Component>) {}
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -329,17 +320,17 @@ mod tests {
     }
 
     #[test]
-    fn test_left_shifter(){
+    fn test_left_shifter() {
         todo!()
     }
 
     #[test]
-    fn test_right_shifter(){
+    fn test_right_shifter() {
         todo!()
     }
 
     #[test]
-    fn test_is_zero(){
+    fn test_is_zero() {
         todo!()
     }
 }

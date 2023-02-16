@@ -48,10 +48,6 @@ impl ANDer {
 }
 
 impl Component for ANDer {
-    fn connect_output(&mut self, component: Box<dyn Component>) {
-        self.next = Some(component)
-    }
-
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -100,9 +96,6 @@ impl NOTer {
 }
 
 impl Component for NOTer {
-    fn connect_output(&mut self, component: Box<dyn Component>) {
-        self.next = Some(component)
-    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -158,9 +151,6 @@ impl ORer {
 }
 
 impl Component for ORer {
-    fn connect_output(&mut self, component: Box<dyn Component>) {
-        self.next = Some(component)
-    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -216,9 +206,6 @@ impl XORer {
 }
 
 impl Component for XORer {
-    fn connect_output(&mut self, component: Box<dyn Component>) {
-        self.next = Some(component)
-    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }

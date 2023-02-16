@@ -89,9 +89,6 @@ carry_out: {}",
 }
 
 impl Component for Adder {
-    fn connect_output(&mut self, component: Box<dyn Component>) {
-        self.next = Some(component)
-    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
