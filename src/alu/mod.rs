@@ -4,12 +4,13 @@ use crate::components::{
 };
 use crate::gates::{Wire, AND};
 use std::cell::RefCell;
+use std::rc::Rc;
 
-struct ALU<'a> {
-    input_a_bus: &'a RefCell<Bus>,
-    input_b_bus: &'a RefCell<Bus>,
-    output_bus: &'a RefCell<Bus>,
-    flags_output_bus: &'a RefCell<Bus>,
+struct ALU {
+    input_a_bus: Rc<RefCell<Bus>>,
+    input_b_bus: Rc<RefCell<Bus>>,
+    output_bus: Rc<RefCell<Bus>>,
+    flags_output_bus: Rc<RefCell<Bus>>,
 
     op: [Wire; 3],
     carry_in: Wire,
@@ -34,12 +35,12 @@ struct ALU<'a> {
     and_gates: [AND; 3],
 }
 
-impl<'a> ALU<'a> {
+impl ALU {
     fn new(
-        input_a_bus: &'a RefCell<Bus>,
-        input_b_bus: &'a RefCell<Bus>,
-        output_bus: &'a RefCell<Bus>,
-        flags_output_bus: &'a RefCell<Bus>,
+        input_a_bus: Rc<RefCell<Bus>>,
+        input_b_bus: Rc<RefCell<Bus>>,
+        output_bus: Rc<RefCell<Bus>>,
+        flags_output_bus: Rc<RefCell<Bus>>,
     ) -> Self {
         Self {
             input_a_bus,
@@ -98,7 +99,7 @@ impl<'a> ALU<'a> {
 }
 
 // Update
-impl<'a> ALU<'a> {
+impl ALU {
     fn update(&mut self) {
         self.update_op_decoder();
         let enabler: Operation = self.op_decoder.index().into();
@@ -337,12 +338,7 @@ mod tests {
         let input_b_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
         let output_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
         let flags_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
-        let mut alu = Box::new(ALU::new(
-            input_a_bus.as_ref(),
-            input_b_bus.as_ref(),
-            output_bus.as_ref(),
-            flags_bus.as_ref(),
-        ));
+        let mut alu = Box::new(ALU::new(input_a_bus, input_b_bus, output_bus, flags_bus));
 
         input_a_bus.as_ref().borrow_mut().set_value(input_a);
         input_b_bus.as_ref().borrow_mut().set_value(input_b);

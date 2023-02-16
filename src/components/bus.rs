@@ -2,7 +2,7 @@ use super::Component;
 use crate::gates::Wire;
 use std::fmt::Display;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Bus {
     wires: Box<Vec<Wire>>,
     width: i32,

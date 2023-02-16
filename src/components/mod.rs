@@ -1,4 +1,5 @@
 use crate::gates::{Wire, AND, NAND, NOT};
+use std::fmt::Debug;
 
 mod adder;
 mod bus;
@@ -131,6 +132,13 @@ impl Enabler {
             }
             None => {}
         }
+    }
+}
+
+//TODO:Debug info
+impl Debug for Enabler {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "")
     }
 }
 

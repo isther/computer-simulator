@@ -2,16 +2,18 @@ use crate::components::{Bus, Decoder8x256, Register};
 use crate::gates::Wire;
 use crate::gates::AND;
 use std::cell::RefCell;
+use std::rc::Rc;
 
 pub const BUS_WIDTH: i32 = 16;
 
-struct Cell<'a> {
-    value: Register<'a>,
+#[derive(Debug)]
+struct Cell {
+    value: Register,
     gates: [AND; 3],
 }
 
-impl<'a> Cell<'a> {
-    fn new(input_bus: &'a RefCell<Bus>, output_bus: &'a RefCell<Bus>) -> Self {
+impl Cell {
+    fn new(input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
         Self {
             value: Register::new("", input_bus, output_bus),
             gates: (0..3)
@@ -39,19 +41,19 @@ impl<'a> Cell<'a> {
     }
 }
 
-struct Memory64K<'a> {
-    address_register: Register<'a>,
+struct Memory64K {
+    address_register: Register,
     row_decoder: Decoder8x256,
     col_decoder: Decoder8x256,
-    // data: [[Cell<'a>; 256]; 256],
-    data: [Cell<'a>; 256],
+    // data: [[Cell; 256]; 256],
+    data: [Cell; 256],
     set: Wire,
     enable: Wire,
-    bus: &'a RefCell<Bus>,
+    bus: Rc<RefCell<Bus>>,
 }
 
-impl<'a> Memory64K<'a> {
-    fn new(bus: &'a RefCell<Bus>) -> Self {
+impl Memory64K {
+    fn new(bus: Rc<RefCell<Bus>>) -> Self {
         Self {
             address_register: Register::new("MAR", bus, bus),
             row_decoder: Decoder8x256::new(),

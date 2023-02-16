@@ -1,20 +1,22 @@
 use super::{Bit16, Bus, Component, Enabler, Wire, BUS_WIDTH};
 use std::cell::RefCell;
+use std::rc::Rc;
 
-pub struct Register<'a> {
+#[derive(Debug)]
+pub struct Register {
     name: String,
     set: Wire,
     enable: Wire,
     word: Bit16,
     enabler: Box<Enabler>,
     outputs: [Wire; BUS_WIDTH as usize],
-    input_bus: &'a RefCell<Bus>,
-    output_bus: &'a RefCell<Bus>,
+    input_bus: Rc<RefCell<Bus>>,
+    output_bus: Rc<RefCell<Bus>>,
 }
 
-impl<'a> Register<'a> {
-    pub fn new(name: &str, input_bus: &'a RefCell<Bus>, output_bus: &'a RefCell<Bus>) -> Self {
-        Self {
+impl Register {
+    pub fn new(name: &str, input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
+        let res = Self {
             name: name.to_string(),
             set: Wire::new("S".to_string(), false),
             enable: Wire::new("E".to_string(), false),
@@ -27,7 +29,9 @@ impl<'a> Register<'a> {
                 .unwrap(),
             input_bus,
             output_bus,
-        }
+        };
+
+        res
     }
 
     pub fn bit(&self, index: i32) -> bool {

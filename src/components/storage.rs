@@ -1,4 +1,5 @@
 use super::{Component, Wire, NAND};
+use std::fmt::Debug;
 
 #[derive(Debug, Clone)]
 struct Bit {
@@ -39,6 +40,13 @@ pub struct Bit16 {
     bits: [Bit; 16],
     outputs: [Wire; 16],
     next: Option<Box<dyn Component>>,
+}
+
+//TODO:Debug info
+impl Debug for Bit16 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "")
+    }
 }
 
 impl Bit16 {
