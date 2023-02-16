@@ -1,5 +1,7 @@
 use crate::gates::{Wire, AND, NAND, NOT};
+use std::cell::RefCell;
 use std::fmt::Debug;
+use std::rc::Rc;
 
 mod adder;
 mod bus;
@@ -22,7 +24,7 @@ pub use storage::Bit16;
 pub const BUS_WIDTH: i32 = 16;
 
 pub trait Component: ComponentClone {
-    // fn connect_output(&mut self, component: Box<dyn Component>);
+    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>);
     fn set_input_wire(&mut self, i: i32, value: bool);
     fn get_output_wire(&self, i: i32) -> bool;
 }
@@ -33,7 +35,6 @@ trait ComponentClone {
 
 impl<T> ComponentClone for T
 where
-    // T: 'static + Study + Clone,
     T: 'static + Component + Clone,
 {
     fn clone_box(&self) -> Box<dyn Component> {
@@ -47,7 +48,10 @@ impl Clone for Box<dyn Component> {
     }
 }
 
-fn set_input_value(c: &mut dyn Component, value: i32, start: i32, end: i32) {
+fn set_input_value<T>(c: &mut T, value: i32, start: i32, end: i32)
+where
+    T: Component,
+{
     let mut x: u16 = 0;
     for i in (end..start).rev() {
         match value & (1 << x) {
@@ -63,16 +67,25 @@ fn set_input_value(c: &mut dyn Component, value: i32, start: i32, end: i32) {
     }
 }
 
-fn set_component_value_16(c: &mut dyn Component, value: i32) {
+fn set_component_value_16<T>(c: &mut T, value: i32)
+where
+    T: Component,
+{
     set_input_value(c, value, 16, 0);
 }
 
-fn set_component_value_32(c: &mut dyn Component, input_a: i32, input_b: i32) {
+fn set_component_value_32<T>(c: &mut T, input_a: i32, input_b: i32)
+where
+    T: Component,
+{
     set_input_value(c, input_a, 16, 0);
     set_input_value(c, input_b, 32, 16);
 }
 
-fn get_output_value(c: &mut dyn Component, output_bits: i32) -> i32 {
+fn get_output_value<T>(c: &mut T, output_bits: i32) -> i32
+where
+    T: Component,
+{
     let mut x: u16 = 0;
     let mut result: i32 = 0;
     for i in (0..output_bits).rev() {
@@ -90,7 +103,7 @@ pub struct Enabler {
     inputs: [Wire; BUS_WIDTH as usize],
     gates: [AND; BUS_WIDTH as usize],
     outputs: [Wire; BUS_WIDTH as usize],
-    next: Option<Box<dyn Component>>,
+    next: Option<Rc<RefCell<Box<dyn Component>>>>,
 }
 
 impl Enabler {
@@ -121,12 +134,10 @@ impl Enabler {
             self.outputs[i].update(self.gates[i].get());
         }
 
-        match &self.next {
-            Some(_) => {
+        match &self.next.as_mut() {
+            Some(next) => {
                 for i in 0..self.outputs.len() {
-                    self.next
-                        .as_mut()
-                        .unwrap()
+                    next.borrow_mut()
                         .set_input_wire(i as i32, self.outputs[i].get());
                 }
             }
@@ -143,6 +154,9 @@ impl Debug for Enabler {
 }
 
 impl Component for Enabler {
+    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+        self.next = Some(component)
+    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -158,7 +172,7 @@ pub struct LeftShifter {
     outputs: [Wire; BUS_WIDTH as usize],
     shift_in: Wire,
     shift_out: Wire,
-    next: Option<Box<dyn Component>>,
+    next: Option<Rc<RefCell<Box<dyn Component>>>>,
 }
 
 impl LeftShifter {
@@ -197,6 +211,9 @@ impl LeftShifter {
 }
 
 impl Component for LeftShifter {
+    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+        self.next = Some(component)
+    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -212,7 +229,7 @@ pub struct RightShifter {
     outputs: [Wire; BUS_WIDTH as usize],
     shift_in: Wire,
     shift_out: Wire,
-    next: Option<Box<dyn Component>>,
+    next: Option<Rc<RefCell<Box<dyn Component>>>>,
 }
 
 impl RightShifter {
@@ -251,6 +268,9 @@ impl RightShifter {
 }
 
 impl Component for RightShifter {
+    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+        self.next = Some(component)
+    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -310,6 +330,7 @@ impl IsZero {
 }
 
 impl Component for IsZero {
+    fn connect_output(&mut self, _: Rc<RefCell<Box<dyn Component>>>) {}
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -320,8 +341,6 @@ impl Component for IsZero {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_enabler() {
         todo!()

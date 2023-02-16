@@ -1,4 +1,4 @@
-use super::{ANDGate3, ANDGate4, Component};
+use super::{ANDGate3, ANDGate4};
 use crate::gates::{Wire, NOT};
 #[derive(Debug, Clone)]
 pub struct Decoder3x8 {
@@ -136,6 +136,10 @@ impl Decoder4x16 {
         self.index
     }
 
+    fn get_output_wire(&self, i: i32) -> bool {
+        self.outputs[i as usize].get()
+    }
+
     fn update(&mut self, input_a: bool, input_b: bool, input_c: bool, input_d: bool) {
         self.not_gates[0].update(input_a);
         self.not_gates[1].update(input_b);
@@ -236,13 +240,6 @@ impl Decoder4x16 {
                 self.index += i as i32;
             }
         }
-    }
-}
-
-impl Component for Decoder4x16 {
-    fn set_input_wire(&mut self, _: i32, _: bool) {}
-    fn get_output_wire(&self, i: i32) -> bool {
-        self.outputs[i as usize].get()
     }
 }
 

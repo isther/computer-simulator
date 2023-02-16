@@ -1,5 +1,7 @@
 use super::{ANDGate3, Component, BUS_WIDTH};
 use crate::gates::{Wire, AND, NOT, OR, XOR};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Comparator {
@@ -10,7 +12,7 @@ pub struct Comparator {
     outputs: [Wire; BUS_WIDTH as usize],
     equal_out: Wire,
     a_is_larger_out: Wire,
-    next: Option<Box<dyn Component>>,
+    next: Option<Rc<RefCell<Box<dyn Component>>>>,
 }
 
 impl Comparator {
@@ -75,6 +77,9 @@ impl Comparator {
 }
 
 impl Component for Comparator {
+    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+        self.next = Some(component)
+    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }

@@ -3,25 +3,25 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 #[derive(Debug)]
-pub struct Register {
+pub struct Register<'a> {
     name: String,
     set: Wire,
     enable: Wire,
     word: Bit16,
-    enabler: Box<Enabler>,
+    enabler: Rc<RefCell<Box<Enabler>>>,
     outputs: [Wire; BUS_WIDTH as usize],
-    input_bus: Rc<RefCell<Bus>>,
-    output_bus: Rc<RefCell<Bus>>,
+    input_bus: &'a RefCell<Bus>,
+    output_bus: &'a RefCell<Bus>,
 }
 
-impl Register {
-    pub fn new(name: &str, input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
-        let res = Self {
+impl<'a> Register<'a> {
+    pub fn new(name: &str, input_bus: &'a RefCell<Bus>, output_bus: &'a RefCell<Bus>) -> Self {
+        let mut res = Self {
             name: name.to_string(),
             set: Wire::new("S".to_string(), false),
             enable: Wire::new("E".to_string(), false),
             word: Bit16::new(),
-            enabler: Box::new(Enabler::new()),
+            enabler: Rc::new(RefCell::new(Box::new(Enabler::new()))),
             outputs: (0..BUS_WIDTH)
                 .map(|_| Wire::new("Z".to_string(), false))
                 .collect::<Vec<Wire>>()
@@ -30,6 +30,8 @@ impl Register {
             input_bus,
             output_bus,
         };
+
+        //TODO:word connect to enabler;
 
         res
     }
@@ -61,10 +63,10 @@ impl Register {
         }
 
         self.word.update(self.set.get());
-        self.enabler.update(self.enable.get());
+        self.enabler.borrow_mut().update(self.enable.get());
 
-        for i in 0..self.enabler.outputs.len() {
-            self.outputs[i].update(self.enabler.outputs[i].get())
+        for i in 0..self.enabler.borrow().outputs.len() {
+            self.outputs[i].update(self.enabler.borrow().outputs[i].get())
         }
 
         if self.enable.get() {

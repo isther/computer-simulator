@@ -1,12 +1,14 @@
 use super::{Component, BUS_WIDTH};
 use crate::gates::{Wire, AND, NOT, OR, XOR};
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct ANDer {
     inputs: [Wire; (BUS_WIDTH * 2) as usize],
     gates: [AND; BUS_WIDTH as usize],
     outputs: [Wire; BUS_WIDTH as usize],
-    next: Option<Box<dyn Component>>,
+    next: Option<Rc<RefCell<Box<dyn Component>>>>,
 }
 
 impl ANDer {
@@ -48,6 +50,9 @@ impl ANDer {
 }
 
 impl Component for ANDer {
+    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+        self.next = Some(component)
+    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -62,7 +67,7 @@ pub struct NOTer {
     inputs: [Wire; BUS_WIDTH as usize],
     gates: [NOT; BUS_WIDTH as usize],
     outputs: [Wire; BUS_WIDTH as usize],
-    next: Option<Box<dyn Component>>,
+    next: Option<Rc<RefCell<Box<dyn Component>>>>,
 }
 
 impl NOTer {
@@ -96,6 +101,9 @@ impl NOTer {
 }
 
 impl Component for NOTer {
+    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+        self.next = Some(component)
+    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -109,7 +117,7 @@ pub struct ORer {
     inputs: [Wire; (BUS_WIDTH * 2) as usize],
     gates: [OR; BUS_WIDTH as usize],
     pub outputs: [Wire; BUS_WIDTH as usize],
-    next: Option<Box<dyn Component>>,
+    next: Option<Rc<RefCell<Box<dyn Component>>>>,
 }
 
 impl ORer {
@@ -151,6 +159,9 @@ impl ORer {
 }
 
 impl Component for ORer {
+    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+        self.next = Some(component)
+    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
@@ -164,7 +175,7 @@ pub struct XORer {
     inputs: [Wire; (BUS_WIDTH * 2) as usize],
     gates: [XOR; BUS_WIDTH as usize],
     outputs: [Wire; BUS_WIDTH as usize],
-    next: Option<Box<dyn Component>>,
+    next: Option<Rc<RefCell<Box<dyn Component>>>>,
 }
 
 impl XORer {
@@ -206,6 +217,9 @@ impl XORer {
 }
 
 impl Component for XORer {
+    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+        self.next = Some(component)
+    }
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
