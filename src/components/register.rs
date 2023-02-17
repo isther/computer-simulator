@@ -2,26 +2,26 @@ use super::{Bit16, Bus, Component, Enabler, Wire, BUS_WIDTH};
 use std::cell::RefCell;
 use std::rc::Rc;
 
-#[derive(Debug)]
-pub struct Register<'a> {
-    name: String,
-    set: Wire,
-    enable: Wire,
-    word: Bit16,
-    enabler: Rc<RefCell<Box<Enabler>>>,
-    outputs: [Wire; BUS_WIDTH as usize],
-    input_bus: &'a RefCell<Bus>,
-    output_bus: &'a RefCell<Bus>,
+#[derive(Debug, Clone)]
+pub struct Register {
+    pub name: String,
+    pub set: Wire,
+    pub enable: Wire,
+    pub word: Bit16,
+    pub enabler: Rc<RefCell<Enabler>>,
+    pub outputs: [Wire; BUS_WIDTH as usize],
+    pub input_bus: Rc<RefCell<Bus>>,
+    pub output_bus: Rc<RefCell<Bus>>,
 }
 
-impl<'a> Register<'a> {
-    pub fn new(name: &str, input_bus: &'a RefCell<Bus>, output_bus: &'a RefCell<Bus>) -> Self {
+impl Register {
+    pub fn new(name: &str, input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
         let mut res = Self {
             name: name.to_string(),
             set: Wire::new("S".to_string(), false),
             enable: Wire::new("E".to_string(), false),
             word: Bit16::new(),
-            enabler: Rc::new(RefCell::new(Box::new(Enabler::new()))),
+            enabler: Rc::new(RefCell::new(Enabler::new())),
             outputs: (0..BUS_WIDTH)
                 .map(|_| Wire::new("Z".to_string(), false))
                 .collect::<Vec<Wire>>()
@@ -31,7 +31,7 @@ impl<'a> Register<'a> {
             output_bus,
         };
 
-        //TODO:word connect to enabler;
+        res.word.connect_output(res.enabler.clone());
 
         res
     }

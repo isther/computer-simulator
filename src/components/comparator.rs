@@ -5,14 +5,14 @@ use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct Comparator {
-    inputs: [Wire; (BUS_WIDTH * 2) as usize],
-    equal_in: Wire,
-    a_is_larger_in: Wire,
-    compares: [Compare2; BUS_WIDTH as usize],
-    outputs: [Wire; BUS_WIDTH as usize],
-    equal_out: Wire,
-    a_is_larger_out: Wire,
-    next: Option<Rc<RefCell<Box<dyn Component>>>>,
+    pub inputs: [Wire; (BUS_WIDTH * 2) as usize],
+    pub equal_in: Wire,
+    pub a_is_larger_in: Wire,
+    pub compares: [Compare2; BUS_WIDTH as usize],
+    pub outputs: [Wire; BUS_WIDTH as usize],
+    pub equal_out: Wire,
+    pub a_is_larger_out: Wire,
+    pub next: Option<Rc<RefCell<dyn Component>>>,
 }
 
 impl Comparator {
@@ -77,7 +77,7 @@ impl Comparator {
 }
 
 impl Component for Comparator {
-    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
@@ -89,19 +89,19 @@ impl Component for Comparator {
 }
 
 #[derive(Debug, Clone)]
-struct Compare2 {
-    input_a: Wire,
-    input_b: Wire,
-    xor1: XOR,
-    not1: NOT,
-    and1: AND,
-    and_gate3: ANDGate3,
-    or1: OR,
-    out: Wire,
-    equal_in: Wire,
-    equal_out: Wire,
-    is_larger_in: Wire,
-    is_larger_out: Wire,
+pub struct Compare2 {
+    pub input_a: Wire,
+    pub input_b: Wire,
+    pub xor1: XOR,
+    pub not1: NOT,
+    pub and1: AND,
+    pub and_gate3: ANDGate3,
+    pub or1: OR,
+    pub out: Wire,
+    pub equal_in: Wire,
+    pub equal_out: Wire,
+    pub is_larger_in: Wire,
+    pub is_larger_out: Wire,
 }
 
 impl Compare2 {

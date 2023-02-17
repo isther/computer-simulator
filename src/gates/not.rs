@@ -2,7 +2,7 @@ use super::Wire;
 
 #[derive(Debug, Clone)]
 pub struct NOT {
-    output: Wire,
+    pub output: Wire,
 }
 
 impl NOT {

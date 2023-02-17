@@ -2,12 +2,12 @@ use crate::gates::{Wire, AND};
 
 #[derive(Debug, Clone)]
 pub struct ANDGate3 {
-    input_a: Wire,
-    input_b: Wire,
-    input_c: Wire,
-    and_a: AND,
-    and_b: AND,
-    output: Wire,
+    pub input_a: Wire,
+    pub input_b: Wire,
+    pub input_c: Wire,
+    pub and_a: AND,
+    pub and_b: AND,
+    pub output: Wire,
 }
 
 impl ANDGate3 {
@@ -36,14 +36,14 @@ impl ANDGate3 {
 
 #[derive(Debug, Clone)]
 pub struct ANDGate4 {
-    input_a: Wire,
-    input_b: Wire,
-    input_c: Wire,
-    input_d: Wire,
-    and_a: AND,
-    and_b: AND,
-    and_c: AND,
-    output: Wire,
+    pub input_a: Wire,
+    pub input_b: Wire,
+    pub input_c: Wire,
+    pub input_d: Wire,
+    pub and_a: AND,
+    pub and_b: AND,
+    pub and_c: AND,
+    pub output: Wire,
 }
 
 impl ANDGate4 {

@@ -2,13 +2,13 @@ use super::{ANDGate3, ANDGate4};
 use crate::gates::{Wire, NOT};
 #[derive(Debug, Clone)]
 pub struct Decoder3x8 {
-    input_a: Wire,
-    input_b: Wire,
-    input_c: Wire,
+    pub input_a: Wire,
+    pub input_b: Wire,
+    pub input_c: Wire,
 
-    not_gates: [NOT; 3],
-    and_gates: [ANDGate3; 8],
-    outputs: [Wire; 8],
+    pub not_gates: [NOT; 3],
+    pub and_gates: [ANDGate3; 8],
+    pub outputs: [Wire; 8],
 }
 
 impl Decoder3x8 {
@@ -103,11 +103,11 @@ impl Decoder3x8 {
 }
 
 #[derive(Debug, Clone)]
-struct Decoder4x16 {
-    not_gates: [NOT; 4],
-    and_gates: [ANDGate4; 16],
-    outputs: [Wire; 16],
-    index: i32,
+pub struct Decoder4x16 {
+    pub not_gates: [NOT; 4],
+    pub and_gates: [ANDGate4; 16],
+    pub outputs: [Wire; 16],
+    pub index: i32,
 }
 
 impl Decoder4x16 {
@@ -262,8 +262,8 @@ impl Decoder8x256 {
         }
     }
 
-    pub fn index(&self) -> i32 {
-        self.index
+    pub fn index(&self) -> usize {
+        self.index as usize
     }
 
     pub fn update(

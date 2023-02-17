@@ -8,10 +8,10 @@ use std::rc::Rc;
 pub struct Adder {
     inputs: [Wire; 32],
     carry_in: Wire,
-    adds: [FullAdder; 16],
+    pub adds: [FullAdder; 16],
     carry_out: Wire,
     outputs: [Wire; 16],
-    next: Option<Rc<RefCell<Box<dyn Component>>>>,
+    next: Option<Rc<RefCell<dyn Component>>>,
 }
 
 impl Adder {
@@ -91,7 +91,7 @@ carry_out: {}",
 }
 
 impl Component for Adder {
-    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
@@ -103,19 +103,19 @@ impl Component for Adder {
 }
 
 #[derive(Debug, Clone)]
-struct FullAdder {
-    input_a: Wire,
-    input_b: Wire,
-    carry_in: Wire,
+pub struct FullAdder {
+    pub input_a: Wire,
+    pub input_b: Wire,
+    pub carry_in: Wire,
 
-    xor1: XOR,
-    xor2: XOR,
-    and1: AND,
-    and2: AND,
-    or: OR,
+    pub xor1: XOR,
+    pub xor2: XOR,
+    pub and1: AND,
+    pub and2: AND,
+    pub or: OR,
 
-    carry_out: Wire,
-    sum: Wire,
+    pub carry_out: Wire,
+    pub sum: Wire,
 }
 
 impl FullAdder {

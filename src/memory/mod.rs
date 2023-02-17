@@ -2,17 +2,19 @@ use crate::components::{Bus, Decoder8x256, Register};
 use crate::gates::Wire;
 use crate::gates::AND;
 use std::cell::RefCell;
+use std::fmt::Display;
+use std::rc::Rc;
 
 pub const BUS_WIDTH: i32 = 16;
 
-#[derive(Debug)]
-struct Cell<'a> {
-    value: Register<'a>,
-    gates: [AND; 3],
+#[derive(Debug, Clone)]
+pub struct Cell {
+    pub value: Register,
+    pub gates: [AND; 3],
 }
 
-impl<'a> Cell<'a> {
-    fn new(input_bus: &'a RefCell<Bus>, output_bus: &'a RefCell<Bus>) -> Self {
+impl Cell {
+    fn new(input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
         Self {
             value: Register::new("", input_bus, output_bus),
             gates: (0..3)
@@ -37,34 +39,186 @@ impl<'a> Cell<'a> {
             true => self.value.enable(),
             false => self.value.disable(),
         }
+
+        self.value.update()
     }
 }
 
-struct Memory64K<'a> {
-    address_register: Register<'a>,
+struct Memory64K {
+    address_register: Register,
     row_decoder: Decoder8x256,
     col_decoder: Decoder8x256,
-    // data: [[Cell; 256]; 256],
-    data: [Cell<'a>; 256],
+    data: Vec<Vec<Cell>>,
     set: Wire,
     enable: Wire,
-    bus: &'a RefCell<Bus>,
+    bus: Rc<RefCell<Bus>>,
 }
 
-impl<'a> Memory64K<'a> {
-    fn new(bus: &'a RefCell<Bus>) -> Self {
+impl Memory64K {
+    fn new(bus: Rc<RefCell<Bus>>) -> Self {
         Self {
-            address_register: Register::new("MAR", bus, bus),
+            address_register: Register::new("MAR", bus.clone(), bus.clone()),
             row_decoder: Decoder8x256::new(),
             col_decoder: Decoder8x256::new(),
             data: (0..256)
-                .map(|_| Cell::new(bus, bus))
-                .collect::<Vec<Cell>>()
-                .try_into()
-                .unwrap(),
-            set: Wire::new("Z".to_string(), false),
-            enable: Wire::new("Z".to_string(), false),
+                .map(|_| {
+                    (0..256)
+                        .map(|_| Cell::new(bus.clone(), bus.clone()))
+                        .collect::<Vec<Cell>>()
+                })
+                .collect::<Vec<Vec<Cell>>>(),
+            set: Wire::new("S".to_string(), false),
+            enable: Wire::new("E".to_string(), false),
             bus,
         }
+    }
+
+    fn enable(&mut self) {
+        self.enable.update(true)
+    }
+
+    fn disable(&mut self) {
+        self.enable.update(false)
+    }
+
+    fn set(&mut self) {
+        self.set.update(true)
+    }
+
+    fn unset(&mut self) {
+        self.set.update(false)
+    }
+
+    fn update(&mut self) {
+        self.address_register.update();
+        self.row_decoder.update(
+            self.address_register.bit(0),
+            self.address_register.bit(1),
+            self.address_register.bit(2),
+            self.address_register.bit(3),
+            self.address_register.bit(4),
+            self.address_register.bit(5),
+            self.address_register.bit(6),
+            self.address_register.bit(7),
+        );
+
+        self.col_decoder.update(
+            self.address_register.bit(8),
+            self.address_register.bit(9),
+            self.address_register.bit(10),
+            self.address_register.bit(11),
+            self.address_register.bit(12),
+            self.address_register.bit(13),
+            self.address_register.bit(14),
+            self.address_register.bit(15),
+        );
+
+        let row = self.row_decoder.index();
+        let col = self.col_decoder.index();
+
+        self.data[row][col].update(self.set.get(), self.enable.get())
+    }
+}
+
+impl Display for Memory64K {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut row = self.row_decoder.index();
+        let mut col = self.col_decoder.index();
+        let mut str = String::new();
+
+        str.insert_str(0, "Memory\n--------------------------------------\n");
+        str.insert_str(
+            str.len(),
+            format!(
+                "RD: {}\tCD: {}\tS: {}\tE: {}\t",
+                row,
+                col,
+                self.set.get(),
+                self.enable.get()
+            )
+            .as_str(),
+        );
+
+        for i in 0..256 {
+            for j in 0..256 {
+                let val = self.data[i][j].value.value();
+                str.insert_str(str.len(), format!("0x{:04X}\t", val).as_str());
+            }
+        }
+        str.insert_str(str.len(), "\n");
+
+        write!(f, "{}", str)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::components::Component;
+
+    #[ignore]
+    #[test]
+    fn test_cell() {
+        let bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let mut cell = Cell::new(bus.clone(), bus.clone());
+
+        bus.borrow_mut().set_value(0xFFFF);
+        cell.update(true, true);
+        println!("{:?}", cell.value.value())
+    }
+
+    #[test]
+    fn test_memory_64k_write() {
+        let bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let mut mem = Memory64K::new(bus.clone());
+
+        let mut q: u16 = 0xFFFF;
+        for i in 0x0000..0xFFFF {
+            mem.address_register.set();
+            bus.borrow_mut().set_value(i);
+            mem.update();
+
+            mem.address_register.unset();
+            mem.update();
+
+            bus.borrow_mut().set_value(q);
+            mem.set();
+            mem.update();
+
+            mem.unset();
+            mem.update();
+            q -= 1;
+        }
+        println!("{}", mem);
+
+        let mut expected: u16 = 0xFFFF;
+        for i in 0x0000..0xFFFF {
+            mem.address_register.set();
+            bus.borrow_mut().set_value(i);
+            mem.update();
+
+            mem.address_register.unset();
+            mem.update();
+
+            mem.enable();
+            mem.update();
+
+            mem.disable();
+            mem.update();
+
+            assert_eq!(get_bus_output(bus.clone()), expected);
+            expected -= 1;
+        }
+    }
+
+    fn get_bus_output(bus: Rc<RefCell<Bus>>) -> u16 {
+        let mut result: u16 = 0;
+        for i in (0..BUS_WIDTH).rev() {
+            match bus.borrow().get_output_wire(i) {
+                true => result = result | (1 << i as u16),
+                false => result = result ^ (result & (1 << i as u16)),
+            }
+        }
+        result
     }
 }

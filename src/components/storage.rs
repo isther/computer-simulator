@@ -4,9 +4,9 @@ use std::fmt::Debug;
 use std::rc::Rc;
 
 #[derive(Debug, Clone)]
-struct Bit {
-    gates: [NAND; 4],
-    wire_o: Wire,
+pub struct Bit {
+    pub gates: [NAND; 4],
+    pub wire_o: Wire,
 }
 
 impl Bit {
@@ -26,22 +26,22 @@ impl Bit {
     }
 
     fn update(&mut self, wire_i: bool, wire_s: bool) {
-        (0..2).map(|_| {
+        for _ in 0..2 {
             self.gates[0].update(wire_i, wire_s);
             self.gates[1].update(self.gates[0].get(), wire_s);
             self.gates[2].update(self.gates[0].get(), self.gates[3].get());
             self.gates[3].update(self.gates[2].get(), self.gates[1].get());
             self.wire_o.update(self.gates[2].get());
-        });
+        }
     }
 }
 
 #[derive(Clone)]
 pub struct Bit16 {
     inputs: [Wire; 16],
-    bits: [Bit; 16],
+    pub bits: [Bit; 16],
     outputs: [Wire; 16],
-    next: Option<Rc<RefCell<Box<dyn Component>>>>,
+    next: Option<Rc<RefCell<dyn Component>>>,
 }
 
 //TODO:Debug info
@@ -79,7 +79,7 @@ impl Bit16 {
             self.outputs[i].update(self.bits[i].get());
         }
 
-        match self.next.as_mut() {
+        match &self.next {
             Some(next) => {
                 for i in 0..self.outputs.len() {
                     next.borrow_mut()
@@ -92,7 +92,7 @@ impl Bit16 {
 }
 
 impl Component for Bit16 {
-    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
@@ -100,5 +100,27 @@ impl Component for Bit16 {
     }
     fn get_output_wire(&self, i: i32) -> bool {
         self.outputs[i as usize].get()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bit() {
+        let mut bit = Bit::new();
+
+        bit.update(false, true);
+        assert_eq!(bit.get(), false);
+
+        bit.update(false, false);
+        assert_eq!(bit.get(), false);
+
+        bit.update(true, true);
+        assert_eq!(bit.get(), true);
+
+        bit.update(false, false);
+        assert_eq!(bit.get(), true);
     }
 }

@@ -14,7 +14,7 @@ pub use xor::XOR;
 
 #[derive(Debug, Clone)]
 pub struct Wire {
-    name: String,
+    pub name: String,
     value: bool,
 }
 

@@ -6,9 +6,9 @@ use std::rc::Rc;
 #[derive(Clone)]
 pub struct ANDer {
     inputs: [Wire; (BUS_WIDTH * 2) as usize],
-    gates: [AND; BUS_WIDTH as usize],
+    pub gates: [AND; BUS_WIDTH as usize],
     outputs: [Wire; BUS_WIDTH as usize],
-    next: Option<Rc<RefCell<Box<dyn Component>>>>,
+    next: Option<Rc<RefCell<dyn Component>>>,
 }
 
 impl ANDer {
@@ -50,7 +50,7 @@ impl ANDer {
 }
 
 impl Component for ANDer {
-    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
@@ -65,9 +65,9 @@ impl Component for ANDer {
 #[derive(Clone)]
 pub struct NOTer {
     inputs: [Wire; BUS_WIDTH as usize],
-    gates: [NOT; BUS_WIDTH as usize],
+    pub gates: [NOT; BUS_WIDTH as usize],
     outputs: [Wire; BUS_WIDTH as usize],
-    next: Option<Rc<RefCell<Box<dyn Component>>>>,
+    next: Option<Rc<RefCell<dyn Component>>>,
 }
 
 impl NOTer {
@@ -101,7 +101,7 @@ impl NOTer {
 }
 
 impl Component for NOTer {
-    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
@@ -115,9 +115,9 @@ impl Component for NOTer {
 #[derive(Clone)]
 pub struct ORer {
     inputs: [Wire; (BUS_WIDTH * 2) as usize],
-    gates: [OR; BUS_WIDTH as usize],
+    pub gates: [OR; BUS_WIDTH as usize],
     pub outputs: [Wire; BUS_WIDTH as usize],
-    next: Option<Rc<RefCell<Box<dyn Component>>>>,
+    next: Option<Rc<RefCell<dyn Component>>>,
 }
 
 impl ORer {
@@ -159,7 +159,7 @@ impl ORer {
 }
 
 impl Component for ORer {
-    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
@@ -173,9 +173,9 @@ impl Component for ORer {
 #[derive(Clone)]
 pub struct XORer {
     inputs: [Wire; (BUS_WIDTH * 2) as usize],
-    gates: [XOR; BUS_WIDTH as usize],
+    pub gates: [XOR; BUS_WIDTH as usize],
     outputs: [Wire; BUS_WIDTH as usize],
-    next: Option<Rc<RefCell<Box<dyn Component>>>>,
+    next: Option<Rc<RefCell<dyn Component>>>,
 }
 
 impl XORer {
@@ -217,7 +217,7 @@ impl XORer {
 }
 
 impl Component for XORer {
-    fn connect_output(&mut self, component: Rc<RefCell<Box<dyn Component>>>) {
+    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {

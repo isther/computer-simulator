@@ -2,7 +2,7 @@ use super::Wire;
 
 #[derive(Debug, Clone)]
 pub struct AND {
-    output: Wire,
+    pub output: Wire,
 }
 
 impl AND {

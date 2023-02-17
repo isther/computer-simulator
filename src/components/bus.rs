@@ -7,7 +7,7 @@ use std::rc::Rc;
 #[derive(Clone, Debug)]
 pub struct Bus {
     wires: Box<Vec<Wire>>,
-    width: i32,
+    pub width: i32,
 }
 
 impl Bus {
@@ -37,7 +37,7 @@ impl Bus {
 }
 
 impl Component for Bus {
-    fn connect_output(&mut self, _: Rc<RefCell<Box<dyn Component>>>) {}
+    fn connect_output(&mut self, _: Rc<RefCell<dyn Component>>) {}
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.wires[i as usize].update(value)
     }

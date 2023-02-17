@@ -2,7 +2,7 @@ use super::Wire;
 
 #[derive(Debug)]
 pub struct NOR {
-    output: Wire,
+    pub output: Wire,
 }
 
 impl NOR {
