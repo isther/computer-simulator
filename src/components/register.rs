@@ -7,7 +7,7 @@ pub struct Register {
     pub name: String,
     pub set: Wire,
     pub enable: Wire,
-    pub word: Bit16,
+    pub word: Box<Bit16>,
     pub enabler: Rc<RefCell<Enabler>>,
     pub outputs: [Wire; BUS_WIDTH as usize],
     pub input_bus: Rc<RefCell<Bus>>,
@@ -20,7 +20,7 @@ impl Register {
             name: name.to_string(),
             set: Wire::new("S".to_string(), false),
             enable: Wire::new("E".to_string(), false),
-            word: Bit16::new(),
+            word: Box::new(Bit16::new()),
             enabler: Rc::new(RefCell::new(Enabler::new())),
             outputs: (0..BUS_WIDTH)
                 .map(|_| Wire::new("Z".to_string(), false))
@@ -90,5 +90,133 @@ impl Register {
             x += 1;
         }
         value
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_register_set() {
+        let bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let register = Rc::new(RefCell::new(Register::new(
+            "test",
+            bus.clone(),
+            bus.clone(),
+        )));
+        register.borrow_mut().disable();
+
+        set_bus_value(&mut bus.borrow_mut(), 0x00FF);
+        register.borrow_mut().set();
+        register.borrow_mut().update();
+        assert_eq!(get_component_value(register.borrow().word.as_ref()), 0x00FF);
+
+        set_bus_value(&mut bus.borrow_mut(), 0x0EEE);
+        register.borrow_mut().unset();
+        register.borrow_mut().update();
+        assert_eq!(
+            get_component_value(register.borrow().word.as_ref()),
+            0x00FF,
+            "value should not change"
+        );
+
+        set_bus_value(&mut bus.borrow_mut(), 0xFF00);
+        register.borrow_mut().set();
+        register.borrow_mut().update();
+        assert_eq!(
+            get_component_value(register.borrow().word.as_ref()),
+            0xFF00,
+            "value should change"
+        );
+    }
+
+    #[test]
+    fn test_register_disable_output_zero() {
+        let bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let register = Rc::new(RefCell::new(Register::new(
+            "test",
+            bus.clone(),
+            bus.clone(),
+        )));
+        set_bus_value(&mut bus.borrow_mut(), 0xABCD);
+        register.borrow_mut().set();
+        register.borrow_mut().enable();
+        register.borrow_mut().update();
+
+        register.borrow_mut().disable();
+        register.borrow_mut().update();
+
+        set_bus_value(&mut bus.borrow_mut(), 0x00FF);
+
+        assert_eq!(get_bus_value(&bus.borrow()), 0x00FF);
+        assert_eq!(get_register_output(&register.borrow()), 0x0000);
+    }
+
+    #[test]
+    fn test_register_enable_output() {
+        let bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let register = Rc::new(RefCell::new(Register::new(
+            "test",
+            bus.clone(),
+            bus.clone(),
+        )));
+        set_bus_value(&mut bus.borrow_mut(), 0xABCD);
+        register.borrow_mut().set();
+        register.borrow_mut().disable();
+        register.borrow_mut().update();
+
+        register.borrow_mut().enable();
+        register.borrow_mut().update();
+
+        set_bus_value(&mut bus.borrow_mut(), 0x00FF);
+
+        assert_eq!(get_bus_value(&bus.borrow()), 0x00FF);
+        assert_eq!(get_register_output(&register.borrow()), 0xABCD);
+    }
+
+    fn set_bus_value(b: &mut Bus, value: u16) {
+        for i in (0..BUS_WIDTH).rev() {
+            match value & (1 << i as u16) {
+                0 => b.set_input_wire(i, false),
+                _ => b.set_input_wire(i, true),
+            }
+        }
+    }
+
+    fn get_bus_value(b: &Bus) -> u16 {
+        let mut result: u16 = 0;
+        for i in (0..BUS_WIDTH).rev() {
+            match b.get_output_wire(i) {
+                true => result = result | (1 << i as u16),
+                false => result = result & (result ^ 1 << i as u16),
+            }
+        }
+        result
+    }
+
+    fn get_register_output(b: &Register) -> u16 {
+        let mut result: u16 = 0;
+        for i in (0..BUS_WIDTH).rev() {
+            match b.outputs[i as usize].get() {
+                true => result = result | (1 << i as u16),
+                false => result = result & (result ^ 1 << i as u16),
+            }
+        }
+        result
+    }
+
+    fn get_component_value<T>(component: &T) -> u16
+    where
+        T: Component,
+    {
+        let mut result: u16 = 0;
+        for i in (0..BUS_WIDTH).rev() {
+            match component.get_output_wire(i) {
+                true => result = result | (1 << i as u16),
+                false => result = result & (result ^ 1 << i as u16),
+            }
+        }
+        result
     }
 }

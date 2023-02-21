@@ -262,8 +262,8 @@ impl Decoder8x256 {
         }
     }
 
-    pub fn index(&self) -> usize {
-        self.index as usize
+    pub fn index(&self) -> i32 {
+        self.index
     }
 
     pub fn update(
@@ -309,19 +309,19 @@ impl Decoder8x256 {
 mod tests {
     use super::*;
 
-    fn check_decoder_3x8(input_a: bool, input_b: bool, input_c: bool, ans: i32) {
-        let mut expected: [bool; 16] = [false; 16];
-        expected[ans as usize] = true;
-
-        let mut decoder_3x8 = Decoder3x8::new();
-        decoder_3x8.update(input_a, input_b, input_c);
-        for i in 0..decoder_3x8.outputs.len() {
-            assert_eq!(decoder_3x8.outputs[i].get(), expected[i])
-        }
-    }
-
     #[test]
     fn test_decoder_3x8() {
+        let check_decoder_3x8 = |input_a: bool, input_b: bool, input_c: bool, ans: i32| {
+            let mut expected: [bool; 16] = [false; 16];
+            expected[ans as usize] = true;
+
+            let mut decoder_3x8 = Decoder3x8::new();
+            decoder_3x8.update(input_a, input_b, input_c);
+            for i in 0..decoder_3x8.outputs.len() {
+                assert_eq!(decoder_3x8.outputs[i].get(), expected[i])
+            }
+        };
+
         check_decoder_3x8(false, false, false, 0);
         check_decoder_3x8(false, false, true, 1);
         check_decoder_3x8(false, true, false, 2);
@@ -331,5 +331,313 @@ mod tests {
         check_decoder_3x8(true, false, true, 5);
         check_decoder_3x8(true, true, false, 6);
         check_decoder_3x8(true, true, true, 7);
+    }
+
+    #[test]
+    fn test_decoder_4x16() {
+        let check_decoder_4x16 =
+            |input_a: bool, input_b: bool, input_c: bool, input_d: bool, ans: i32| {
+                let mut expected: [bool; 16] = [false; 16];
+                expected[ans as usize] = true;
+
+                let mut decoder_4x16 = Decoder4x16::new();
+                decoder_4x16.update(input_a, input_b, input_c, input_d);
+                for i in 0..decoder_4x16.outputs.len() {
+                    assert_eq!(decoder_4x16.outputs[i].get(), expected[i])
+                }
+            };
+
+        check_decoder_4x16(false, false, false, false, 0);
+        check_decoder_4x16(false, false, false, true, 1);
+        check_decoder_4x16(false, false, true, false, 2);
+        check_decoder_4x16(false, false, true, true, 3);
+        check_decoder_4x16(false, true, false, false, 4);
+        check_decoder_4x16(false, true, false, true, 5);
+        check_decoder_4x16(false, true, true, false, 6);
+        check_decoder_4x16(false, true, true, true, 7);
+        check_decoder_4x16(true, false, false, false, 8);
+        check_decoder_4x16(true, false, false, true, 9);
+        check_decoder_4x16(true, false, true, false, 10);
+        check_decoder_4x16(true, false, true, true, 11);
+        check_decoder_4x16(true, true, false, false, 12);
+        check_decoder_4x16(true, true, false, true, 13);
+        check_decoder_4x16(true, true, true, false, 14);
+        check_decoder_4x16(true, true, true, true, 15);
+    }
+
+    #[test]
+    fn test_decoder_8x256() {
+        let check_decoder_8x256 = |input_a: bool,
+                                   input_b: bool,
+                                   input_c: bool,
+                                   input_d: bool,
+                                   input_e: bool,
+                                   input_f: bool,
+                                   input_g: bool,
+                                   input_h: bool,
+                                   ans: i32| {
+            let mut decoder_8x256 = Decoder8x256::new();
+            decoder_8x256.update(
+                input_a, input_b, input_c, input_d, input_e, input_f, input_g, input_h,
+            );
+            assert_eq!(decoder_8x256.index(), ans, "err at {}", ans)
+        };
+
+        check_decoder_8x256(false, false, false, false, false, false, false, false, 0);
+        check_decoder_8x256(false, false, false, true, false, false, false, false, 1);
+        check_decoder_8x256(false, false, true, false, false, false, false, false, 2);
+        check_decoder_8x256(false, false, true, true, false, false, false, false, 3);
+        check_decoder_8x256(false, true, false, false, false, false, false, false, 4);
+        check_decoder_8x256(false, true, false, true, false, false, false, false, 5);
+        check_decoder_8x256(false, true, true, false, false, false, false, false, 6);
+        check_decoder_8x256(false, true, true, true, false, false, false, false, 7);
+        check_decoder_8x256(true, false, false, false, false, false, false, false, 8);
+        check_decoder_8x256(true, false, false, true, false, false, false, false, 9);
+        check_decoder_8x256(true, false, true, false, false, false, false, false, 10);
+        check_decoder_8x256(true, false, true, true, false, false, false, false, 11);
+        check_decoder_8x256(true, true, false, false, false, false, false, false, 12);
+        check_decoder_8x256(true, true, false, true, false, false, false, false, 13);
+        check_decoder_8x256(true, true, true, false, false, false, false, false, 14);
+        check_decoder_8x256(true, true, true, true, false, false, false, false, 15);
+        check_decoder_8x256(false, false, false, false, false, false, false, true, 16);
+        check_decoder_8x256(false, false, false, true, false, false, false, true, 17);
+        check_decoder_8x256(false, false, true, false, false, false, false, true, 18);
+        check_decoder_8x256(false, false, true, true, false, false, false, true, 19);
+        check_decoder_8x256(false, true, false, false, false, false, false, true, 20);
+        check_decoder_8x256(false, true, false, true, false, false, false, true, 21);
+        check_decoder_8x256(false, true, true, false, false, false, false, true, 22);
+        check_decoder_8x256(false, true, true, true, false, false, false, true, 23);
+        check_decoder_8x256(true, false, false, false, false, false, false, true, 24);
+        check_decoder_8x256(true, false, false, true, false, false, false, true, 25);
+        check_decoder_8x256(true, false, true, false, false, false, false, true, 26);
+        check_decoder_8x256(true, false, true, true, false, false, false, true, 27);
+        check_decoder_8x256(true, true, false, false, false, false, false, true, 28);
+        check_decoder_8x256(true, true, false, true, false, false, false, true, 29);
+        check_decoder_8x256(true, true, true, false, false, false, false, true, 30);
+        check_decoder_8x256(true, true, true, true, false, false, false, true, 31);
+        check_decoder_8x256(false, false, false, false, false, false, true, false, 32);
+        check_decoder_8x256(false, false, false, true, false, false, true, false, 33);
+        check_decoder_8x256(false, false, true, false, false, false, true, false, 34);
+        check_decoder_8x256(false, false, true, true, false, false, true, false, 35);
+        check_decoder_8x256(false, true, false, false, false, false, true, false, 36);
+        check_decoder_8x256(false, true, false, true, false, false, true, false, 37);
+        check_decoder_8x256(false, true, true, false, false, false, true, false, 38);
+        check_decoder_8x256(false, true, true, true, false, false, true, false, 39);
+        check_decoder_8x256(true, false, false, false, false, false, true, false, 40);
+        check_decoder_8x256(true, false, false, true, false, false, true, false, 41);
+        check_decoder_8x256(true, false, true, false, false, false, true, false, 42);
+        check_decoder_8x256(true, false, true, true, false, false, true, false, 43);
+        check_decoder_8x256(true, true, false, false, false, false, true, false, 44);
+        check_decoder_8x256(true, true, false, true, false, false, true, false, 45);
+        check_decoder_8x256(true, true, true, false, false, false, true, false, 46);
+        check_decoder_8x256(true, true, true, true, false, false, true, false, 47);
+        check_decoder_8x256(false, false, false, false, false, false, true, true, 48);
+        check_decoder_8x256(false, false, false, true, false, false, true, true, 49);
+        check_decoder_8x256(false, false, true, false, false, false, true, true, 50);
+        check_decoder_8x256(false, false, true, true, false, false, true, true, 51);
+        check_decoder_8x256(false, true, false, false, false, false, true, true, 52);
+        check_decoder_8x256(false, true, false, true, false, false, true, true, 53);
+        check_decoder_8x256(false, true, true, false, false, false, true, true, 54);
+        check_decoder_8x256(false, true, true, true, false, false, true, true, 55);
+        check_decoder_8x256(true, false, false, false, false, false, true, true, 56);
+        check_decoder_8x256(true, false, false, true, false, false, true, true, 57);
+        check_decoder_8x256(true, false, true, false, false, false, true, true, 58);
+        check_decoder_8x256(true, false, true, true, false, false, true, true, 59);
+        check_decoder_8x256(true, true, false, false, false, false, true, true, 60);
+        check_decoder_8x256(true, true, false, true, false, false, true, true, 61);
+        check_decoder_8x256(true, true, true, false, false, false, true, true, 62);
+        check_decoder_8x256(true, true, true, true, false, false, true, true, 63);
+        check_decoder_8x256(false, false, false, false, false, true, false, false, 64);
+        check_decoder_8x256(false, false, false, true, false, true, false, false, 65);
+        check_decoder_8x256(false, false, true, false, false, true, false, false, 66);
+        check_decoder_8x256(false, false, true, true, false, true, false, false, 67);
+        check_decoder_8x256(false, true, false, false, false, true, false, false, 68);
+        check_decoder_8x256(false, true, false, true, false, true, false, false, 69);
+        check_decoder_8x256(false, true, true, false, false, true, false, false, 70);
+        check_decoder_8x256(false, true, true, true, false, true, false, false, 71);
+        check_decoder_8x256(true, false, false, false, false, true, false, false, 72);
+        check_decoder_8x256(true, false, false, true, false, true, false, false, 73);
+        check_decoder_8x256(true, false, true, false, false, true, false, false, 74);
+        check_decoder_8x256(true, false, true, true, false, true, false, false, 75);
+        check_decoder_8x256(true, true, false, false, false, true, false, false, 76);
+        check_decoder_8x256(true, true, false, true, false, true, false, false, 77);
+        check_decoder_8x256(true, true, true, false, false, true, false, false, 78);
+        check_decoder_8x256(true, true, true, true, false, true, false, false, 79);
+        check_decoder_8x256(false, false, false, false, false, true, false, true, 80);
+        check_decoder_8x256(false, false, false, true, false, true, false, true, 81);
+        check_decoder_8x256(false, false, true, false, false, true, false, true, 82);
+        check_decoder_8x256(false, false, true, true, false, true, false, true, 83);
+        check_decoder_8x256(false, true, false, false, false, true, false, true, 84);
+        check_decoder_8x256(false, true, false, true, false, true, false, true, 85);
+        check_decoder_8x256(false, true, true, false, false, true, false, true, 86);
+        check_decoder_8x256(false, true, true, true, false, true, false, true, 87);
+        check_decoder_8x256(true, false, false, false, false, true, false, true, 88);
+        check_decoder_8x256(true, false, false, true, false, true, false, true, 89);
+        check_decoder_8x256(true, false, true, false, false, true, false, true, 90);
+        check_decoder_8x256(true, false, true, true, false, true, false, true, 91);
+        check_decoder_8x256(true, true, false, false, false, true, false, true, 92);
+        check_decoder_8x256(true, true, false, true, false, true, false, true, 93);
+        check_decoder_8x256(true, true, true, false, false, true, false, true, 94);
+        check_decoder_8x256(true, true, true, true, false, true, false, true, 95);
+        check_decoder_8x256(false, false, false, false, false, true, true, false, 96);
+        check_decoder_8x256(false, false, false, true, false, true, true, false, 97);
+        check_decoder_8x256(false, false, true, false, false, true, true, false, 98);
+        check_decoder_8x256(false, false, true, true, false, true, true, false, 99);
+        check_decoder_8x256(false, true, false, false, false, true, true, false, 100);
+        check_decoder_8x256(false, true, false, true, false, true, true, false, 101);
+        check_decoder_8x256(false, true, true, false, false, true, true, false, 102);
+        check_decoder_8x256(false, true, true, true, false, true, true, false, 103);
+        check_decoder_8x256(true, false, false, false, false, true, true, false, 104);
+        check_decoder_8x256(true, false, false, true, false, true, true, false, 105);
+        check_decoder_8x256(true, false, true, false, false, true, true, false, 106);
+        check_decoder_8x256(true, false, true, true, false, true, true, false, 107);
+        check_decoder_8x256(true, true, false, false, false, true, true, false, 108);
+        check_decoder_8x256(true, true, false, true, false, true, true, false, 109);
+        check_decoder_8x256(true, true, true, false, false, true, true, false, 110);
+        check_decoder_8x256(true, true, true, true, false, true, true, false, 111);
+        check_decoder_8x256(false, false, false, false, false, true, true, true, 112);
+        check_decoder_8x256(false, false, false, true, false, true, true, true, 113);
+        check_decoder_8x256(false, false, true, false, false, true, true, true, 114);
+        check_decoder_8x256(false, false, true, true, false, true, true, true, 115);
+        check_decoder_8x256(false, true, false, false, false, true, true, true, 116);
+        check_decoder_8x256(false, true, false, true, false, true, true, true, 117);
+        check_decoder_8x256(false, true, true, false, false, true, true, true, 118);
+        check_decoder_8x256(false, true, true, true, false, true, true, true, 119);
+        check_decoder_8x256(true, false, false, false, false, true, true, true, 120);
+        check_decoder_8x256(true, false, false, true, false, true, true, true, 121);
+        check_decoder_8x256(true, false, true, false, false, true, true, true, 122);
+        check_decoder_8x256(true, false, true, true, false, true, true, true, 123);
+        check_decoder_8x256(true, true, false, false, false, true, true, true, 124);
+        check_decoder_8x256(true, true, false, true, false, true, true, true, 125);
+        check_decoder_8x256(true, true, true, false, false, true, true, true, 126);
+        check_decoder_8x256(true, true, true, true, false, true, true, true, 127);
+        check_decoder_8x256(false, false, false, false, true, false, false, false, 128);
+        check_decoder_8x256(false, false, false, true, true, false, false, false, 129);
+        check_decoder_8x256(false, false, true, false, true, false, false, false, 130);
+        check_decoder_8x256(false, false, true, true, true, false, false, false, 131);
+        check_decoder_8x256(false, true, false, false, true, false, false, false, 132);
+        check_decoder_8x256(false, true, false, true, true, false, false, false, 133);
+        check_decoder_8x256(false, true, true, false, true, false, false, false, 134);
+        check_decoder_8x256(false, true, true, true, true, false, false, false, 135);
+        check_decoder_8x256(true, false, false, false, true, false, false, false, 136);
+        check_decoder_8x256(true, false, false, true, true, false, false, false, 137);
+        check_decoder_8x256(true, false, true, false, true, false, false, false, 138);
+        check_decoder_8x256(true, false, true, true, true, false, false, false, 139);
+        check_decoder_8x256(true, true, false, false, true, false, false, false, 140);
+        check_decoder_8x256(true, true, false, true, true, false, false, false, 141);
+        check_decoder_8x256(true, true, true, false, true, false, false, false, 142);
+        check_decoder_8x256(true, true, true, true, true, false, false, false, 143);
+        check_decoder_8x256(false, false, false, false, true, false, false, true, 144);
+        check_decoder_8x256(false, false, false, true, true, false, false, true, 145);
+        check_decoder_8x256(false, false, true, false, true, false, false, true, 146);
+        check_decoder_8x256(false, false, true, true, true, false, false, true, 147);
+        check_decoder_8x256(false, true, false, false, true, false, false, true, 148);
+        check_decoder_8x256(false, true, false, true, true, false, false, true, 149);
+        check_decoder_8x256(false, true, true, false, true, false, false, true, 150);
+        check_decoder_8x256(false, true, true, true, true, false, false, true, 151);
+        check_decoder_8x256(true, false, false, false, true, false, false, true, 152);
+        check_decoder_8x256(true, false, false, true, true, false, false, true, 153);
+        check_decoder_8x256(true, false, true, false, true, false, false, true, 154);
+        check_decoder_8x256(true, false, true, true, true, false, false, true, 155);
+        check_decoder_8x256(true, true, false, false, true, false, false, true, 156);
+        check_decoder_8x256(true, true, false, true, true, false, false, true, 157);
+        check_decoder_8x256(true, true, true, false, true, false, false, true, 158);
+        check_decoder_8x256(true, true, true, true, true, false, false, true, 159);
+        check_decoder_8x256(false, false, false, false, true, false, true, false, 160);
+        check_decoder_8x256(false, false, false, true, true, false, true, false, 161);
+        check_decoder_8x256(false, false, true, false, true, false, true, false, 162);
+        check_decoder_8x256(false, false, true, true, true, false, true, false, 163);
+        check_decoder_8x256(false, true, false, false, true, false, true, false, 164);
+        check_decoder_8x256(false, true, false, true, true, false, true, false, 165);
+        check_decoder_8x256(false, true, true, false, true, false, true, false, 166);
+        check_decoder_8x256(false, true, true, true, true, false, true, false, 167);
+        check_decoder_8x256(true, false, false, false, true, false, true, false, 168);
+        check_decoder_8x256(true, false, false, true, true, false, true, false, 169);
+        check_decoder_8x256(true, false, true, false, true, false, true, false, 170);
+        check_decoder_8x256(true, false, true, true, true, false, true, false, 171);
+        check_decoder_8x256(true, true, false, false, true, false, true, false, 172);
+        check_decoder_8x256(true, true, false, true, true, false, true, false, 173);
+        check_decoder_8x256(true, true, true, false, true, false, true, false, 174);
+        check_decoder_8x256(true, true, true, true, true, false, true, false, 175);
+        check_decoder_8x256(false, false, false, false, true, false, true, true, 176);
+        check_decoder_8x256(false, false, false, true, true, false, true, true, 177);
+        check_decoder_8x256(false, false, true, false, true, false, true, true, 178);
+        check_decoder_8x256(false, false, true, true, true, false, true, true, 179);
+        check_decoder_8x256(false, true, false, false, true, false, true, true, 180);
+        check_decoder_8x256(false, true, false, true, true, false, true, true, 181);
+        check_decoder_8x256(false, true, true, false, true, false, true, true, 182);
+        check_decoder_8x256(false, true, true, true, true, false, true, true, 183);
+        check_decoder_8x256(true, false, false, false, true, false, true, true, 184);
+        check_decoder_8x256(true, false, false, true, true, false, true, true, 185);
+        check_decoder_8x256(true, false, true, false, true, false, true, true, 186);
+        check_decoder_8x256(true, false, true, true, true, false, true, true, 187);
+        check_decoder_8x256(true, true, false, false, true, false, true, true, 188);
+        check_decoder_8x256(true, true, false, true, true, false, true, true, 189);
+        check_decoder_8x256(true, true, true, false, true, false, true, true, 190);
+        check_decoder_8x256(true, true, true, true, true, false, true, true, 191);
+        check_decoder_8x256(false, false, false, false, true, true, false, false, 192);
+        check_decoder_8x256(false, false, false, true, true, true, false, false, 193);
+        check_decoder_8x256(false, false, true, false, true, true, false, false, 194);
+        check_decoder_8x256(false, false, true, true, true, true, false, false, 195);
+        check_decoder_8x256(false, true, false, false, true, true, false, false, 196);
+        check_decoder_8x256(false, true, false, true, true, true, false, false, 197);
+        check_decoder_8x256(false, true, true, false, true, true, false, false, 198);
+        check_decoder_8x256(false, true, true, true, true, true, false, false, 199);
+        check_decoder_8x256(true, false, false, false, true, true, false, false, 200);
+        check_decoder_8x256(true, false, false, true, true, true, false, false, 201);
+        check_decoder_8x256(true, false, true, false, true, true, false, false, 202);
+        check_decoder_8x256(true, false, true, true, true, true, false, false, 203);
+        check_decoder_8x256(true, true, false, false, true, true, false, false, 204);
+        check_decoder_8x256(true, true, false, true, true, true, false, false, 205);
+        check_decoder_8x256(true, true, true, false, true, true, false, false, 206);
+        check_decoder_8x256(true, true, true, true, true, true, false, false, 207);
+        check_decoder_8x256(false, false, false, false, true, true, false, true, 208);
+        check_decoder_8x256(false, false, false, true, true, true, false, true, 209);
+        check_decoder_8x256(false, false, true, false, true, true, false, true, 210);
+        check_decoder_8x256(false, false, true, true, true, true, false, true, 211);
+        check_decoder_8x256(false, true, false, false, true, true, false, true, 212);
+        check_decoder_8x256(false, true, false, true, true, true, false, true, 213);
+        check_decoder_8x256(false, true, true, false, true, true, false, true, 214);
+        check_decoder_8x256(false, true, true, true, true, true, false, true, 215);
+        check_decoder_8x256(true, false, false, false, true, true, false, true, 216);
+        check_decoder_8x256(true, false, false, true, true, true, false, true, 217);
+        check_decoder_8x256(true, false, true, false, true, true, false, true, 218);
+        check_decoder_8x256(true, false, true, true, true, true, false, true, 219);
+        check_decoder_8x256(true, true, false, false, true, true, false, true, 220);
+        check_decoder_8x256(true, true, false, true, true, true, false, true, 221);
+        check_decoder_8x256(true, true, true, false, true, true, false, true, 222);
+        check_decoder_8x256(true, true, true, true, true, true, false, true, 223);
+        check_decoder_8x256(false, false, false, false, true, true, true, false, 224);
+        check_decoder_8x256(false, false, false, true, true, true, true, false, 225);
+        check_decoder_8x256(false, false, true, false, true, true, true, false, 226);
+        check_decoder_8x256(false, false, true, true, true, true, true, false, 227);
+        check_decoder_8x256(false, true, false, false, true, true, true, false, 228);
+        check_decoder_8x256(false, true, false, true, true, true, true, false, 229);
+        check_decoder_8x256(false, true, true, false, true, true, true, false, 230);
+        check_decoder_8x256(false, true, true, true, true, true, true, false, 231);
+        check_decoder_8x256(true, false, false, false, true, true, true, false, 232);
+        check_decoder_8x256(true, false, false, true, true, true, true, false, 233);
+        check_decoder_8x256(true, false, true, false, true, true, true, false, 234);
+        check_decoder_8x256(true, false, true, true, true, true, true, false, 235);
+        check_decoder_8x256(true, true, false, false, true, true, true, false, 236);
+        check_decoder_8x256(true, true, false, true, true, true, true, false, 237);
+        check_decoder_8x256(true, true, true, false, true, true, true, false, 238);
+        check_decoder_8x256(true, true, true, true, true, true, true, false, 239);
+        check_decoder_8x256(false, false, false, false, true, true, true, true, 240);
+        check_decoder_8x256(false, false, false, true, true, true, true, true, 241);
+        check_decoder_8x256(false, false, true, false, true, true, true, true, 242);
+        check_decoder_8x256(false, false, true, true, true, true, true, true, 243);
+        check_decoder_8x256(false, true, false, false, true, true, true, true, 244);
+        check_decoder_8x256(false, true, false, true, true, true, true, true, 245);
+        check_decoder_8x256(false, true, true, false, true, true, true, true, 246);
+        check_decoder_8x256(false, true, true, true, true, true, true, true, 247);
+        check_decoder_8x256(true, false, false, false, true, true, true, true, 248);
+        check_decoder_8x256(true, false, false, true, true, true, true, true, 249);
+        check_decoder_8x256(true, false, true, false, true, true, true, true, 250);
+        check_decoder_8x256(true, false, true, true, true, true, true, true, 251);
+        check_decoder_8x256(true, true, false, false, true, true, true, true, 252);
+        check_decoder_8x256(true, true, false, true, true, true, true, true, 253);
+        check_decoder_8x256(true, true, true, false, true, true, true, true, 254);
+        check_decoder_8x256(true, true, true, true, true, true, true, true, 255);
     }
 }

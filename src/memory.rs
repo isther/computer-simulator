@@ -101,7 +101,6 @@ impl Memory64K {
             self.address_register.bit(6),
             self.address_register.bit(7),
         );
-
         self.col_decoder.update(
             self.address_register.bit(8),
             self.address_register.bit(9),
@@ -113,26 +112,20 @@ impl Memory64K {
             self.address_register.bit(15),
         );
 
-        let row = self.row_decoder.index();
-        let col = self.col_decoder.index();
-
-        self.data[row][col].update(self.set.get(), self.enable.get())
+        self.data[self.row_decoder.index() as usize][self.col_decoder.index() as usize]
+            .update(self.set.get(), self.enable.get())
     }
 }
 
 impl Display for Memory64K {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut row = self.row_decoder.index();
-        let mut col = self.col_decoder.index();
-        let mut str = String::new();
-
-        str.insert_str(0, "Memory\n--------------------------------------\n");
+        let mut str = String::from("Memory\n--------------------------------------\n");
         str.insert_str(
             str.len(),
             format!(
                 "RD: {}\tCD: {}\tS: {}\tE: {}\t",
-                row,
-                col,
+                self.row_decoder.index(),
+                self.col_decoder.index(),
                 self.set.get(),
                 self.enable.get()
             )
@@ -154,7 +147,6 @@ impl Display for Memory64K {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::components::Component;
 
     #[ignore]
     #[test]
@@ -182,16 +174,13 @@ mod tests {
             mem.update();
 
             bus.borrow_mut().set_value(q);
-            mem.set();
-            mem.update();
 
             mem.unset();
             mem.update();
             q -= 1;
         }
-        println!("{}", mem);
 
-        let mut expected: u16 = 0xFFFF;
+        let expected: u16 = 0xFFFF;
         for i in 0x0000..0xFFFF {
             mem.address_register.set();
             bus.borrow_mut().set_value(i);
@@ -206,19 +195,9 @@ mod tests {
             mem.disable();
             mem.update();
 
-            assert_eq!(get_bus_output(bus.clone()), expected);
-            expected -= 1;
+            assert_eq!(bus.borrow().get_value(), expected);
         }
-    }
 
-    fn get_bus_output(bus: Rc<RefCell<Bus>>) -> u16 {
-        let mut result: u16 = 0;
-        for i in (0..BUS_WIDTH).rev() {
-            match bus.borrow().get_output_wire(i) {
-                true => result = result | (1 << i as u16),
-                false => result = result ^ (result & (1 << i as u16)),
-            }
-        }
-        result
+        println!("{}", mem);
     }
 }

@@ -34,6 +34,19 @@ impl Bus {
             x += 1;
         }
     }
+
+    pub fn get_value(&self) -> u16 {
+        let mut x: u16 = 0;
+        let mut result: u16 = 0;
+        for i in (0..self.wires.len()).rev() {
+            match self.get_output_wire(i as i32) {
+                true => result = result | (1 << x),
+                false => result = result & (result ^ (1 << x)),
+            };
+            x += 1;
+        }
+        result
+    }
 }
 
 impl Component for Bus {
@@ -53,5 +66,26 @@ impl Display for Bus {
             "bus: {}",
             String::from_iter(self.wires.iter().map(|v| format!("{}", v.get() as u32))),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::components::BUS_WIDTH;
+
+    #[test]
+    fn test_bus() {
+        let test_one_bus = |input: u16, ans: u16| {
+            let mut bus = Bus::new(BUS_WIDTH);
+            bus.set_value(input);
+
+            assert_eq!(bus.get_value(), ans)
+        };
+
+        test_one_bus(0x0000, 0x0000);
+        test_one_bus(0x00FF, 0x00FF);
+        test_one_bus(0xFF00, 0xFF00);
+        test_one_bus(0xFFFF, 0xFFFF);
     }
 }
