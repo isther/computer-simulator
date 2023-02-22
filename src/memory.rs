@@ -148,7 +148,6 @@ impl Display for Memory64K {
 mod tests {
     use super::*;
 
-    #[ignore]
     #[test]
     fn test_cell() {
         let bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));

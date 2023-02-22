@@ -303,6 +303,7 @@ impl From<Operation> for i32 {
 
 #[cfg(test)]
 mod tests {
+    //TODO:Alu test
     use super::*;
     use std::cell::RefCell;
     use std::rc::Rc;
@@ -320,6 +321,57 @@ mod tests {
         op_test(o, 0x0000, 0x0000, true, 0x0001, true, false, false, false);
         op_test(o, 0x0001, 0x0001, true, 0x0003, true, false, false, false);
         op_test(o, 0xFFFF, 0x0000, true, 0x0000, false, true, true, true);
+    }
+
+    #[test]
+    fn test_alu_shr() {
+        let o = Operation::SHR;
+        let mut i: u16 = 0x8000;
+        while i > 1 {
+            op_test(o, i, i, false, i / 2, true, false, false, false);
+            op_test(o, i, 0x00, false, i / 2, false, true, false, false);
+            i /= 2;
+        }
+        op_test(o, 0x0000, 0x0000, false, 0x0000, true, false, false, true);
+        op_test(o, 0x0056, 0x0056, false, 0x002B, true, false, false, false);
+        op_test(o, 0x0004, 0x0001, false, 0x0002, false, true, false, false);
+        op_test(o, 0x0072, 0x0000, false, 0x0039, false, true, false, false);
+
+        op_test(o, 0x00A1, 0x0000, false, 0x0050, false, true, true, false);
+
+        op_test(o, 0x4A00, 0x0001, true, 0xA500, false, true, false, false);
+
+        op_test(o, 0x0000, 0x0005, false, 0x0000, false, false, false, true);
+    }
+
+    #[test]
+    fn test_alu_shl() {
+        todo!()
+    }
+
+    #[test]
+    fn test_alu_not() {
+        todo!()
+    }
+
+    #[test]
+    fn test_alu_and() {
+        todo!()
+    }
+
+    #[test]
+    fn test_alu_or() {
+        todo!()
+    }
+
+    #[test]
+    fn test_alu_xor() {
+        todo!()
+    }
+
+    #[test]
+    fn test_alu_cmp() {
+        todo!()
     }
 
     fn op_test(
@@ -384,16 +436,6 @@ mod tests {
             "zero: {} expected: {}",
             zero, expected_zero
         );
-    }
-
-    #[test]
-    fn test_alu_shr() {
-        todo!()
-    }
-
-    #[test]
-    fn test_alu_shl() {
-        todo!()
     }
 
     fn set_operation(alu: &mut ALU, vlaue: u16) {

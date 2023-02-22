@@ -156,13 +156,26 @@ impl Compare2 {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn test_comparator() {
-        todo!()
-    }
+    use super::*;
+    use crate::components::set_component_value_32;
 
     #[test]
-    fn test_compare2() {
-        todo!()
+    fn test_comparator() {
+        let test_comparator =
+            |input_a: i32, input_b: i32, expected_is_equal: bool, expected_is_larger: bool| {
+                let mut comparator = Box::new(Comparator::new());
+                set_component_value_32(comparator.as_mut(), input_a, input_b);
+
+                comparator.update();
+
+                assert_eq!(comparator.equal(), expected_is_equal);
+                assert_eq!(comparator.larger(), expected_is_larger);
+            };
+
+        test_comparator(0, 0, true, false);
+        test_comparator(1, 0, false, true);
+        test_comparator(0, 1, false, false);
+        test_comparator(0xFFFF, 0xFFFF, true, false);
+        test_comparator(0xFF00, 0x00FF, false, true);
     }
 }

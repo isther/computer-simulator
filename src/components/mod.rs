@@ -82,7 +82,7 @@ where
     set_input_value(c, input_b, 32, 16);
 }
 
-fn get_output_value<T>(c: &mut T, output_bits: i32) -> i32
+fn get_output_value<T>(c: &T, output_bits: i32) -> i32
 where
     T: Component,
 {
@@ -257,8 +257,8 @@ impl RightShifter {
 
     pub fn update(&mut self, shift_in: bool) {
         self.shift_in.update(shift_in);
-        self.outputs[0].update(self.shift_in.get());
 
+        self.outputs[0].update(self.shift_in.get());
         for i in 1..self.outputs.len() {
             self.outputs[i].update(self.inputs[i - 1].get());
         }
@@ -341,23 +341,101 @@ impl Component for IsZero {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
     fn test_enabler() {
-        todo!()
+        let mut enabler = Enabler::new();
+        for i in 0..enabler.inputs.len() {
+            enabler.set_input_wire(i as i32, true);
+        }
+
+        enabler.update(false);
+        for i in 0..enabler.outputs.len() {
+            assert_eq!(enabler.get_output_wire(i as i32), false);
+        }
+
+        enabler.update(true);
+        for i in 0..enabler.outputs.len() {
+            assert_eq!(enabler.get_output_wire(i as i32), true);
+        }
     }
 
     #[test]
     fn test_left_shifter() {
-        todo!()
+        let test_left_shifter =
+            |input: i32, shift_in: bool, expected_output: i32, expected_shift_out: bool| {
+                let mut left_shifter = Box::new(LeftShifter::new());
+                set_component_value_16(left_shifter.as_mut(), input);
+                left_shifter.update(shift_in);
+                assert_eq!(
+                    get_output_value(left_shifter.as_ref(), BUS_WIDTH),
+                    expected_output,
+                );
+                assert_eq!(left_shifter.shift_out.get(), expected_shift_out);
+            };
+        for i in 0..0x7FFF {
+            test_left_shifter(i, false, i * 2, false);
+        }
+
+        test_left_shifter(0, false, 0, false);
+        test_left_shifter(0x8000, false, 0, true);
+        test_left_shifter(0xEEEF, false, 0xDDDE, true);
+        test_left_shifter(0xFFFF, false, 0xFFFE, true);
+        test_left_shifter(0x0000, true, 0x0001, false);
+        test_left_shifter(0x8000, true, 0x0001, true);
     }
 
     #[test]
     fn test_right_shifter() {
-        todo!()
+        let test_right_shifter =
+            |input: i32, shift_in: bool, expected_output: i32, expected_shift_out: bool| {
+                let mut right_shifter = Box::new(RightShifter::new());
+                set_component_value_16(right_shifter.as_mut(), input);
+                right_shifter.update(shift_in);
+                assert_eq!(
+                    get_output_value(right_shifter.as_ref(), BUS_WIDTH),
+                    expected_output,
+                );
+                assert_eq!(right_shifter.shift_out.get(), expected_shift_out);
+            };
+        let mut i: i32 = 0x8000;
+        while i > 1 {
+            test_right_shifter(i, false, i / 2, false);
+            i /= 2;
+        }
+
+        test_right_shifter(0, false, 0, false);
+        test_right_shifter(0x0001, false, 0x0000, true);
+        test_right_shifter(0x8000, false, 0x4000, false);
+        test_right_shifter(0xEEEF, false, 0x7777, true);
+        test_right_shifter(0xFFFF, false, 0x7FFF, true);
+        test_right_shifter(0x0000, true, 0x8000, false);
+        test_right_shifter(0x8000, true, 0xC000, false);
+        test_right_shifter(0x4AAA, true, 0xA555, false);
     }
 
     #[test]
     fn test_is_zero() {
-        todo!()
+        let mut is_zero = IsZero::new();
+
+        for i in 0..BUS_WIDTH {
+            is_zero.set_input_wire(i, false);
+        }
+        is_zero.update();
+        assert_eq!(is_zero.output.get(), true);
+
+        for i in 0..BUS_WIDTH {
+            is_zero.set_input_wire(i, true);
+        }
+        is_zero.update();
+        assert_eq!(is_zero.output.get(), false);
+
+        for i in 0..BUS_WIDTH {
+            let mut is_zero = IsZero::new();
+            is_zero.set_input_wire(i, true);
+            is_zero.update();
+            assert_eq!(is_zero.output.get(), false);
+        }
     }
 }
