@@ -346,32 +346,80 @@ mod tests {
 
     #[test]
     fn test_alu_shl() {
-        todo!()
+        let o = Operation::SHL;
+        let mut i: u16 = 1;
+        while i < 0x7FFF {
+            op_test(o, i, i, false, i * 2, true, false, false, false);
+            op_test(o, i, 0x00, false, i * 2, false, true, false, false);
+            i *= 2;
+        }
+
+        op_test(o, 0x0000, 0x0000, false, 0x0000, true, false, false, true);
+        op_test(o, 0x0059, 0x0059, false, 0x00B2, true, false, false, false);
+        op_test(o, 0x0004, 0x0001, false, 0x0008, false, true, false, false);
+
+        op_test(o, 0x0073, 0x0000, false, 0x00E6, false, true, false, false);
+
+        op_test(o, 0xAA00, 0x0001, false, 0x5400, false, true, true, false);
+
+        op_test(o, 0x004A, 0x0001, true, 0x0095, false, true, false, false);
+
+        op_test(o, 0x0000, 0x0005, false, 0x0000, false, false, false, true);
     }
 
     #[test]
     fn test_alu_not() {
-        todo!()
+        let o = Operation::NOT;
+        op_test(o, 0x0000, 0x0000, false, 0xFFFF, true, false, false, false);
+        op_test(o, 0x00FF, 0x0000, false, 0xFF00, false, true, false, false);
+        op_test(o, 0xFFFF, 0x0000, false, 0x0000, false, true, false, true);
+        op_test(o, 0xFFFF, 0x00FF, false, 0x0000, false, true, false, true);
+        op_test(o, 0xFFFF, 0x00FF, true, 0x0000, false, true, false, true);
+        op_test(o, 0xA9A9, 0x5757, true, 0x5656, false, true, false, false);
     }
 
     #[test]
     fn test_alu_and() {
-        todo!()
+        let o = Operation::AND;
+        op_test(o, 0x0000, 0x0000, false, 0x0000, true, false, false, true);
+        op_test(o, 0x00FF, 0x0000, false, 0x0000, false, true, false, true);
+        op_test(o, 0xFFFF, 0x0000, false, 0x0000, false, true, false, true);
+        op_test(o, 0xFFFF, 0x00FF, false, 0x00FF, false, true, false, false);
+        op_test(o, 0xFFFF, 0x00FF, true, 0x00FF, false, true, false, false);
+        op_test(o, 0xA9A9, 0x5757, true, 0x0101, false, true, false, false);
     }
 
     #[test]
     fn test_alu_or() {
-        todo!()
+        let o = Operation::OR;
+        op_test(o, 0x0000, 0x0000, false, 0x0000, true, false, false, true);
+        op_test(o, 0x00FF, 0x0000, false, 0x00FF, false, true, false, false);
+        op_test(o, 0xFFFF, 0x0000, false, 0xFFFF, false, true, false, false);
+        op_test(o, 0xFFFF, 0x00FF, false, 0xFFFF, false, true, false, false);
+        op_test(o, 0xFFFF, 0x00FF, true, 0xFFFF, false, true, false, false);
+        op_test(o, 0xA9A9, 0x5757, true, 0xFFFF, false, true, false, false);
     }
 
     #[test]
     fn test_alu_xor() {
-        todo!()
+        let o = Operation::XOR;
+        op_test(o, 0x0000, 0x0000, false, 0x0000, true, false, false, true);
+        op_test(o, 0x00FF, 0x0000, false, 0x00FF, false, true, false, false);
+        op_test(o, 0xFFFF, 0x0000, false, 0xFFFF, false, true, false, false);
+        op_test(o, 0xFFFF, 0x00FF, false, 0xFF00, false, true, false, false);
+        op_test(o, 0xFFFF, 0x00FF, true, 0xFF00, false, true, false, false);
+        op_test(o, 0xA9A9, 0x5757, true, 0xFEFE, false, true, false, false);
     }
 
     #[test]
     fn test_alu_cmp() {
-        todo!()
+        let o = Operation::CMP;
+        op_test(o, 0x0000, 0x0000, false, 0x0000, true, false, false, false);
+        op_test(o, 0x00FF, 0x0000, false, 0x0000, false, true, false, false);
+        op_test(o, 0xFFFF, 0x0000, false, 0x0000, false, true, false, false);
+        op_test(o, 0xFFFF, 0x00FF, false, 0x0000, false, true, false, false);
+        op_test(o, 0xFFFF, 0x00FF, true, 0x0000, false, true, false, false);
+        op_test(o, 0xA9A9, 0x5757, true, 0x0000, false, true, false, false);
     }
 
     fn op_test(
