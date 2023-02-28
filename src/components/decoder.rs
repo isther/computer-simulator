@@ -1,5 +1,61 @@
 use super::{ANDGate3, ANDGate4};
-use crate::gates::{Wire, NOT};
+use crate::gates::{Wire, AND, NOT};
+
+#[derive(Debug)]
+pub struct Decoder2x4 {
+    input_a: Wire,
+    input_b: Wire,
+
+    not_gates: [NOT; 2],
+    and_gates: [AND; 4],
+    outputs: [Wire; 4],
+}
+
+impl Decoder2x4 {
+    pub fn new() -> Self {
+        Self {
+            input_a: Wire::new("Z".to_string(), false),
+            input_b: Wire::new("Z".to_string(), false),
+            not_gates: (0..2)
+                .map(|_| NOT::new())
+                .collect::<Vec<NOT>>()
+                .try_into()
+                .unwrap(),
+            and_gates: (0..4)
+                .map(|_| AND::new())
+                .collect::<Vec<AND>>()
+                .try_into()
+                .unwrap(),
+            outputs: (0..4)
+                .map(|_| Wire::new("Z".to_string(), false))
+                .collect::<Vec<Wire>>()
+                .try_into()
+                .unwrap(),
+        }
+    }
+
+    pub fn get_output_wire(&self, index: i32) -> bool {
+        self.outputs[index as usize].get()
+    }
+
+    pub fn update(&mut self, input_a: bool, input_b: bool) {
+        self.input_a.update(input_a);
+        self.input_b.update(input_b);
+
+        self.not_gates[0].update(self.input_a.get());
+        self.not_gates[1].update(self.input_b.get());
+
+        self.and_gates[0].update(self.not_gates[0].get(), self.not_gates[1].get());
+        self.and_gates[1].update(self.not_gates[0].get(), self.input_b.get());
+        self.and_gates[2].update(self.input_a.get(), self.not_gates[1].get());
+        self.and_gates[3].update(self.input_a.get(), self.input_b.get());
+
+        for i in 0..self.outputs.len() {
+            self.outputs[i].update(self.and_gates[i].get());
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Decoder3x8 {
     pub input_a: Wire,

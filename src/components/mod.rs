@@ -1,27 +1,47 @@
-use crate::gates::{Wire, AND, NAND, NOT};
+use crate::gates::{Wire, AND, NAND, NOT, OR};
 use std::cell::RefCell;
 use std::fmt::Debug;
 use std::rc::Rc;
 
 mod adder;
 mod bus;
+mod busone;
 mod comparator;
 mod decoder;
 mod gaters;
 mod gates;
+mod iobus;
 mod register;
+mod stepper;
 mod storage;
 
 pub use adder::Adder;
 pub use bus::Bus;
+pub use busone::BusOne;
 pub use comparator::Comparator;
-pub use decoder::{Decoder3x8, Decoder8x256};
+pub use decoder::{Decoder2x4, Decoder3x8, Decoder8x256};
 pub use gaters::{ANDer, NOTer, ORer, XORer};
-pub use gates::{ANDGate3, ANDGate4};
+pub use gates::{ANDGate3, ANDGate4, ANDGate8, ORGate3, ORGate4, ORGate5, ORGate6};
+pub use iobus::{IOBus, Mode};
 pub use register::Register;
-pub use storage::Bit16;
+pub use stepper::Stepper;
+pub use storage::{Bit, Word};
 
 pub const BUS_WIDTH: i32 = 16;
+
+pub trait Enableable {
+    fn enable(&mut self);
+    fn disable(&mut self);
+}
+
+pub trait Settable {
+    fn set(&mut self);
+    fn unset(&mut self);
+}
+
+pub trait Updatable {
+    fn update(&mut self);
+}
 
 pub trait Component: ComponentClone {
     fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>);

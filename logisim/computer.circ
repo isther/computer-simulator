@@ -64,19 +64,59 @@
     <wire from="(170,190)" to="(280,190)"/>
     <wire from="(430,210)" to="(500,210)"/>
     <wire from="(330,210)" to="(400,210)"/>
+    <comp lib="1" loc="(330,210)" name="AND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="0" loc="(170,230)" name="Pin">
+      <a name="tristate" val="false"/>
+    </comp>
     <comp lib="0" loc="(170,190)" name="Pin">
       <a name="tristate" val="false"/>
     </comp>
+    <comp lib="1" loc="(430,210)" name="NOT Gate"/>
     <comp lib="0" loc="(500,210)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="labelloc" val="east"/>
     </comp>
-    <comp lib="1" loc="(330,210)" name="AND Gate">
+  </circuit>
+  <circuit name="Half_Adder">
+    <a name="circuit" val="Half_Adder"/>
+    <a name="clabel" val=""/>
+    <a name="clabelup" val="east"/>
+    <a name="clabelfont" val="SansSerif plain 12"/>
+    <wire from="(300,290)" to="(360,290)"/>
+    <wire from="(420,310)" to="(480,310)"/>
+    <wire from="(420,400)" to="(480,400)"/>
+    <wire from="(180,290)" to="(300,290)"/>
+    <wire from="(250,420)" to="(370,420)"/>
+    <wire from="(250,330)" to="(360,330)"/>
+    <wire from="(180,330)" to="(250,330)"/>
+    <wire from="(250,330)" to="(250,420)"/>
+    <wire from="(300,290)" to="(300,380)"/>
+    <wire from="(300,380)" to="(370,380)"/>
+    <comp lib="1" loc="(420,400)" name="AND Gate">
       <a name="inputs" val="2"/>
     </comp>
-    <comp lib="1" loc="(430,210)" name="NOT Gate"/>
-    <comp lib="0" loc="(170,230)" name="Pin">
+    <comp lib="0" loc="(480,310)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="tristate" val="false"/>
+      <a name="labelloc" val="east"/>
+    </comp>
+    <comp lib="0" loc="(480,400)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="tristate" val="false"/>
+      <a name="labelloc" val="east"/>
+    </comp>
+    <comp lib="0" loc="(180,290)" name="Pin">
+      <a name="tristate" val="false"/>
+    </comp>
+    <comp lib="1" loc="(420,310)" name="XOR Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="0" loc="(180,330)" name="Pin">
       <a name="tristate" val="false"/>
     </comp>
   </circuit>
@@ -88,49 +128,51 @@
     <wire from="(220,260)" to="(250,260)"/>
     <wire from="(350,280)" to="(350,350)"/>
     <wire from="(380,240)" to="(380,310)"/>
-    <wire from="(250,260)" to="(250,420)"/>
-    <wire from="(280,220)" to="(280,380)"/>
-    <wire from="(470,340)" to="(500,340)"/>
-    <wire from="(470,380)" to="(500,380)"/>
     <wire from="(220,220)" to="(280,220)"/>
     <wire from="(280,220)" to="(300,220)"/>
+    <wire from="(280,220)" to="(280,360)"/>
+    <wire from="(450,330)" to="(500,330)"/>
     <wire from="(380,310)" to="(400,310)"/>
     <wire from="(360,240)" to="(380,240)"/>
-    <wire from="(450,330)" to="(470,330)"/>
-    <wire from="(550,360)" to="(580,360)"/>
+    <wire from="(450,380)" to="(500,380)"/>
     <wire from="(550,260)" to="(580,260)"/>
+    <wire from="(550,350)" to="(580,350)"/>
     <wire from="(350,350)" to="(400,350)"/>
-    <wire from="(450,400)" to="(470,400)"/>
-    <wire from="(280,380)" to="(400,380)"/>
+    <wire from="(280,360)" to="(400,360)"/>
     <wire from="(250,260)" to="(300,260)"/>
-    <wire from="(470,330)" to="(470,340)"/>
+    <wire from="(500,370)" to="(500,380)"/>
     <wire from="(170,280)" to="(350,280)"/>
-    <wire from="(250,420)" to="(400,420)"/>
+    <wire from="(250,400)" to="(400,400)"/>
+    <wire from="(250,260)" to="(250,400)"/>
     <wire from="(350,280)" to="(490,280)"/>
-    <wire from="(470,380)" to="(470,400)"/>
     <wire from="(380,240)" to="(490,240)"/>
-    <comp lib="0" loc="(170,280)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="CarryIn"/>
-    </comp>
-    <comp lib="0" loc="(220,220)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="A"/>
-    </comp>
-    <comp lib="0" loc="(220,260)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="B"/>
-    </comp>
-    <comp lib="1" loc="(550,360)" name="OR Gate">
+    <comp lib="1" loc="(450,380)" name="AND Gate">
       <a name="inputs" val="2"/>
     </comp>
     <comp lib="1" loc="(450,330)" name="AND Gate">
       <a name="inputs" val="2"/>
     </comp>
+    <comp lib="0" loc="(580,350)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="tristate" val="false"/>
+      <a name="labelloc" val="east"/>
+    </comp>
+    <comp lib="0" loc="(170,280)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="CarryIn"/>
+    </comp>
     <comp lib="1" loc="(360,240)" name="XOR Gate">
       <a name="inputs" val="2"/>
     </comp>
-    <comp lib="1" loc="(450,400)" name="AND Gate">
+    <comp lib="1" loc="(550,350)" name="OR Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="0" loc="(220,260)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="B"/>
+    </comp>
+    <comp lib="1" loc="(550,260)" name="XOR Gate">
       <a name="inputs" val="2"/>
     </comp>
     <comp lib="0" loc="(580,260)" name="Pin">
@@ -139,14 +181,9 @@
       <a name="tristate" val="false"/>
       <a name="labelloc" val="east"/>
     </comp>
-    <comp lib="0" loc="(580,360)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
+    <comp lib="0" loc="(220,220)" name="Pin">
       <a name="tristate" val="false"/>
-      <a name="labelloc" val="east"/>
-    </comp>
-    <comp lib="1" loc="(550,260)" name="XOR Gate">
-      <a name="inputs" val="2"/>
+      <a name="label" val="A"/>
     </comp>
   </circuit>
   <circuit name="Comparator">
@@ -173,31 +210,30 @@
     <wire from="(450,100)" to="(450,320)"/>
     <wire from="(300,130)" to="(340,130)"/>
     <wire from="(190,210)" to="(320,210)"/>
+    <comp lib="1" loc="(430,370)" name="OR Gate">
+      <a name="facing" val="south"/>
+      <a name="inputs" val="2"/>
+    </comp>
     <comp lib="1" loc="(170,210)" name="XOR Gate">
       <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="0" loc="(80,230)" name="Pin">
-      <a name="tristate" val="false"/>
-    </comp>
-    <comp lib="0" loc="(280,390)" name="Pin">
-      <a name="facing" val="north"/>
-      <a name="output" val="true"/>
-      <a name="labelloc" val="east"/>
-    </comp>
-    <comp lib="1" loc="(390,150)" name="AND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="0" loc="(80,190)" name="Pin">
-      <a name="tristate" val="false"/>
     </comp>
     <comp lib="0" loc="(430,390)" name="Pin">
       <a name="facing" val="north"/>
       <a name="output" val="true"/>
       <a name="labelloc" val="east"/>
     </comp>
-    <comp lib="1" loc="(280,370)" name="AND Gate">
-      <a name="facing" val="south"/>
+    <comp lib="0" loc="(80,190)" name="Pin">
+      <a name="tristate" val="false"/>
+    </comp>
+    <comp lib="0" loc="(80,230)" name="Pin">
+      <a name="tristate" val="false"/>
+    </comp>
+    <comp lib="1" loc="(390,150)" name="AND Gate">
       <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="0" loc="(300,100)" name="Pin">
+      <a name="facing" val="south"/>
+      <a name="tristate" val="false"/>
     </comp>
     <comp lib="0" loc="(450,100)" name="Pin">
       <a name="facing" val="south"/>
@@ -208,14 +244,15 @@
       <a name="output" val="true"/>
       <a name="labelloc" val="east"/>
     </comp>
-    <comp lib="1" loc="(430,370)" name="OR Gate">
+    <comp lib="1" loc="(240,260)" name="NOT Gate"/>
+    <comp lib="1" loc="(280,370)" name="AND Gate">
       <a name="facing" val="south"/>
       <a name="inputs" val="2"/>
     </comp>
-    <comp lib="1" loc="(240,260)" name="NOT Gate"/>
-    <comp lib="0" loc="(300,100)" name="Pin">
-      <a name="facing" val="south"/>
-      <a name="tristate" val="false"/>
+    <comp lib="0" loc="(280,390)" name="Pin">
+      <a name="facing" val="north"/>
+      <a name="output" val="true"/>
+      <a name="labelloc" val="east"/>
     </comp>
   </circuit>
   <circuit name="L_8_bit_NOT">
@@ -270,6 +307,20 @@
     <wire from="(420,240)" to="(490,240)"/>
     <wire from="(320,240)" to="(390,240)"/>
     <wire from="(320,450)" to="(390,450)"/>
+    <comp lib="0" loc="(270,220)" name="Pin">
+      <a name="width" val="8"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="Input"/>
+      <a name="labelfont" val="SansSerif plain 20"/>
+    </comp>
+    <comp lib="1" loc="(420,260)" name="NOT Gate"/>
+    <comp lib="1" loc="(420,220)" name="NOT Gate"/>
+    <comp lib="1" loc="(420,240)" name="NOT Gate"/>
+    <comp lib="1" loc="(420,470)" name="NOT Gate"/>
+    <comp lib="1" loc="(420,450)" name="NOT Gate"/>
+    <comp lib="1" loc="(420,280)" name="NOT Gate"/>
+    <comp lib="1" loc="(420,410)" name="NOT Gate"/>
+    <comp lib="1" loc="(420,430)" name="NOT Gate"/>
     <comp lib="0" loc="(560,300)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
@@ -279,30 +330,16 @@
       <a name="labelloc" val="east"/>
       <a name="labelfont" val="SansSerif plain 20"/>
     </comp>
-    <comp lib="1" loc="(420,410)" name="NOT Gate"/>
-    <comp lib="1" loc="(420,450)" name="NOT Gate"/>
-    <comp lib="1" loc="(420,280)" name="NOT Gate"/>
-    <comp lib="0" loc="(520,300)" name="Splitter">
-      <a name="facing" val="west"/>
-      <a name="fanout" val="8"/>
-      <a name="incoming" val="8"/>
-    </comp>
-    <comp lib="1" loc="(420,470)" name="NOT Gate"/>
-    <comp lib="1" loc="(420,260)" name="NOT Gate"/>
-    <comp lib="0" loc="(270,220)" name="Pin">
-      <a name="width" val="8"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="Input"/>
-      <a name="labelfont" val="SansSerif plain 20"/>
-    </comp>
     <comp lib="0" loc="(290,300)" name="Splitter">
       <a name="fanout" val="8"/>
       <a name="incoming" val="8"/>
       <a name="appear" val="right"/>
     </comp>
-    <comp lib="1" loc="(420,220)" name="NOT Gate"/>
-    <comp lib="1" loc="(420,430)" name="NOT Gate"/>
-    <comp lib="1" loc="(420,240)" name="NOT Gate"/>
+    <comp lib="0" loc="(520,300)" name="Splitter">
+      <a name="facing" val="west"/>
+      <a name="fanout" val="8"/>
+      <a name="incoming" val="8"/>
+    </comp>
   </circuit>
   <circuit name="L_8_bit_OR">
     <a name="circuit" val="L_8_bit_OR"/>
@@ -412,15 +449,13 @@
     <wire from="(230,290)" to="(300,290)"/>
     <wire from="(260,150)" to="(390,150)"/>
     <wire from="(520,200)" to="(660,200)"/>
-    <comp lib="0" loc="(210,570)" name="Splitter">
-      <a name="fanout" val="8"/>
-      <a name="incoming" val="8"/>
-      <a name="appear" val="right"/>
-    </comp>
-    <comp lib="1" loc="(480,610)" name="OR Gate">
+    <comp lib="1" loc="(480,400)" name="OR Gate">
       <a name="inputs" val="2"/>
     </comp>
-    <comp lib="1" loc="(480,470)" name="OR Gate">
+    <comp lib="1" loc="(480,260)" name="OR Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="1" loc="(480,680)" name="OR Gate">
       <a name="inputs" val="2"/>
     </comp>
     <comp lib="0" loc="(720,150)" name="Pin">
@@ -432,6 +467,25 @@
       <a name="labelloc" val="east"/>
       <a name="labelfont" val="SansSerif plain 20"/>
     </comp>
+    <comp lib="0" loc="(210,210)" name="Splitter">
+      <a name="fanout" val="8"/>
+      <a name="incoming" val="8"/>
+      <a name="appear" val="right"/>
+    </comp>
+    <comp lib="0" loc="(200,570)" name="Pin">
+      <a name="width" val="8"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="B"/>
+      <a name="labelfont" val="SansSerif plain 20"/>
+    </comp>
+    <comp lib="0" loc="(210,570)" name="Splitter">
+      <a name="fanout" val="8"/>
+      <a name="incoming" val="8"/>
+      <a name="appear" val="right"/>
+    </comp>
+    <comp lib="1" loc="(480,470)" name="OR Gate">
+      <a name="inputs" val="2"/>
+    </comp>
     <comp lib="1" loc="(480,540)" name="OR Gate">
       <a name="inputs" val="2"/>
     </comp>
@@ -441,30 +495,13 @@
       <a name="label" val="A"/>
       <a name="labelfont" val="SansSerif plain 20"/>
     </comp>
-    <comp lib="1" loc="(480,400)" name="OR Gate">
+    <comp lib="1" loc="(480,610)" name="OR Gate">
       <a name="inputs" val="2"/>
     </comp>
     <comp lib="0" loc="(680,150)" name="Splitter">
       <a name="facing" val="west"/>
       <a name="fanout" val="8"/>
       <a name="incoming" val="8"/>
-    </comp>
-    <comp lib="1" loc="(480,680)" name="OR Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="0" loc="(210,210)" name="Splitter">
-      <a name="fanout" val="8"/>
-      <a name="incoming" val="8"/>
-      <a name="appear" val="right"/>
-    </comp>
-    <comp lib="1" loc="(480,260)" name="OR Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="0" loc="(200,570)" name="Pin">
-      <a name="width" val="8"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="B"/>
-      <a name="labelfont" val="SansSerif plain 20"/>
     </comp>
     <comp lib="1" loc="(480,190)" name="OR Gate">
       <a name="inputs" val="2"/>
@@ -510,13 +547,13 @@
     <comp lib="1" loc="(340,220)" name="NAND Gate">
       <a name="inputs" val="2"/>
     </comp>
-    <comp lib="0" loc="(160,200)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="S"/>
-    </comp>
     <comp lib="0" loc="(160,340)" name="Pin">
       <a name="tristate" val="false"/>
       <a name="label" val="R"/>
+    </comp>
+    <comp lib="0" loc="(160,200)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="S"/>
     </comp>
   </circuit>
   <circuit name="RS_Flip_Flop_Clock">
@@ -545,9 +582,21 @@
     <wire from="(210,240)" to="(210,270)"/>
     <wire from="(160,180)" to="(160,240)"/>
     <wire from="(360,290)" to="(430,290)"/>
-    <comp lib="0" loc="(140,240)" name="Pin">
+    <comp lib="1" loc="(270,160)" name="NAND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="1" loc="(350,180)" name="NAND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="0" loc="(430,180)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
       <a name="tristate" val="false"/>
-      <a name="label" val="E"/>
+      <a name="label" val="Q"/>
+    </comp>
+    <comp lib="0" loc="(150,330)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="R"/>
     </comp>
     <comp lib="0" loc="(430,290)" name="Pin">
       <a name="facing" val="west"/>
@@ -555,31 +604,19 @@
       <a name="tristate" val="false"/>
       <a name="label" val="NQ"/>
     </comp>
-    <comp lib="0" loc="(150,140)" name="Pin">
+    <comp lib="0" loc="(140,240)" name="Pin">
       <a name="tristate" val="false"/>
-      <a name="label" val="S"/>
+      <a name="label" val="E"/>
     </comp>
     <comp lib="1" loc="(340,290)" name="NAND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="1" loc="(270,160)" name="NAND Gate">
       <a name="inputs" val="2"/>
     </comp>
     <comp lib="1" loc="(260,310)" name="NAND Gate">
       <a name="inputs" val="2"/>
     </comp>
-    <comp lib="1" loc="(350,180)" name="NAND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="0" loc="(150,330)" name="Pin">
+    <comp lib="0" loc="(150,140)" name="Pin">
       <a name="tristate" val="false"/>
-      <a name="label" val="R"/>
-    </comp>
-    <comp lib="0" loc="(430,180)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="Q"/>
+      <a name="label" val="S"/>
     </comp>
   </circuit>
   <circuit name="D_Flip_Flop_Clock">
@@ -611,40 +648,40 @@
     <wire from="(210,240)" to="(210,270)"/>
     <wire from="(160,180)" to="(160,240)"/>
     <wire from="(360,290)" to="(430,290)"/>
+    <comp lib="1" loc="(340,180)" name="NAND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="1" loc="(260,160)" name="NAND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="1" loc="(340,290)" name="NAND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
     <comp lib="0" loc="(430,290)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="tristate" val="false"/>
       <a name="label" val="NQ"/>
     </comp>
-    <comp lib="1" loc="(120,210)" name="NOT Gate">
-      <a name="facing" val="south"/>
-    </comp>
-    <comp lib="1" loc="(340,180)" name="NAND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="0" loc="(90,140)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="S"/>
-    </comp>
-    <comp lib="1" loc="(260,310)" name="NAND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="0" loc="(90,240)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="E"/>
-    </comp>
-    <comp lib="1" loc="(340,290)" name="NAND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="1" loc="(260,160)" name="NAND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
     <comp lib="0" loc="(430,180)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="tristate" val="false"/>
       <a name="label" val="Q"/>
+    </comp>
+    <comp lib="0" loc="(90,140)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="S"/>
+    </comp>
+    <comp lib="0" loc="(90,240)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="E"/>
+    </comp>
+    <comp lib="1" loc="(120,210)" name="NOT Gate">
+      <a name="facing" val="south"/>
+    </comp>
+    <comp lib="1" loc="(260,310)" name="NAND Gate">
+      <a name="inputs" val="2"/>
     </comp>
   </circuit>
   <circuit name="D_Flip_Flop_Clock_2">
@@ -675,19 +712,21 @@
     <wire from="(250,240)" to="(250,270)"/>
     <wire from="(250,280)" to="(250,310)"/>
     <wire from="(110,220)" to="(110,280)"/>
-    <comp lib="1" loc="(280,350)" name="NAND Gate">
-      <a name="inputs" val="2"/>
+    <comp lib="0" loc="(70,180)" name="Pin">
+      <a name="tristate" val="false"/>
     </comp>
     <comp lib="0" loc="(470,220)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="tristate" val="false"/>
     </comp>
-    <comp lib="1" loc="(190,200)" name="NAND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
     <comp lib="1" loc="(380,330)" name="NAND Gate">
       <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="0" loc="(470,330)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="tristate" val="false"/>
     </comp>
     <comp lib="1" loc="(380,220)" name="NAND Gate">
       <a name="inputs" val="2"/>
@@ -695,13 +734,11 @@
     <comp lib="0" loc="(70,280)" name="Pin">
       <a name="tristate" val="false"/>
     </comp>
-    <comp lib="0" loc="(70,180)" name="Pin">
-      <a name="tristate" val="false"/>
+    <comp lib="1" loc="(280,350)" name="NAND Gate">
+      <a name="inputs" val="2"/>
     </comp>
-    <comp lib="0" loc="(470,330)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="tristate" val="false"/>
+    <comp lib="1" loc="(190,200)" name="NAND Gate">
+      <a name="inputs" val="2"/>
     </comp>
   </circuit>
   <circuit name="CPU_MEM_1">
@@ -744,35 +781,35 @@
     <wire from="(250,240)" to="(250,270)"/>
     <wire from="(250,280)" to="(250,310)"/>
     <wire from="(110,220)" to="(110,280)"/>
-    <comp lib="1" loc="(380,220)" name="NAND Gate">
-      <a name="inputs" val="2"/>
-      <a name="label" val="C"/>
-    </comp>
     <comp lib="1" loc="(190,200)" name="NAND Gate">
       <a name="inputs" val="2"/>
       <a name="label" val="A"/>
+    </comp>
+    <comp lib="0" loc="(70,280)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="S"/>
     </comp>
     <comp lib="0" loc="(70,180)" name="Pin">
       <a name="tristate" val="false"/>
       <a name="label" val="I"/>
     </comp>
+    <comp lib="1" loc="(380,330)" name="NAND Gate">
+      <a name="inputs" val="2"/>
+      <a name="label" val="D"/>
+    </comp>
     <comp lib="1" loc="(280,350)" name="NAND Gate">
       <a name="inputs" val="2"/>
       <a name="label" val="B"/>
+    </comp>
+    <comp lib="1" loc="(380,220)" name="NAND Gate">
+      <a name="inputs" val="2"/>
+      <a name="label" val="C"/>
     </comp>
     <comp lib="0" loc="(470,220)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="tristate" val="false"/>
       <a name="label" val="Q"/>
-    </comp>
-    <comp lib="1" loc="(380,330)" name="NAND Gate">
-      <a name="inputs" val="2"/>
-      <a name="label" val="D"/>
-    </comp>
-    <comp lib="0" loc="(70,280)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="S"/>
     </comp>
   </circuit>
   <circuit name="CPU_MEM_8">
@@ -848,29 +885,21 @@
     <wire from="(340,310)" to="(540,310)"/>
     <wire from="(120,120)" to="(120,500)"/>
     <wire from="(210,680)" to="(210,740)"/>
-    <comp loc="(340,380)" name="CPU_MEM_1"/>
-    <comp loc="(340,170)" name="CPU_MEM_1"/>
-    <comp lib="0" loc="(480,100)" name="Splitter">
-      <a name="facing" val="south"/>
-      <a name="fanout" val="8"/>
-      <a name="incoming" val="8"/>
-    </comp>
     <comp loc="(340,310)" name="CPU_MEM_1"/>
-    <comp loc="(340,660)" name="CPU_MEM_1"/>
-    <comp loc="(340,450)" name="CPU_MEM_1"/>
-    <comp loc="(340,520)" name="CPU_MEM_1"/>
+    <comp loc="(340,590)" name="CPU_MEM_1"/>
     <comp lib="0" loc="(170,70)" name="Pin">
       <a name="width" val="8"/>
       <a name="tristate" val="false"/>
     </comp>
-    <comp loc="(340,240)" name="CPU_MEM_1"/>
     <comp lib="0" loc="(180,100)" name="Splitter">
       <a name="facing" val="south"/>
       <a name="fanout" val="8"/>
       <a name="incoming" val="8"/>
       <a name="appear" val="right"/>
     </comp>
-    <comp loc="(340,590)" name="CPU_MEM_1"/>
+    <comp loc="(340,520)" name="CPU_MEM_1"/>
+    <comp loc="(340,660)" name="CPU_MEM_1"/>
+    <comp loc="(340,380)" name="CPU_MEM_1"/>
     <comp lib="0" loc="(490,60)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
@@ -878,9 +907,17 @@
       <a name="tristate" val="false"/>
       <a name="labelloc" val="east"/>
     </comp>
+    <comp loc="(340,170)" name="CPU_MEM_1"/>
+    <comp lib="0" loc="(480,100)" name="Splitter">
+      <a name="facing" val="south"/>
+      <a name="fanout" val="8"/>
+      <a name="incoming" val="8"/>
+    </comp>
     <comp lib="0" loc="(190,740)" name="Pin">
       <a name="tristate" val="false"/>
     </comp>
+    <comp loc="(340,450)" name="CPU_MEM_1"/>
+    <comp loc="(340,240)" name="CPU_MEM_1"/>
   </circuit>
   <circuit name="CPU_Decoder_3x8">
     <a name="circuit" val="CPU_Decoder_3x8"/>
@@ -968,38 +1005,57 @@
     <wire from="(440,130)" to="(440,190)"/>
     <wire from="(270,460)" to="(470,460)"/>
     <wire from="(270,560)" to="(470,560)"/>
-    <comp lib="1" loc="(520,490)" name="AND Gate">
-      <a name="inputs" val="3"/>
-    </comp>
-    <comp lib="1" loc="(520,540)" name="AND Gate">
-      <a name="inputs" val="3"/>
-    </comp>
-    <comp lib="1" loc="(330,140)" name="NOT Gate"/>
-    <comp lib="1" loc="(520,340)" name="AND Gate">
-      <a name="inputs" val="3"/>
-    </comp>
-    <comp lib="1" loc="(330,120)" name="NOT Gate"/>
-    <comp lib="0" loc="(120,150)" name="Pin">
-      <a name="width" val="3"/>
-      <a name="tristate" val="false"/>
-    </comp>
-    <comp lib="1" loc="(520,290)" name="AND Gate">
-      <a name="inputs" val="3"/>
-    </comp>
     <comp lib="0" loc="(590,540)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="label" val="D7"/>
     </comp>
+    <comp lib="1" loc="(330,140)" name="NOT Gate"/>
+    <comp lib="1" loc="(520,290)" name="AND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
+    <comp lib="0" loc="(590,240)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D1"/>
+    </comp>
+    <comp lib="1" loc="(520,190)" name="AND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
+    <comp lib="0" loc="(120,150)" name="Pin">
+      <a name="width" val="3"/>
+      <a name="tristate" val="false"/>
+    </comp>
+    <comp lib="1" loc="(520,390)" name="AND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
     <comp lib="1" loc="(520,440)" name="AND Gate">
       <a name="inputs" val="3"/>
     </comp>
-    <comp lib="0" loc="(590,340)" name="Pin">
+    <comp lib="1" loc="(330,120)" name="NOT Gate"/>
+    <comp lib="0" loc="(120,150)" name="Splitter">
+      <a name="fanout" val="3"/>
+      <a name="incoming" val="3"/>
+    </comp>
+    <comp lib="1" loc="(520,340)" name="AND Gate">
+      <a name="inputs" val="3"/>
+    </comp>
+    <comp lib="0" loc="(590,290)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
-      <a name="label" val="D3"/>
+      <a name="label" val="D2"/>
     </comp>
-    <comp lib="1" loc="(520,240)" name="AND Gate">
+    <comp lib="0" loc="(590,440)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D5"/>
+    </comp>
+    <comp lib="0" loc="(590,390)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D4"/>
+    </comp>
+    <comp lib="1" loc="(520,540)" name="AND Gate">
       <a name="inputs" val="3"/>
     </comp>
     <comp lib="0" loc="(590,190)" name="Pin">
@@ -1012,36 +1068,17 @@
       <a name="output" val="true"/>
       <a name="label" val="D6"/>
     </comp>
-    <comp lib="0" loc="(590,390)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D4"/>
-    </comp>
-    <comp lib="0" loc="(590,440)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D5"/>
-    </comp>
-    <comp lib="0" loc="(590,240)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D1"/>
-    </comp>
-    <comp lib="1" loc="(520,390)" name="AND Gate">
+    <comp lib="1" loc="(520,240)" name="AND Gate">
       <a name="inputs" val="3"/>
-    </comp>
-    <comp lib="0" loc="(120,150)" name="Splitter">
-      <a name="fanout" val="3"/>
-      <a name="incoming" val="3"/>
-    </comp>
-    <comp lib="0" loc="(590,290)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D2"/>
     </comp>
     <comp lib="1" loc="(330,130)" name="NOT Gate"/>
-    <comp lib="1" loc="(520,190)" name="AND Gate">
+    <comp lib="1" loc="(520,490)" name="AND Gate">
       <a name="inputs" val="3"/>
+    </comp>
+    <comp lib="0" loc="(590,340)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D3"/>
     </comp>
   </circuit>
   <circuit name="CPU_Decoder_4x16">
@@ -1158,11 +1195,11 @@
     <wire from="(270,400)" to="(470,400)"/>
     <wire from="(270,800)" to="(470,800)"/>
     <wire from="(290,920)" to="(470,920)"/>
-    <wire from="(420,360)" to="(470,360)"/>
     <wire from="(420,560)" to="(470,560)"/>
+    <wire from="(420,360)" to="(470,360)"/>
     <wire from="(290,320)" to="(470,320)"/>
-    <wire from="(290,520)" to="(470,520)"/>
     <wire from="(290,720)" to="(470,720)"/>
+    <wire from="(290,520)" to="(470,520)"/>
     <wire from="(430,300)" to="(470,300)"/>
     <wire from="(430,700)" to="(470,700)"/>
     <wire from="(290,420)" to="(290,520)"/>
@@ -1229,10 +1266,117 @@
     <wire from="(270,900)" to="(470,900)"/>
     <wire from="(430,350)" to="(430,600)"/>
     <wire from="(270,550)" to="(270,800)"/>
-    <comp lib="1" loc="(520,940)" name="AND Gate">
+    <comp lib="1" loc="(330,150)" name="NOT Gate"/>
+    <comp lib="0" loc="(590,690)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D10"/>
+    </comp>
+    <comp lib="1" loc="(520,590)" name="AND Gate">
       <a name="inputs" val="4"/>
     </comp>
     <comp lib="1" loc="(520,390)" name="AND Gate">
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="1" loc="(330,120)" name="NOT Gate"/>
+    <comp lib="1" loc="(520,840)" name="AND Gate">
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="1" loc="(520,940)" name="AND Gate">
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="1" loc="(520,540)" name="AND Gate">
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="0" loc="(590,890)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D14"/>
+    </comp>
+    <comp lib="0" loc="(590,390)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D4"/>
+    </comp>
+    <comp lib="0" loc="(590,190)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D0"/>
+    </comp>
+    <comp lib="0" loc="(120,160)" name="Splitter">
+      <a name="fanout" val="4"/>
+      <a name="incoming" val="4"/>
+    </comp>
+    <comp lib="0" loc="(590,940)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D15"/>
+    </comp>
+    <comp lib="0" loc="(590,440)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D5"/>
+    </comp>
+    <comp lib="1" loc="(520,240)" name="AND Gate">
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="0" loc="(590,540)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D7"/>
+    </comp>
+    <comp lib="0" loc="(590,790)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D12"/>
+    </comp>
+    <comp lib="1" loc="(520,740)" name="AND Gate">
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="0" loc="(590,840)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D13"/>
+    </comp>
+    <comp lib="1" loc="(520,890)" name="AND Gate">
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="1" loc="(330,140)" name="NOT Gate"/>
+    <comp lib="1" loc="(520,440)" name="AND Gate">
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="0" loc="(590,340)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D3"/>
+    </comp>
+    <comp lib="0" loc="(590,240)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D1"/>
+    </comp>
+    <comp lib="1" loc="(520,340)" name="AND Gate">
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="0" loc="(590,740)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D11"/>
+    </comp>
+    <comp lib="0" loc="(590,590)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D8"/>
+    </comp>
+    <comp lib="1" loc="(520,190)" name="AND Gate">
+      <a name="inputs" val="4"/>
+    </comp>
+    <comp lib="0" loc="(590,640)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="label" val="D9"/>
+    </comp>
+    <comp lib="1" loc="(520,790)" name="AND Gate">
       <a name="inputs" val="4"/>
     </comp>
     <comp lib="0" loc="(590,490)" name="Pin">
@@ -1240,134 +1384,27 @@
       <a name="output" val="true"/>
       <a name="label" val="D6"/>
     </comp>
-    <comp lib="1" loc="(520,540)" name="AND Gate">
-      <a name="inputs" val="4"/>
-    </comp>
-    <comp lib="0" loc="(590,940)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D15"/>
-    </comp>
-    <comp lib="1" loc="(520,190)" name="AND Gate">
-      <a name="inputs" val="4"/>
-    </comp>
-    <comp lib="1" loc="(330,150)" name="NOT Gate"/>
-    <comp lib="1" loc="(520,690)" name="AND Gate">
-      <a name="inputs" val="4"/>
-    </comp>
-    <comp lib="1" loc="(520,890)" name="AND Gate">
-      <a name="inputs" val="4"/>
-    </comp>
-    <comp lib="0" loc="(590,690)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D10"/>
-    </comp>
-    <comp lib="0" loc="(590,240)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D1"/>
-    </comp>
-    <comp lib="1" loc="(520,740)" name="AND Gate">
-      <a name="inputs" val="4"/>
-    </comp>
-    <comp lib="1" loc="(520,590)" name="AND Gate">
-      <a name="inputs" val="4"/>
-    </comp>
-    <comp lib="1" loc="(330,120)" name="NOT Gate"/>
-    <comp lib="0" loc="(590,190)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D0"/>
-    </comp>
-    <comp lib="1" loc="(520,240)" name="AND Gate">
-      <a name="inputs" val="4"/>
-    </comp>
     <comp lib="1" loc="(520,290)" name="AND Gate">
       <a name="inputs" val="4"/>
     </comp>
-    <comp lib="1" loc="(330,130)" name="NOT Gate"/>
-    <comp lib="0" loc="(590,540)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D7"/>
+    <comp lib="0" loc="(120,160)" name="Pin">
+      <a name="width" val="4"/>
+      <a name="tristate" val="false"/>
     </comp>
-    <comp lib="0" loc="(590,590)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D8"/>
-    </comp>
-    <comp lib="0" loc="(590,740)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D11"/>
-    </comp>
-    <comp lib="0" loc="(590,840)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D13"/>
-    </comp>
-    <comp lib="0" loc="(590,640)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D9"/>
-    </comp>
-    <comp lib="0" loc="(590,790)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D12"/>
-    </comp>
-    <comp lib="1" loc="(520,790)" name="AND Gate">
+    <comp lib="1" loc="(520,690)" name="AND Gate">
       <a name="inputs" val="4"/>
     </comp>
+    <comp lib="1" loc="(330,130)" name="NOT Gate"/>
     <comp lib="1" loc="(520,490)" name="AND Gate">
       <a name="inputs" val="4"/>
     </comp>
-    <comp lib="1" loc="(520,440)" name="AND Gate">
-      <a name="inputs" val="4"/>
-    </comp>
-    <comp lib="1" loc="(520,840)" name="AND Gate">
-      <a name="inputs" val="4"/>
-    </comp>
-    <comp lib="0" loc="(590,440)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D5"/>
-    </comp>
-    <comp lib="0" loc="(120,160)" name="Splitter">
-      <a name="fanout" val="4"/>
-      <a name="incoming" val="4"/>
-    </comp>
-    <comp lib="1" loc="(330,140)" name="NOT Gate"/>
     <comp lib="0" loc="(590,290)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
       <a name="label" val="D2"/>
     </comp>
-    <comp lib="0" loc="(590,890)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D14"/>
-    </comp>
-    <comp lib="0" loc="(590,340)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D3"/>
-    </comp>
-    <comp lib="1" loc="(520,340)" name="AND Gate">
-      <a name="inputs" val="4"/>
-    </comp>
     <comp lib="1" loc="(520,640)" name="AND Gate">
       <a name="inputs" val="4"/>
-    </comp>
-    <comp lib="0" loc="(590,390)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
-      <a name="label" val="D4"/>
-    </comp>
-    <comp lib="0" loc="(120,160)" name="Pin">
-      <a name="width" val="4"/>
-      <a name="tristate" val="false"/>
     </comp>
   </circuit>
   <circuit name="CPU_Enable_8">
@@ -1476,6 +1513,12 @@
     <wire from="(490,630)" to="(560,630)"/>
     <wire from="(550,80)" to="(560,80)"/>
     <wire from="(590,140)" to="(590,450)"/>
+    <comp lib="1" loc="(490,390)" name="Controlled Buffer"/>
+    <comp lib="1" loc="(490,630)" name="Controlled Buffer"/>
+    <comp lib="1" loc="(430,390)" name="AND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="1" loc="(490,330)" name="Controlled Buffer"/>
     <comp lib="0" loc="(560,80)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
@@ -1483,26 +1526,7 @@
       <a name="tristate" val="false"/>
       <a name="labelloc" val="east"/>
     </comp>
-    <comp lib="1" loc="(430,450)" name="AND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="1" loc="(430,570)" name="AND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="0" loc="(550,120)" name="Splitter">
-      <a name="facing" val="south"/>
-      <a name="fanout" val="8"/>
-      <a name="incoming" val="8"/>
-    </comp>
     <comp lib="1" loc="(430,210)" name="AND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="1" loc="(490,630)" name="Controlled Buffer"/>
-    <comp lib="1" loc="(430,630)" name="AND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="1" loc="(490,510)" name="Controlled Buffer"/>
-    <comp lib="1" loc="(430,390)" name="AND Gate">
       <a name="inputs" val="2"/>
     </comp>
     <comp lib="0" loc="(230,120)" name="Splitter">
@@ -1511,17 +1535,20 @@
       <a name="incoming" val="8"/>
       <a name="appear" val="right"/>
     </comp>
-    <comp lib="1" loc="(490,210)" name="Controlled Buffer"/>
-    <comp lib="1" loc="(490,390)" name="Controlled Buffer"/>
-    <comp lib="1" loc="(490,450)" name="Controlled Buffer"/>
-    <comp lib="1" loc="(490,270)" name="Controlled Buffer"/>
-    <comp lib="1" loc="(490,570)" name="Controlled Buffer"/>
-    <comp lib="1" loc="(430,330)" name="AND Gate">
+    <comp lib="1" loc="(430,570)" name="AND Gate">
       <a name="inputs" val="2"/>
     </comp>
+    <comp lib="1" loc="(490,570)" name="Controlled Buffer"/>
+    <comp lib="0" loc="(550,120)" name="Splitter">
+      <a name="facing" val="south"/>
+      <a name="fanout" val="8"/>
+      <a name="incoming" val="8"/>
+    </comp>
+    <comp lib="1" loc="(490,450)" name="Controlled Buffer"/>
     <comp lib="1" loc="(430,510)" name="AND Gate">
       <a name="inputs" val="2"/>
     </comp>
+    <comp lib="1" loc="(490,210)" name="Controlled Buffer"/>
     <comp lib="0" loc="(200,720)" name="Pin">
       <a name="tristate" val="false"/>
       <a name="label" val="E"/>
@@ -1534,7 +1561,17 @@
     <comp lib="1" loc="(430,270)" name="AND Gate">
       <a name="inputs" val="2"/>
     </comp>
-    <comp lib="1" loc="(490,330)" name="Controlled Buffer"/>
+    <comp lib="1" loc="(430,330)" name="AND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="1" loc="(490,270)" name="Controlled Buffer"/>
+    <comp lib="1" loc="(430,630)" name="AND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="1" loc="(490,510)" name="Controlled Buffer"/>
+    <comp lib="1" loc="(430,450)" name="AND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
   </circuit>
   <circuit name="CPU_REG_8">
     <a name="circuit" val="CPU_REG_8"/>
@@ -1572,7 +1609,11 @@
     <wire from="(300,300)" to="(370,300)"/>
     <wire from="(480,210)" to="(520,210)"/>
     <wire from="(480,310)" to="(520,310)"/>
-    <comp loc="(430,310)" name="CPU_MEM_8"/>
+    <comp lib="0" loc="(310,480)" name="Pin">
+      <a name="facing" val="north"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="S"/>
+    </comp>
     <comp lib="0" loc="(300,300)" name="Pin">
       <a name="width" val="8"/>
       <a name="tristate" val="false"/>
@@ -1585,16 +1626,7 @@
       <a name="tristate" val="false"/>
       <a name="labelloc" val="east"/>
     </comp>
-    <comp lib="0" loc="(490,480)" name="Pin">
-      <a name="facing" val="north"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="E"/>
-    </comp>
-    <comp lib="0" loc="(310,480)" name="Pin">
-      <a name="facing" val="north"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="S"/>
-    </comp>
+    <comp loc="(580,340)" name="CPU_Enable_8"/>
     <comp lib="0" loc="(720,340)" name="Pin">
       <a name="facing" val="west"/>
       <a name="output" val="true"/>
@@ -1603,10 +1635,15 @@
       <a name="label" val="O"/>
       <a name="labelloc" val="east"/>
     </comp>
+    <comp lib="0" loc="(490,480)" name="Pin">
+      <a name="facing" val="north"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="E"/>
+    </comp>
+    <comp loc="(430,310)" name="CPU_MEM_8"/>
     <comp lib="1" loc="(660,340)" name="Controlled Buffer">
       <a name="width" val="8"/>
     </comp>
-    <comp loc="(580,340)" name="CPU_Enable_8"/>
   </circuit>
   <circuit name="CPU_REG_8_BYTE">
     <a name="circuit" val="CPU_REG_8_BYTE"/>
@@ -1661,36 +1698,10 @@
     <wire from="(360,370)" to="(620,370)"/>
     <wire from="(670,200)" to="(750,200)"/>
     <wire from="(470,140)" to="(470,200)"/>
-    <comp lib="1" loc="(240,280)" name="AND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="1" loc="(450,280)" name="OR Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp loc="(670,200)" name="CPU_REG_8"/>
-    <comp lib="0" loc="(290,410)" name="Pin">
-      <a name="facing" val="north"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="E"/>
-    </comp>
-    <comp lib="0" loc="(250,410)" name="Pin">
-      <a name="facing" val="north"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="S"/>
-    </comp>
-    <comp lib="0" loc="(790,130)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="output" val="true"/>
+    <comp lib="0" loc="(460,140)" name="Pin">
       <a name="width" val="8"/>
-      <a name="label" val="O"/>
-    </comp>
-    <comp lib="0" loc="(170,260)" name="Pin">
       <a name="tristate" val="false"/>
-      <a name="label" val="H"/>
-    </comp>
-    <comp lib="0" loc="(170,300)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="V"/>
+      <a name="label" val="I"/>
     </comp>
     <comp lib="0" loc="(590,70)" name="Pin">
       <a name="output" val="true"/>
@@ -1698,25 +1709,51 @@
       <a name="tristate" val="false"/>
       <a name="label" val="OP"/>
     </comp>
-    <comp lib="1" loc="(750,160)" name="Controlled Buffer">
-      <a name="facing" val="north"/>
-      <a name="width" val="8"/>
-    </comp>
-    <comp lib="1" loc="(360,300)" name="AND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="1" loc="(360,370)" name="AND Gate">
-      <a name="inputs" val="2"/>
-    </comp>
-    <comp lib="0" loc="(460,140)" name="Pin">
-      <a name="width" val="8"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="I"/>
-    </comp>
     <comp lib="0" loc="(280,190)" name="Pin">
       <a name="facing" val="south"/>
       <a name="tristate" val="false"/>
       <a name="label" val="RESET"/>
+    </comp>
+    <comp lib="0" loc="(290,410)" name="Pin">
+      <a name="facing" val="north"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="E"/>
+    </comp>
+    <comp lib="1" loc="(450,280)" name="OR Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp loc="(670,200)" name="CPU_REG_8"/>
+    <comp lib="0" loc="(790,130)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="output" val="true"/>
+      <a name="width" val="8"/>
+      <a name="label" val="O"/>
+    </comp>
+    <comp lib="1" loc="(360,300)" name="AND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="1" loc="(240,280)" name="AND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="0" loc="(170,300)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="V"/>
+    </comp>
+    <comp lib="0" loc="(170,260)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="H"/>
+    </comp>
+    <comp lib="1" loc="(360,370)" name="AND Gate">
+      <a name="inputs" val="2"/>
+    </comp>
+    <comp lib="1" loc="(750,160)" name="Controlled Buffer">
+      <a name="facing" val="north"/>
+      <a name="width" val="8"/>
+    </comp>
+    <comp lib="0" loc="(250,410)" name="Pin">
+      <a name="facing" val="north"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="S"/>
     </comp>
   </circuit>
   <circuit name="CPU_RAM_256">
@@ -7111,145 +7148,23 @@
     <wire from="(2800,2540)" to="(2800,2620)"/>
     <wire from="(2270,1820)" to="(2270,1850)"/>
     <wire from="(1650,2010)" to="(1740,2010)"/>
-    <comp loc="(2740,2690)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1160,860)" name="Probe">
+    <comp loc="(2740,2390)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1760,2090)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1760,2690)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1200,1790)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2420,1010)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(2880,1940)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3020,1790)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2700,710)" name="Probe">
+    <comp loc="(2040,1040)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2880,2840)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1900,2990)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1340,1640)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1160,1760)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(2180,2690)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1160,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1060,2990)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(3120,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(3120,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1720,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2600,1790)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1900,2540)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1620,1040)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1480,890)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2460,2840)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2420,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1760,1790)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1720,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1060,2240)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1580,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1440,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1620,890)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(670,710)" name="CPU_Decoder_4x16"/>
-    <comp loc="(2320,1490)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1060,1190)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(670,380)" name="CPU_Decoder_4x16"/>
-    <comp loc="(2460,1040)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2600,1940)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2560,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2320,2390)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1900,2240)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2140,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2740,1490)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2180,2840)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2600,2840)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3020,2390)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2980,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2700,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1900,1640)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2000,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2880,2540)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1620,2390)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1760,1940)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1020,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(690,680)" name="Pin">
-      <a name="output" val="true"/>
-      <a name="width" val="8"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="O"/>
-    </comp>
-    <comp lib="0" loc="(2840,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1020,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2280,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1300,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1480,1040)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2140,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1900,1490)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1160,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1340,2240)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1060,890)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(3120,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1060,1340)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2840,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2880,1640)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2600,1190)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1720,2210)" name="Probe">
+    <comp lib="0" loc="(2980,1160)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
@@ -7257,46 +7172,118 @@
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(2320,2090)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2320,2990)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2560,1910)" name="Probe">
+    <comp lib="0" loc="(1440,2210)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(2740,2990)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1900,1340)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1020,2810)" name="Probe">
+    <comp loc="(3020,2390)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1440,710)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(3160,1940)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1440,1010)" name="Probe">
+    <comp loc="(1620,1340)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3160,890)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3160,1790)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1300,1460)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(1200,2840)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1160,1160)" name="Probe">
+    <comp loc="(2180,2990)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1200,1940)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1480,1640)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(3120,860)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(1760,2690)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2840,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2880,2090)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2460,1940)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(350,720)" name="Pin">
-      <a name="facing" val="west"/>
+    <comp lib="0" loc="(600,570)" name="Pin">
       <a name="width" val="8"/>
       <a name="tristate" val="false"/>
-      <a name="label" val="Address"/>
+      <a name="label" val="I"/>
     </comp>
-    <comp lib="0" loc="(2980,1160)" name="Probe">
+    <comp loc="(1340,2240)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1060,740)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2140,2660)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(1720,1910)" name="Probe">
+    <comp lib="0" loc="(3120,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2140,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1580,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1300,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1200,2090)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2000,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2180,1490)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3160,1490)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2560,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1720,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(3020,2840)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1480,1940)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2700,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1760,1490)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2880,2540)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2700,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1020,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1720,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1620,2240)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(3120,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,2240)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1720,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1480,740)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1200,2390)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2600,1640)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1860,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1020,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1620,1190)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2000,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2000,1760)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
@@ -7304,28 +7291,686 @@
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
+    <comp loc="(2740,1340)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2840,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(3120,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(3120,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1160,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2040,2840)" name="CPU_REG_8_BYTE"/>
     <comp lib="0" loc="(1300,1610)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(1580,2060)" name="Probe">
+    <comp loc="(3160,1640)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1580,2660)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(1200,1490)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2140,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2320,2990)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1860,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2040,2990)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2740,1190)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1440,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2420,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2840,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1620,2540)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1620,740)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1720,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1900,890)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2980,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,2990)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1900,740)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2280,2660)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2700,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2040,2690)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2980,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2700,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1860,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2040,1940)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2700,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(470,530)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="10unsigned"/>
+    </comp>
+    <comp loc="(2040,890)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3160,2090)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,2240)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2880,2990)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2560,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1440,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2420,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2420,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2280,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2560,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2320,1640)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3160,1040)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2040,1640)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2740,2990)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1020,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2180,2840)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3160,1190)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2460,1790)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,1190)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2320,2240)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1440,2660)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1440,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1300,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(3160,2240)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1900,1040)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2700,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1160,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1860,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1620,2690)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2320,1940)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,1340)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2420,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1720,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1760,1640)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1200,1190)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1200,1340)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2600,2540)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1340,1040)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1340,1190)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1900,1190)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1200,2540)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1020,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1060,2390)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2140,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,2690)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1340,740)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1300,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(3120,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1200,740)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1480,2690)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2040,1340)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2420,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2560,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1760,2390)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1020,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1480,1490)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1860,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1300,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
     <comp loc="(1760,740)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2320,2690)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1620,1490)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3160,2690)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(3120,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2140,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1020,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,1340)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1900,1490)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1620,1640)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2280,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2000,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1760,1040)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2740,1640)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2000,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,890)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2840,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2280,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1480,1190)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2000,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2180,2540)" name="CPU_REG_8_BYTE"/>
     <comp lib="0" loc="(1300,2960)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(1300,1310)" name="Probe">
+    <comp loc="(1340,1790)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1580,2360)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(2560,1310)" name="Probe">
+    <comp loc="(1340,890)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2980,1910)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
+    <comp lib="0" loc="(2840,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1720,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,2090)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2280,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2000,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2980,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1580,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2320,1490)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2420,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2420,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,2390)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1160,2660)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1580,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2140,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2280,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2000,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1440,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2320,1190)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2460,1190)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2320,1790)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1580,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1760,890)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1860,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2460,1490)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1200,1640)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3160,2390)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2980,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2880,2240)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2180,2690)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1720,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1440,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1440,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1020,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1440,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2320,740)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1300,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1060,1640)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2740,2540)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1720,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1160,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1860,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,740)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2420,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1060,2990)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1900,1640)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2460,1040)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2700,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1480,890)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2460,1640)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2000,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1060,1940)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2880,2090)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1860,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1020,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2740,2690)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2320,2540)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1480,2990)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1760,1790)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2840,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1020,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2740,1040)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2700,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2740,1790)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1200,1040)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1720,2660)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1760,2240)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1440,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1480,1790)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2560,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(3160,740)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2600,1790)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2180,1190)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,2090)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1720,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2140,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2700,2660)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1620,890)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1760,1940)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1620,2840)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(570,640)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="E"/>
+    </comp>
+    <comp loc="(1620,1940)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2140,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1480,2090)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2420,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2000,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2320,2390)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(690,680)" name="Pin">
+      <a name="output" val="true"/>
+      <a name="width" val="8"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="O"/>
+    </comp>
+    <comp lib="0" loc="(3120,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1860,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2700,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(470,540)" name="Probe">
+      <a name="facing" val="north"/>
+      <a name="radix" val="10unsigned"/>
+    </comp>
+    <comp loc="(2040,2540)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1900,2690)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2180,2090)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1480,2240)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1300,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2700,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2000,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1720,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1340,2990)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2180,1040)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1200,2990)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2880,1340)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,890)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(3120,2660)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2320,890)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,2990)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1300,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2840,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1300,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2280,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2980,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2840,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,1940)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2000,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2180,2390)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2980,2660)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1030,650)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="10unsigned"/>
+    </comp>
+    <comp lib="0" loc="(2980,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2460,1940)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2460,1340)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1160,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2840,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2180,1340)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2280,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1020,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(3020,2540)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2880,2390)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(570,600)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="RESET"/>
+    </comp>
+    <comp loc="(2180,2240)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1440,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2460,2090)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2180,890)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1860,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2320,2840)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2700,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1200,1490)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2140,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1340,2840)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1440,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2000,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1020,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2560,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1200,2690)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2980,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2560,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1020,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2420,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1620,2390)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1480,1340)" name="CPU_REG_8_BYTE"/>
     <comp lib="0" loc="(420,550)" name="Splitter">
       <a name="incoming" val="8"/>
       <a name="bit1" val="0"/>
@@ -7336,235 +7981,7 @@
       <a name="bit6" val="1"/>
       <a name="bit7" val="1"/>
     </comp>
-    <comp lib="0" loc="(2140,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1580,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1580,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1580,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2000,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2560,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1860,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2040,1490)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2880,2690)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1900,2840)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2320,1790)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1300,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2560,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3020,2690)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2980,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1440,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2460,890)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1440,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1060,1490)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2420,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2320,2690)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2700,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1480,2540)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(470,540)" name="Probe">
-      <a name="facing" val="north"/>
-      <a name="radix" val="10unsigned"/>
-    </comp>
-    <comp lib="0" loc="(1300,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2840,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1340,1640)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1480,2840)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1620,1940)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3160,1640)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1160,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1440,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(570,620)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="S"/>
-    </comp>
-    <comp lib="0" loc="(2140,1310)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1620,2990)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2420,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1200,2690)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2460,2690)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1200,1940)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2040,2990)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1200,2540)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2880,1340)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1760,2240)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2600,2390)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2040,2690)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(3120,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(570,640)" name="Pin">
-      <a name="tristate" val="false"/>
-      <a name="label" val="E"/>
-    </comp>
-    <comp lib="0" loc="(2280,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1580,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(3120,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2560,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1720,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1480,1790)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1620,2840)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1440,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2420,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2600,890)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2280,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1340,1190)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2840,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2040,1040)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2980,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2840,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2460,2540)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1020,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2600,2540)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1200,740)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1300,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1580,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2840,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2560,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2140,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1480,1640)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2280,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2980,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3160,890)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2280,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1340,740)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1480,1490)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1720,1310)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1720,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2040,2240)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1160,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1760,1340)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1200,1040)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1200,1640)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1340,1790)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1580,1310)" name="Probe">
+    <comp lib="0" loc="(2280,2360)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
@@ -7572,703 +7989,8 @@
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(2460,1190)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2880,1040)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3020,1940)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(3120,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2180,2090)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1340,2690)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2180,2540)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1300,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2600,2990)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1580,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2740,1640)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2740,2240)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1900,1790)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2320,1340)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1480,740)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(3120,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2320,1940)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2040,890)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3020,2990)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1200,2990)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1480,2690)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1720,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2420,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2740,1940)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1860,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1440,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1860,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2320,1040)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2880,2240)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2980,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1200,2240)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3160,2090)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2180,890)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2000,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2320,2840)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2320,890)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1340,1040)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1300,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1440,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1580,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1160,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2140,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(3120,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2040,2540)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1020,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2980,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2000,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2000,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1200,890)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2700,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2280,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(3120,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2180,1940)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2880,1790)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2740,2090)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2840,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2320,740)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1160,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1900,740)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1200,2090)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1720,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1760,2390)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1440,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2320,1640)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2040,740)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1200,1340)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2880,1190)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3160,2390)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2980,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1020,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2180,1040)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1300,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3020,1190)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2000,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2740,2390)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1200,2390)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1620,2240)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2140,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2040,1790)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1860,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2700,1310)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2980,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2140,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1200,1790)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2000,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2560,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(600,570)" name="Pin">
-      <a name="width" val="8"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="I"/>
-    </comp>
-    <comp lib="0" loc="(1440,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(3120,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2560,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2600,1040)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1340,2840)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2000,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1580,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1300,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1060,2690)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1020,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1020,1310)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2460,1340)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1030,650)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="10unsigned"/>
-    </comp>
-    <comp lib="0" loc="(2420,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2180,2240)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2460,2990)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(3120,1310)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1900,890)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1760,2990)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1480,2240)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3160,2540)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1060,2840)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2980,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3160,2240)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1060,740)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1580,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1720,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1480,1190)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2280,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1020,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1340,1490)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3020,2240)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2740,890)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1340,1340)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1580,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1860,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2600,2090)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1760,2090)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1300,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1860,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2980,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1440,1310)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2180,1190)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2140,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2700,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1620,1640)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2600,1640)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(3120,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2460,1490)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1620,2090)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2420,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2560,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2700,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2560,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2880,890)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1760,1040)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2420,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2460,2240)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1160,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2740,2540)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1860,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2880,2840)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1020,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2280,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1860,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2740,1190)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3160,1040)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1020,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2280,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1020,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1160,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2600,1490)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2280,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2700,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1860,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1060,1040)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2140,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3160,1490)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2280,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(470,530)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="10unsigned"/>
-    </comp>
-    <comp loc="(2740,1790)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1760,890)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2600,1340)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2700,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2040,2840)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1060,2090)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1620,1490)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2000,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2280,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1860,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1060,2390)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2460,2090)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1340,890)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2320,1190)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3020,2540)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2980,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1440,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1860,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2000,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1200,1190)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2700,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2040,1640)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1720,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1480,2990)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2560,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2040,2390)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(3120,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2700,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2840,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1760,1490)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1720,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1480,2390)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1020,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1620,2540)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2040,1340)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2840,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3160,740)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2740,1040)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2700,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2880,2390)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1340,1940)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1860,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1060,1790)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1300,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1300,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2140,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3020,740)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1440,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2560,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1900,2390)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2180,2990)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2040,1940)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3020,1640)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1480,2090)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1340,2990)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2460,1640)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2980,1310)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1160,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3020,2090)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1620,1790)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1860,1910)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1760,1640)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1020,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3160,2690)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2600,2690)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2700,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1060,2540)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2600,2240)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2600,740)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1300,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1760,2540)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1900,1190)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2180,1640)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2740,2840)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2880,2990)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2000,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1480,1340)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1580,2810)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2840,1310)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2180,740)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1860,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1900,2090)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2420,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2840,2660)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1620,1340)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2140,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1340,2090)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1160,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2320,2240)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2000,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3160,2990)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2280,2960)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2420,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1900,2690)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1060,1940)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1760,1190)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1160,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2700,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2140,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1020,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2180,1340)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(3120,2060)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2140,1160)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2460,740)" name="CPU_REG_8_BYTE"/>
     <comp loc="(370,550)" name="CPU_MEM_8"/>
-    <comp lib="0" loc="(1580,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2700,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1620,740)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2040,1190)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1440,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2420,1460)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2740,1340)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3020,1040)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1060,1640)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1900,1940)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(410,660)" name="Pin">
-      <a name="facing" val="west"/>
-      <a name="tristate" val="false"/>
-      <a name="label" val="SE"/>
-    </comp>
-    <comp lib="0" loc="(1720,710)" name="Probe">
+    <comp lib="0" loc="(1580,1610)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
@@ -8276,86 +7998,26 @@
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(2740,740)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2420,1310)" name="Probe">
+    <comp loc="(2880,1190)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2180,1640)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1060,2840)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(570,620)" name="Pin">
+      <a name="tristate" val="false"/>
+      <a name="label" val="S"/>
+    </comp>
+    <comp loc="(2040,1190)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2560,2660)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(2880,1490)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2980,1460)" name="Probe">
+    <comp loc="(1340,1340)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(3120,1910)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(3020,1490)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1340,2390)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3160,1340)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2460,2390)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1300,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1160,710)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2000,1310)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(1580,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2040,2090)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1620,1190)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2140,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2180,1790)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1900,2990)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2420,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2840,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2280,1610)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(2460,1790)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1720,860)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2560,2510)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2840,1010)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2000,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3160,1190)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(1440,1760)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp lib="0" loc="(2840,2210)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(1480,1940)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(3160,1790)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1900,1040)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(3120,1160)" name="Probe">
+    <comp loc="(1900,1340)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,1790)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1160,1010)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
@@ -8363,84 +8025,233 @@
       <a name="facing" val="west"/>
       <a name="width" val="8"/>
     </comp>
-    <comp loc="(2180,2390)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(570,600)" name="Pin">
+    <comp lib="0" loc="(410,660)" name="Pin">
+      <a name="facing" val="west"/>
       <a name="tristate" val="false"/>
-      <a name="label" val="RESET"/>
+      <a name="label" val="SE"/>
     </comp>
-    <comp lib="0" loc="(2000,2960)" name="Probe">
+    <comp loc="(1200,2240)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2460,2540)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2140,2510)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(1860,2210)" name="Probe">
+    <comp lib="0" loc="(2560,1310)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(1160,1310)" name="Probe">
+    <comp lib="0" loc="(2980,2360)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(3020,890)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2980,1910)" name="Probe">
+    <comp loc="(1620,1790)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2180,740)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3160,2840)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,2690)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1340,2540)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1720,1460)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(2000,860)" name="Probe">
+    <comp lib="0" loc="(1580,2960)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(2180,1490)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2560,2360)" name="Probe">
-      <a name="facing" val="south"/>
-      <a name="radix" val="16"/>
-    </comp>
-    <comp loc="(3020,2840)" name="CPU_REG_8_BYTE"/>
     <comp lib="0" loc="(2420,2060)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(1440,2210)" name="Probe">
+    <comp lib="0" loc="(1160,2210)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(1720,1010)" name="Probe">
+    <comp loc="(2880,740)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2740,2840)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(3120,2510)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(2280,1310)" name="Probe">
+    <comp lib="0" loc="(1020,1460)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(3160,2840)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(1340,2540)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2040,1790)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1900,1940)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2460,2690)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1340,2690)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1860,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(3120,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2280,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2880,1490)" name="CPU_REG_8_BYTE"/>
     <comp lib="0" loc="(1720,1160)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(1860,1310)" name="Probe">
+    <comp loc="(1340,2090)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2420,2660)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(3020,1340)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1900,2390)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(3120,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2320,2090)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2560,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1860,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1060,890)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2140,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
     <comp lib="0" loc="(1020,2660)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(3120,1910)" name="Probe">
+    <comp lib="0" loc="(2000,2660)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(1620,2690)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2700,860)" name="Probe">
+    <comp lib="0" loc="(2560,2810)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp lib="0" loc="(2980,710)" name="Probe">
+    <comp loc="(1060,1340)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2980,1010)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(2320,2540)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2840,2360)" name="Probe">
+    <comp lib="0" loc="(2140,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1580,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1160,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2740,1490)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2740,2090)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2840,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2460,740)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1060,1040)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2040,740)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2560,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1060,1490)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1160,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2880,1790)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2560,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2280,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(3160,1340)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1160,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1060,2240)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2980,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1060,2690)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1300,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1060,1790)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(350,720)" name="Pin">
+      <a name="facing" val="west"/>
+      <a name="width" val="8"/>
+      <a name="tristate" val="false"/>
+      <a name="label" val="Address"/>
+    </comp>
+    <comp loc="(1760,1190)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(3120,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2880,890)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1760,2840)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(670,380)" name="CPU_Decoder_4x16"/>
+    <comp lib="0" loc="(2840,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1300,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1580,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2420,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(3160,2540)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1720,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1900,2090)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2040,1490)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1300,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1480,2390)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1060,2090)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1160,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1860,2660)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2740,2240)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2740,1940)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1620,2090)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1200,2840)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1860,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1580,1310)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
@@ -8448,9 +8259,235 @@
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>
-    <comp loc="(1760,2840)" name="CPU_REG_8_BYTE"/>
-    <comp loc="(2880,740)" name="CPU_REG_8_BYTE"/>
-    <comp lib="0" loc="(2420,1910)" name="Probe">
+    <comp loc="(2460,890)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2180,1940)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2000,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1580,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2280,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1580,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1900,2840)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2140,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(3020,740)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2840,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,1490)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1340,1940)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1480,2840)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2840,710)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1620,1040)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1760,2990)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2420,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1760,2540)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1580,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(3020,1640)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2320,1040)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2040,2390)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1900,2240)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2700,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2880,1640)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2180,1790)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(670,710)" name="CPU_Decoder_4x16"/>
+    <comp lib="0" loc="(1300,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1300,2660)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1900,1790)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1720,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2740,740)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1860,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2140,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1440,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1720,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2560,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1200,890)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1440,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2460,2990)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2460,2390)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2880,1940)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2040,2240)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1160,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(3120,1160)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,1040)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2740,890)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1860,1910)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(3160,1940)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1580,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2560,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2840,2660)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,2840)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1020,2510)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1620,2990)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2280,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2880,1040)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2700,1010)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1760,1340)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2840,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2980,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2840,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2980,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1340,2390)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2880,2690)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(3120,1610)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1160,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2840,2210)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2320,1340)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2000,2960)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2140,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2460,2840)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1480,1040)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1580,2060)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1060,2540)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3160,2990)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2280,2810)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2700,1460)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2040,2090)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1480,2540)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,1490)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(2460,2240)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,1940)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1340,1490)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(3020,1040)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(1440,1760)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1020,2360)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(2980,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(1900,2540)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2700,1310)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp loc="(2600,1190)" name="CPU_REG_8_BYTE"/>
+    <comp loc="(1060,1190)" name="CPU_REG_8_BYTE"/>
+    <comp lib="0" loc="(2280,860)" name="Probe">
+      <a name="facing" val="south"/>
+      <a name="radix" val="16"/>
+    </comp>
+    <comp lib="0" loc="(1160,1160)" name="Probe">
       <a name="facing" val="south"/>
       <a name="radix" val="16"/>
     </comp>

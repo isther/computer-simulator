@@ -1,4 +1,4 @@
-use crate::components::{
+use super::{
     ANDer, Adder, Bus, Comparator, Component, Decoder3x8, Enabler, IsZero, LeftShifter, NOTer,
     ORer, RightShifter, XORer, BUS_WIDTH,
 };
@@ -6,14 +6,57 @@ use crate::gates::{Wire, AND};
 use std::cell::RefCell;
 use std::rc::Rc;
 
-struct ALU {
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum Operation {
+    ADD = 0,
+    SHL = 1,
+    SHR = 2,
+    NOT = 3,
+    AND = 4,
+    OR = 5,
+    XOR = 6,
+    CMP = 7,
+}
+
+impl From<i32> for Operation {
+    fn from(value: i32) -> Self {
+        match value {
+            0 => Operation::ADD,
+            1 => Operation::SHL,
+            2 => Operation::SHR,
+            3 => Operation::NOT,
+            4 => Operation::AND,
+            5 => Operation::OR,
+            6 => Operation::XOR,
+            7 => Operation::CMP,
+            _ => Operation::CMP,
+        }
+    }
+}
+
+impl From<Operation> for i32 {
+    fn from(value: Operation) -> Self {
+        match value {
+            Operation::ADD => 0,
+            Operation::SHL => 1,
+            Operation::SHR => 2,
+            Operation::NOT => 3,
+            Operation::AND => 4,
+            Operation::OR => 5,
+            Operation::XOR => 6,
+            Operation::CMP => 7,
+        }
+    }
+}
+
+pub struct ALU {
     input_a_bus: Rc<RefCell<Bus>>,
     input_b_bus: Rc<RefCell<Bus>>,
     output_bus: Rc<RefCell<Bus>>,
     flags_output_bus: Rc<RefCell<Bus>>,
-    op: [Wire; 3],
+    pub op: [Wire; 3],
 
-    carry_in: Wire,
+    pub carry_in: Wire,
 
     carry_out: Wire,
     a_is_larger: Wire,
@@ -36,7 +79,7 @@ struct ALU {
 }
 
 impl ALU {
-    fn new(
+    pub fn new(
         input_a_bus: Rc<RefCell<Bus>>,
         input_b_bus: Rc<RefCell<Bus>>,
         output_bus: Rc<RefCell<Bus>>,
@@ -81,7 +124,7 @@ impl ALU {
         }
     }
 
-    fn set_wire_on_component(&self, c: &mut dyn Component) {
+    pub fn set_wire_on_component(&self, c: &mut dyn Component) {
         for i in (0..BUS_WIDTH).rev() {
             c.set_input_wire(i as i32, self.input_a_bus.borrow().get_output_wire(i));
         }
@@ -91,7 +134,7 @@ impl ALU {
         }
     }
 
-    fn wire_to_enabler(&mut self, c: &dyn Component, enabler_index: i32) {
+    pub fn wire_to_enabler(&mut self, c: &dyn Component, enabler_index: i32) {
         for i in 0..BUS_WIDTH {
             self.enablers[enabler_index as usize].set_input_wire(i, c.get_output_wire(i))
         }
@@ -100,7 +143,7 @@ impl ALU {
 
 // Update
 impl ALU {
-    fn update(&mut self) {
+    pub fn update(&mut self) {
         self.update_op_decoder();
         let enabler: Operation = self.op_decoder.index().into();
 
@@ -108,8 +151,8 @@ impl ALU {
 
         match enabler {
             Operation::ADD => self.update_adder(),
-            Operation::SHR => self.update_right_shifter(),
             Operation::SHL => self.update_left_shifter(),
+            Operation::SHR => self.update_right_shifter(),
             Operation::NOT => self.update_notter(),
             Operation::AND => self.update_ander(),
             Operation::OR => self.update_orer(),
@@ -229,22 +272,22 @@ impl ALU {
         self.wire_to_enabler(self.notter.clone().as_ref(), 3);
     }
 
-    fn update_left_shifter(&mut self) {
-        for i in (0..BUS_WIDTH).rev() {
-            self.left_shifer
-                .set_input_wire(i, self.input_a_bus.borrow().get_output_wire(i));
-        }
-        self.left_shifer.update(self.carry_in.get());
-        self.wire_to_enabler(self.left_shifer.clone().as_ref(), 2);
-    }
-
     fn update_right_shifter(&mut self) {
         for i in (0..BUS_WIDTH).rev() {
             self.right_shifer
                 .set_input_wire(i, self.input_a_bus.borrow().get_output_wire(i));
         }
         self.right_shifer.update(self.carry_in.get());
-        self.wire_to_enabler(self.right_shifer.clone().as_ref(), 1);
+        self.wire_to_enabler(self.right_shifer.clone().as_ref(), 2);
+    }
+
+    fn update_left_shifter(&mut self) {
+        for i in (0..BUS_WIDTH).rev() {
+            self.left_shifer
+                .set_input_wire(i, self.input_a_bus.borrow().get_output_wire(i));
+        }
+        self.left_shifer.update(self.carry_in.get());
+        self.wire_to_enabler(self.left_shifer.clone().as_ref(), 1);
     }
 
     fn update_adder(&mut self) {
@@ -258,52 +301,8 @@ impl ALU {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-enum Operation {
-    ADD = 0,
-    SHR = 1,
-    SHL = 2,
-    NOT = 3,
-    AND = 4,
-    OR = 5,
-    XOR = 6,
-    CMP = 7,
-}
-
-impl From<i32> for Operation {
-    fn from(value: i32) -> Self {
-        match value {
-            0 => Operation::ADD,
-            1 => Operation::SHR,
-            2 => Operation::SHL,
-            3 => Operation::NOT,
-            4 => Operation::AND,
-            5 => Operation::OR,
-            6 => Operation::XOR,
-            7 => Operation::CMP,
-            _ => Operation::CMP,
-        }
-    }
-}
-
-impl From<Operation> for i32 {
-    fn from(value: Operation) -> Self {
-        match value {
-            Operation::ADD => 0,
-            Operation::SHR => 1,
-            Operation::SHL => 2,
-            Operation::NOT => 3,
-            Operation::AND => 4,
-            Operation::OR => 5,
-            Operation::XOR => 6,
-            Operation::CMP => 7,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    //TODO:Alu test
     use super::*;
     use std::cell::RefCell;
     use std::rc::Rc;
@@ -321,27 +320,6 @@ mod tests {
         op_test(o, 0x0000, 0x0000, true, 0x0001, true, false, false, false);
         op_test(o, 0x0001, 0x0001, true, 0x0003, true, false, false, false);
         op_test(o, 0xFFFF, 0x0000, true, 0x0000, false, true, true, true);
-    }
-
-    #[test]
-    fn test_alu_shr() {
-        let o = Operation::SHR;
-        let mut i: u16 = 0x8000;
-        while i > 1 {
-            op_test(o, i, i, false, i / 2, true, false, false, false);
-            op_test(o, i, 0x00, false, i / 2, false, true, false, false);
-            i /= 2;
-        }
-        op_test(o, 0x0000, 0x0000, false, 0x0000, true, false, false, true);
-        op_test(o, 0x0056, 0x0056, false, 0x002B, true, false, false, false);
-        op_test(o, 0x0004, 0x0001, false, 0x0002, false, true, false, false);
-        op_test(o, 0x0072, 0x0000, false, 0x0039, false, true, false, false);
-
-        op_test(o, 0x00A1, 0x0000, false, 0x0050, false, true, true, false);
-
-        op_test(o, 0x4A00, 0x0001, true, 0xA500, false, true, false, false);
-
-        op_test(o, 0x0000, 0x0005, false, 0x0000, false, false, false, true);
     }
 
     #[test]
@@ -363,6 +341,27 @@ mod tests {
         op_test(o, 0xAA00, 0x0001, false, 0x5400, false, true, true, false);
 
         op_test(o, 0x004A, 0x0001, true, 0x0095, false, true, false, false);
+
+        op_test(o, 0x0000, 0x0005, false, 0x0000, false, false, false, true);
+    }
+
+    #[test]
+    fn test_alu_shr() {
+        let o = Operation::SHR;
+        let mut i: u16 = 0x8000;
+        while i > 1 {
+            op_test(o, i, i, false, i / 2, true, false, false, false);
+            op_test(o, i, 0x00, false, i / 2, false, true, false, false);
+            i /= 2;
+        }
+        op_test(o, 0x0000, 0x0000, false, 0x0000, true, false, false, true);
+        op_test(o, 0x0056, 0x0056, false, 0x002B, true, false, false, false);
+        op_test(o, 0x0004, 0x0001, false, 0x0002, false, true, false, false);
+        op_test(o, 0x0072, 0x0000, false, 0x0039, false, true, false, false);
+
+        op_test(o, 0x00A1, 0x0000, false, 0x0050, false, true, true, false);
+
+        op_test(o, 0x4A00, 0x0001, true, 0xA500, false, true, false, false);
 
         op_test(o, 0x0000, 0x0005, false, 0x0000, false, false, false, true);
     }

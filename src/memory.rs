@@ -1,4 +1,4 @@
-use crate::components::{Bus, Decoder8x256, Register};
+use crate::components::{Bus, Decoder8x256, Enableable, Register, Settable, Updatable};
 use crate::gates::Wire;
 use crate::gates::AND;
 use std::cell::RefCell;
@@ -44,20 +44,33 @@ impl Cell {
     }
 }
 
-struct Memory64K {
-    address_register: Register,
+impl Display for Cell {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut res = String::new();
+        for b in self.value.word.borrow().bits.iter() {
+            match b.get() {
+                true => res.push('1'),
+                false => res.push('0'),
+            }
+        }
+        write!(f, "{}", res)
+    }
+}
+
+pub struct Memory64K {
+    pub address_register: Rc<RefCell<Register>>,
     row_decoder: Decoder8x256,
     col_decoder: Decoder8x256,
-    data: Vec<Vec<Cell>>,
+    pub data: Vec<Vec<Cell>>,
     set: Wire,
     enable: Wire,
-    bus: Rc<RefCell<Bus>>,
+    pub bus: Rc<RefCell<Bus>>,
 }
 
 impl Memory64K {
-    fn new(bus: Rc<RefCell<Bus>>) -> Self {
+    pub fn new(bus: Rc<RefCell<Bus>>) -> Self {
         Self {
-            address_register: Register::new("MAR", bus.clone(), bus.clone()),
+            address_register: Rc::new(RefCell::new(Register::new("MAR", bus.clone(), bus.clone()))),
             row_decoder: Decoder8x256::new(),
             col_decoder: Decoder8x256::new(),
             data: (0..256)
@@ -72,7 +85,38 @@ impl Memory64K {
             bus,
         }
     }
+}
 
+impl Updatable for Memory64K {
+    fn update(&mut self) {
+        self.address_register.borrow_mut().update();
+        self.row_decoder.update(
+            self.address_register.borrow().bit(0),
+            self.address_register.borrow().bit(1),
+            self.address_register.borrow().bit(2),
+            self.address_register.borrow().bit(3),
+            self.address_register.borrow().bit(4),
+            self.address_register.borrow().bit(5),
+            self.address_register.borrow().bit(6),
+            self.address_register.borrow().bit(7),
+        );
+        self.col_decoder.update(
+            self.address_register.borrow().bit(8),
+            self.address_register.borrow().bit(9),
+            self.address_register.borrow().bit(10),
+            self.address_register.borrow().bit(11),
+            self.address_register.borrow().bit(12),
+            self.address_register.borrow().bit(13),
+            self.address_register.borrow().bit(14),
+            self.address_register.borrow().bit(15),
+        );
+
+        self.data[self.row_decoder.index() as usize][self.col_decoder.index() as usize]
+            .update(self.set.get(), self.enable.get())
+    }
+}
+
+impl Enableable for Memory64K {
     fn enable(&mut self) {
         self.enable.update(true)
     }
@@ -80,40 +124,15 @@ impl Memory64K {
     fn disable(&mut self) {
         self.enable.update(false)
     }
+}
 
+impl Settable for Memory64K {
     fn set(&mut self) {
         self.set.update(true)
     }
 
     fn unset(&mut self) {
         self.set.update(false)
-    }
-
-    fn update(&mut self) {
-        self.address_register.update();
-        self.row_decoder.update(
-            self.address_register.bit(0),
-            self.address_register.bit(1),
-            self.address_register.bit(2),
-            self.address_register.bit(3),
-            self.address_register.bit(4),
-            self.address_register.bit(5),
-            self.address_register.bit(6),
-            self.address_register.bit(7),
-        );
-        self.col_decoder.update(
-            self.address_register.bit(8),
-            self.address_register.bit(9),
-            self.address_register.bit(10),
-            self.address_register.bit(11),
-            self.address_register.bit(12),
-            self.address_register.bit(13),
-            self.address_register.bit(14),
-            self.address_register.bit(15),
-        );
-
-        self.data[self.row_decoder.index() as usize][self.col_decoder.index() as usize]
-            .update(self.set.get(), self.enable.get())
     }
 }
 
@@ -165,11 +184,11 @@ mod tests {
 
         let mut q: u16 = 0xFFFF;
         for i in 0x0000..0xFFFF {
-            mem.address_register.set();
+            mem.address_register.borrow_mut().set();
             bus.borrow_mut().set_value(i);
             mem.update();
 
-            mem.address_register.unset();
+            mem.address_register.borrow_mut().unset();
             mem.update();
 
             bus.borrow_mut().set_value(q);
@@ -181,11 +200,11 @@ mod tests {
 
         let expected: u16 = 0xFFFF;
         for i in 0x0000..0xFFFF {
-            mem.address_register.set();
+            mem.address_register.borrow_mut().set();
             bus.borrow_mut().set_value(i);
             mem.update();
 
-            mem.address_register.unset();
+            mem.address_register.borrow_mut().unset();
             mem.update();
 
             mem.enable();

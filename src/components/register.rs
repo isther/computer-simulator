@@ -1,4 +1,4 @@
-use super::{Bit16, Bus, Component, Enabler, Wire, BUS_WIDTH};
+use super::{Bus, Component, Enableable, Enabler, Settable, Updatable, Wire, Word, BUS_WIDTH};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -7,7 +7,7 @@ pub struct Register {
     pub name: String,
     pub set: Wire,
     pub enable: Wire,
-    pub word: Box<Bit16>,
+    pub word: Rc<RefCell<Word>>,
     pub enabler: Rc<RefCell<Enabler>>,
     pub outputs: [Wire; BUS_WIDTH as usize],
     pub input_bus: Rc<RefCell<Bus>>,
@@ -16,11 +16,11 @@ pub struct Register {
 
 impl Register {
     pub fn new(name: &str, input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
-        let mut res = Self {
+        let res = Self {
             name: name.to_string(),
             set: Wire::new("S".to_string(), false),
             enable: Wire::new("E".to_string(), false),
-            word: Box::new(Bit16::new()),
+            word: Rc::new(RefCell::new(Word::new())),
             enabler: Rc::new(RefCell::new(Enabler::new())),
             outputs: (0..BUS_WIDTH)
                 .map(|_| Wire::new("Z".to_string(), false))
@@ -31,38 +31,59 @@ impl Register {
             output_bus,
         };
 
-        res.word.connect_output(res.enabler.clone());
+        res.word.borrow_mut().connect_output(res.enabler.clone());
 
         res
     }
 
     pub fn bit(&self, index: i32) -> bool {
-        self.word.get_output_wire(index)
+        self.word.borrow().get_output_wire(index)
     }
 
-    pub fn enable(&mut self) {
+    pub fn value(&self) -> u16 {
+        let mut value: u16 = 0;
+        let mut x: u16 = 0;
+
+        for i in (0..BUS_WIDTH).rev() {
+            match self.word.borrow().get_output_wire(i) {
+                true => value = value | (1 << x),
+                false => value = value ^ (value & (1 << x)),
+            }
+            x += 1;
+        }
+        value
+    }
+}
+
+impl Enableable for Register {
+    fn enable(&mut self) {
         self.enable.update(true)
     }
 
-    pub fn disable(&mut self) {
+    fn disable(&mut self) {
         self.enable.update(false)
     }
+}
 
-    pub fn set(&mut self) {
+impl Settable for Register {
+    fn set(&mut self) {
         self.set.update(true)
     }
 
-    pub fn unset(&mut self) {
+    fn unset(&mut self) {
         self.set.update(false)
     }
+}
 
-    pub fn update(&mut self) {
+impl Updatable for Register {
+    fn update(&mut self) {
         for i in (0..BUS_WIDTH).rev() {
             self.word
-                .set_input_wire(i, self.input_bus.borrow().get_output_wire(i))
+                .borrow_mut()
+                .set_input_wire(i, self.input_bus.borrow().get_output_wire(i));
         }
 
-        self.word.update(self.set.get());
+        self.word.borrow_mut().update(self.set.get());
         self.enabler.borrow_mut().update(self.enable.get());
 
         for i in 0..self.enabler.borrow().outputs.len() {
@@ -76,20 +97,6 @@ impl Register {
                     .set_input_wire(i, self.outputs[i as usize].get())
             }
         }
-    }
-
-    pub fn value(&self) -> u16 {
-        let mut value: u16 = 0;
-        let mut x: u16 = 0;
-
-        for i in (0..BUS_WIDTH).rev() {
-            match self.word.get_output_wire(i) {
-                true => value = value | (1 << x),
-                false => value = value ^ (value & (1 << x)),
-            }
-            x += 1;
-        }
-        value
     }
 }
 
@@ -110,13 +117,13 @@ mod tests {
         set_bus_value(&mut bus.borrow_mut(), 0x00FF);
         register.borrow_mut().set();
         register.borrow_mut().update();
-        assert_eq!(get_component_value(register.borrow().word.as_ref()), 0x00FF);
+        assert_eq!(get_component_value(register.borrow().word.clone()), 0x00FF);
 
         set_bus_value(&mut bus.borrow_mut(), 0x0EEE);
         register.borrow_mut().unset();
         register.borrow_mut().update();
         assert_eq!(
-            get_component_value(register.borrow().word.as_ref()),
+            get_component_value(register.borrow().word.clone()),
             0x00FF,
             "value should not change"
         );
@@ -125,7 +132,7 @@ mod tests {
         register.borrow_mut().set();
         register.borrow_mut().update();
         assert_eq!(
-            get_component_value(register.borrow().word.as_ref()),
+            get_component_value(register.borrow().word.clone()),
             0xFF00,
             "value should change"
         );
@@ -206,13 +213,13 @@ mod tests {
         result
     }
 
-    fn get_component_value<T>(component: &T) -> u16
+    fn get_component_value<T>(component: Rc<RefCell<T>>) -> u16
     where
         T: Component,
     {
         let mut result: u16 = 0;
         for i in (0..BUS_WIDTH).rev() {
-            match component.get_output_wire(i) {
+            match component.borrow().get_output_wire(i) {
                 true => result = result | (1 << i as u16),
                 false => result = result & (result ^ 1 << i as u16),
             }

@@ -10,7 +10,7 @@ pub struct Bit {
 }
 
 impl Bit {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             gates: (0..4)
                 .map(|_| NAND::new())
@@ -21,11 +21,11 @@ impl Bit {
         }
     }
 
-    fn get(&self) -> bool {
+    pub fn get(&self) -> bool {
         self.wire_o.get()
     }
 
-    fn update(&mut self, wire_i: bool, wire_s: bool) {
+    pub fn update(&mut self, wire_i: bool, wire_s: bool) {
         for _ in 0..2 {
             self.gates[0].update(wire_i, wire_s);
             self.gates[1].update(self.gates[0].get(), wire_s);
@@ -37,7 +37,7 @@ impl Bit {
 }
 
 #[derive(Clone)]
-pub struct Bit16 {
+pub struct Word {
     inputs: [Wire; 16],
     pub bits: [Bit; 16],
     outputs: [Wire; 16],
@@ -45,13 +45,13 @@ pub struct Bit16 {
 }
 
 //TODO:Debug info
-impl Debug for Bit16 {
+impl Debug for Word {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "")
     }
 }
 
-impl Bit16 {
+impl Word {
     pub fn new() -> Self {
         Self {
             inputs: (0..16)
@@ -91,7 +91,7 @@ impl Bit16 {
     }
 }
 
-impl Component for Bit16 {
+impl Component for Word {
     fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
         self.next = Some(component)
     }
