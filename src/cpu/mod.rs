@@ -8,15 +8,14 @@ use crate::gates::{Wire, AND, NOT, OR};
 
 mod alu;
 mod cpu;
-mod cu;
 
 use alu::ALU;
 
-enum FlagState {
-    Carry,
-    ALarger,
-    Equal,
-    Zero,
+pub enum FlagState {
+    Carry = 0,
+    ALarger = 1,
+    Equal = 2,
+    Zero = 3,
 }
 
 impl From<FlagState> for i32 {
@@ -168,23 +167,23 @@ impl InstructionDecoder3x8 {
 // ADDS
 // ----------------------
 // 0x0080 = ADD R0, R0
-// 0x0081 = ADD R0, R1
-// 0x0082 = ADD R0, R2
-// 0x0083 = ADD R0, R3
+// 0x0081 = ADD R1, R0
+// 0x0082 = ADD R2, R0
+// 0x0083 = ADD R3, R0
 
-// 0x0084 = ADD R1, R0
+// 0x0084 = ADD R0, R1
 // 0x0085 = ADD R1, R1
-// 0x0086 = ADD R1, R2
-// 0x0087 = ADD R1, R3
+// 0x0086 = ADD R2, R1
+// 0x0087 = ADD R3, R1
 
-// 0x0088 = ADD R2, R0
-// 0x0089 = ADD R2, R1
+// 0x0088 = ADD R0, R2
+// 0x0089 = ADD R1, R2
 // 0x008A = ADD R2, R2
-// 0x008B = ADD R2, R3
+// 0x008B = ADD R3, R2
 
-// 0x008C = ADD R3, R0
-// 0x008D = ADD R3, R1
-// 0x008E = ADD R3, R2
+// 0x008C = ADD R0, R3
+// 0x008D = ADD R1, R3
+// 0x008E = ADD R2, R3
 // 0x008F = ADD R3, R3
 
 // SHR

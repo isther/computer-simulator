@@ -62,53 +62,6 @@ impl Stepper {
         }
     }
 
-    // pub fn step(&mut self) {
-    //     self.clock_in_not_gate.update(self.clock_in.get());
-    //     self.reset_not_gate.update(self.reset.get());
-    //
-    //     self.input_or_gates[0].update(self.reset.get(), self.clock_in_not_gate.get());
-    //     self.input_or_gates[1].update(self.reset.get(), self.clock_in.get());
-    //
-    //     self.bits[0].update(self.reset_not_gate.get(), self.input_or_gates[0].get());
-    //     self.bits[1].update(self.bits[0].get(), self.input_or_gates[1].get());
-    //     self.output_not_gates[0].update(self.bits[1].get());
-    //     self.output_or_gate
-    //         .update(self.output_not_gates[0].get(), self.reset.get());
-    //
-    //     self.bits[2].update(self.bits[1].get(), self.input_or_gates[0].get());
-    //     self.bits[3].update(self.bits[2].get(), self.input_or_gates[1].get());
-    //     self.output_not_gates[1].update(self.bits[3].get());
-    //     self.output_and_gates[0].update(self.output_not_gates[1].get(), self.bits[1].get());
-    //
-    //     self.bits[4].update(self.bits[3].get(), self.input_or_gates[0].get());
-    //     self.bits[5].update(self.bits[4].get(), self.input_or_gates[1].get());
-    //     self.output_not_gates[2].update(self.bits[5].get());
-    //     self.output_and_gates[1].update(self.output_not_gates[2].get(), self.bits[3].get());
-    //
-    //     self.bits[6].update(self.bits[5].get(), self.input_or_gates[0].get());
-    //     self.bits[7].update(self.bits[6].get(), self.input_or_gates[1].get());
-    //     self.output_not_gates[3].update(self.bits[7].get());
-    //     self.output_and_gates[2].update(self.output_not_gates[3].get(), self.bits[5].get());
-    //
-    //     self.bits[8].update(self.bits[7].get(), self.input_or_gates[0].get());
-    //     self.bits[9].update(self.bits[8].get(), self.input_or_gates[1].get());
-    //     self.output_not_gates[4].update(self.bits[9].get());
-    //     self.output_and_gates[3].update(self.output_not_gates[4].get(), self.bits[7].get());
-    //
-    //     self.bits[10].update(self.bits[9].get(), self.input_or_gates[0].get());
-    //     self.bits[11].update(self.bits[10].get(), self.input_or_gates[1].get());
-    //     self.output_not_gates[5].update(self.bits[11].get());
-    //     self.output_and_gates[4].update(self.output_not_gates[5].get(), self.bits[9].get());
-    //
-    //     self.outputs[0].update(self.output_or_gate.get());
-    //     self.outputs[1].update(self.output_and_gates[0].get());
-    //     self.outputs[2].update(self.output_and_gates[1].get());
-    //     self.outputs[3].update(self.output_and_gates[2].get());
-    //     self.outputs[4].update(self.output_and_gates[3].get());
-    //     self.outputs[5].update(self.output_and_gates[4].get());
-    //     self.outputs[6].update(self.bits[11].get());
-    // }
-
     pub fn step(&mut self) {
         self.clock_in_not_gate.update(self.clock_in.get());
         self.reset_not_gate.update(self.reset.get());
@@ -116,34 +69,34 @@ impl Stepper {
         self.input_or_gates[0].update(self.reset.get(), self.clock_in_not_gate.get());
         self.input_or_gates[1].update(self.reset.get(), self.clock_in.get());
 
-        self.bits[0].update(self.reset_not_gate.get(), self.input_or_gates[1].get());
-        self.bits[1].update(self.bits[0].get(), self.input_or_gates[0].get());
+        self.bits[0].update(self.reset_not_gate.get(), self.input_or_gates[0].get());
+        self.bits[1].update(self.bits[0].get(), self.input_or_gates[1].get());
         self.output_not_gates[0].update(self.bits[1].get());
         self.output_or_gate
             .update(self.output_not_gates[0].get(), self.reset.get());
 
-        self.bits[2].update(self.bits[1].get(), self.input_or_gates[1].get());
-        self.bits[3].update(self.bits[2].get(), self.input_or_gates[0].get());
+        self.bits[2].update(self.bits[1].get(), self.input_or_gates[0].get());
+        self.bits[3].update(self.bits[2].get(), self.input_or_gates[1].get());
         self.output_not_gates[1].update(self.bits[3].get());
         self.output_and_gates[0].update(self.output_not_gates[1].get(), self.bits[1].get());
 
-        self.bits[4].update(self.bits[3].get(), self.input_or_gates[1].get());
-        self.bits[5].update(self.bits[4].get(), self.input_or_gates[0].get());
+        self.bits[4].update(self.bits[3].get(), self.input_or_gates[0].get());
+        self.bits[5].update(self.bits[4].get(), self.input_or_gates[1].get());
         self.output_not_gates[2].update(self.bits[5].get());
         self.output_and_gates[1].update(self.output_not_gates[2].get(), self.bits[3].get());
 
-        self.bits[6].update(self.bits[5].get(), self.input_or_gates[1].get());
-        self.bits[7].update(self.bits[6].get(), self.input_or_gates[0].get());
+        self.bits[6].update(self.bits[5].get(), self.input_or_gates[0].get());
+        self.bits[7].update(self.bits[6].get(), self.input_or_gates[1].get());
         self.output_not_gates[3].update(self.bits[7].get());
         self.output_and_gates[2].update(self.output_not_gates[3].get(), self.bits[5].get());
 
-        self.bits[8].update(self.bits[7].get(), self.input_or_gates[1].get());
-        self.bits[9].update(self.bits[8].get(), self.input_or_gates[0].get());
+        self.bits[8].update(self.bits[7].get(), self.input_or_gates[0].get());
+        self.bits[9].update(self.bits[8].get(), self.input_or_gates[1].get());
         self.output_not_gates[4].update(self.bits[9].get());
         self.output_and_gates[3].update(self.output_not_gates[4].get(), self.bits[7].get());
 
-        self.bits[10].update(self.bits[9].get(), self.input_or_gates[1].get());
-        self.bits[11].update(self.bits[10].get(), self.input_or_gates[0].get());
+        self.bits[10].update(self.bits[9].get(), self.input_or_gates[0].get());
+        self.bits[11].update(self.bits[10].get(), self.input_or_gates[1].get());
         self.output_not_gates[5].update(self.bits[11].get());
         self.output_and_gates[4].update(self.output_not_gates[5].get(), self.bits[9].get());
 

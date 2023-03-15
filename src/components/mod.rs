@@ -166,10 +166,17 @@ impl Enabler {
     }
 }
 
-//TODO:Debug info
 impl Debug for Enabler {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
+        let mut result = String::new();
+
+        for i in 0..self.outputs.len() {
+            match self.get_output_wire(i as i32) {
+                true => result += "1",
+                false => result += "0",
+            }
+        }
+        write!(f, r#"Enabler: {}"#, result)
     }
 }
 

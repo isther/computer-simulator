@@ -124,9 +124,9 @@ impl ANDGate8 {
 }
 
 pub struct ORGate3 {
-    input_a: Wire,
-    input_b: Wire,
-    input_c: Wire,
+    pub input_a: Wire,
+    pub input_b: Wire,
+    pub input_c: Wire,
     or_a: OR,
     or_b: OR,
     output: Wire,

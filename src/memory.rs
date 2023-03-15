@@ -42,18 +42,9 @@ impl Cell {
 
         self.value.update()
     }
-}
 
-impl Display for Cell {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut res = String::new();
-        for b in self.value.word.borrow().bits.iter() {
-            match b.get() {
-                true => res.push('1'),
-                false => res.push('0'),
-            }
-        }
-        write!(f, "{}", res)
+    pub fn value(&self) -> u16 {
+        self.value.value()
     }
 }
 
@@ -153,8 +144,10 @@ impl Display for Memory64K {
 
         for i in 0..256 {
             for j in 0..256 {
-                let val = self.data[i][j].value.value();
-                str.insert_str(str.len(), format!("0x{:04X}\t", val).as_str());
+                str.insert_str(
+                    str.len(),
+                    format!("0x{:04X}\t", self.data[i][j].value()).as_str(),
+                );
             }
         }
         str.insert_str(str.len(), "\n");
@@ -169,18 +162,43 @@ mod tests {
 
     #[test]
     fn test_cell() {
-        let bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
-        let mut cell = Cell::new(bus.clone(), bus.clone());
+        let input_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let output_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let mut cell = Cell::new(input_bus.clone(), output_bus.clone());
 
-        bus.borrow_mut().set_value(0xFFFF);
+        //  no input && no output
+        input_bus.borrow_mut().set_value(0xFFFF);
+        cell.update(false, false);
+        assert_eq!(output_bus.borrow().get_value(), 0x0000);
+
+        // input && output
+        input_bus.borrow_mut().set_value(0xFFFF);
         cell.update(true, true);
-        println!("{:?}", cell.value.value())
+        assert_eq!(output_bus.borrow().get_value(), 0xFFFF);
+
+        // no input && output
+        input_bus.borrow_mut().set_value(0xFF00);
+        cell.update(false, true);
+        assert_eq!(output_bus.borrow().get_value(), 0xFFFF);
+
+        // input && no output
+        input_bus.borrow_mut().set_value(0xFF00);
+        cell.update(true, false);
+        assert_eq!(output_bus.borrow().get_value(), 0xFFFF);
+
+        // no input && output
+        input_bus.borrow_mut().set_value(0x00FF);
+        cell.update(false, true);
+        assert_eq!(output_bus.borrow().get_value(), 0xFF00);
     }
 
     #[test]
     fn test_memory_64k_write() {
         let bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+
+        let start = std::time::SystemTime::now();
         let mut mem = Memory64K::new(bus.clone());
+        println!("Time to create memory: {:?}", start.elapsed().unwrap());
 
         let mut q: u16 = 0xFFFF;
         for i in 0x0000..0xFFFF {
@@ -192,13 +210,16 @@ mod tests {
             mem.update();
 
             bus.borrow_mut().set_value(q);
+            mem.set();
+            mem.update();
 
             mem.unset();
             mem.update();
+
             q -= 1;
         }
 
-        let expected: u16 = 0xFFFF;
+        let mut expected: u16 = 0xFFFF;
         for i in 0x0000..0xFFFF {
             mem.address_register.borrow_mut().set();
             bus.borrow_mut().set_value(i);
@@ -214,8 +235,7 @@ mod tests {
             mem.update();
 
             assert_eq!(bus.borrow().get_value(), expected);
+            expected -= 1;
         }
-
-        println!("{}", mem);
     }
 }

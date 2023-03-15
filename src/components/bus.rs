@@ -45,6 +45,7 @@ impl Bus {
             };
             x += 1;
         }
+
         result
     }
 }

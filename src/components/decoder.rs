@@ -3,12 +3,12 @@ use crate::gates::{Wire, AND, NOT};
 
 #[derive(Debug)]
 pub struct Decoder2x4 {
-    input_a: Wire,
-    input_b: Wire,
+    pub input_a: Wire,
+    pub input_b: Wire,
 
-    not_gates: [NOT; 2],
-    and_gates: [AND; 4],
-    outputs: [Wire; 4],
+    pub not_gates: [NOT; 2],
+    pub and_gates: [AND; 4],
+    pub outputs: [Wire; 4],
 }
 
 impl Decoder2x4 {

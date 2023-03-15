@@ -50,10 +50,10 @@ impl From<Operation> for i32 {
 }
 
 pub struct ALU {
-    input_a_bus: Rc<RefCell<Bus>>,
-    input_b_bus: Rc<RefCell<Bus>>,
-    output_bus: Rc<RefCell<Bus>>,
-    flags_output_bus: Rc<RefCell<Bus>>,
+    pub input_a_bus: Rc<RefCell<Bus>>,
+    pub input_b_bus: Rc<RefCell<Bus>>,
+    pub output_bus: Rc<RefCell<Bus>>,
+    pub flags_output_bus: Rc<RefCell<Bus>>,
     pub op: [Wire; 3],
 
     pub carry_in: Wire,
@@ -64,14 +64,14 @@ pub struct ALU {
 
     op_decoder: Decoder3x8,
 
-    comparator: Box<Comparator>,
-    xorer: Box<XORer>,
-    orer: Box<ORer>,
-    ander: Box<ANDer>,
-    notter: Box<NOTer>,
-    left_shifer: Box<LeftShifter>,
-    right_shifer: Box<RightShifter>,
-    adder: Box<Adder>,
+    comparator: Rc<RefCell<Comparator>>,
+    xorer: Rc<RefCell<XORer>>,
+    orer: Rc<RefCell<ORer>>,
+    ander: Rc<RefCell<ANDer>>,
+    notter: Rc<RefCell<NOTer>>,
+    left_shifer: Rc<RefCell<LeftShifter>>,
+    right_shifer: Rc<RefCell<RightShifter>>,
+    adder: Rc<RefCell<Adder>>,
 
     is_zero: IsZero,
     enablers: Box<Vec<Enabler>>, //7
@@ -100,14 +100,14 @@ impl ALU {
             a_is_larger: Wire::new("a_is_larger".to_string(), false),
             is_equal: Wire::new("is_equal".to_string(), false),
             op_decoder: Decoder3x8::new(),
-            comparator: Box::new(Comparator::new()),
-            xorer: Box::new(XORer::new()),
-            orer: Box::new(ORer::new()),
-            ander: Box::new(ANDer::new()),
-            notter: Box::new(NOTer::new()),
-            left_shifer: Box::new(LeftShifter::new()),
-            right_shifer: Box::new(RightShifter::new()),
-            adder: Box::new(Adder::new()),
+            comparator: Rc::new(RefCell::new(Comparator::new())),
+            xorer: Rc::new(RefCell::new(XORer::new())),
+            orer: Rc::new(RefCell::new(ORer::new())),
+            ander: Rc::new(RefCell::new(ANDer::new())),
+            notter: Rc::new(RefCell::new(NOTer::new())),
+            left_shifer: Rc::new(RefCell::new(LeftShifter::new())),
+            right_shifer: Rc::new(RefCell::new(RightShifter::new())),
+            adder: Rc::new(RefCell::new(Adder::new())),
             is_zero: IsZero::new(),
             enablers: Box::new(
                 (0..7)
@@ -124,19 +124,27 @@ impl ALU {
         }
     }
 
-    pub fn set_wire_on_component(&self, c: &mut dyn Component) {
+    pub fn set_wire_on_component<T>(&self, c: Rc<RefCell<T>>)
+    where
+        T: Component,
+    {
         for i in (0..BUS_WIDTH).rev() {
-            c.set_input_wire(i as i32, self.input_a_bus.borrow().get_output_wire(i));
+            c.borrow_mut()
+                .set_input_wire(i as i32, self.input_a_bus.borrow().get_output_wire(i));
         }
 
         for i in (BUS_WIDTH..BUS_WIDTH * 2).rev() {
-            c.set_input_wire(i as i32, self.input_b_bus.borrow().get_output_wire(i - 16));
+            c.borrow_mut()
+                .set_input_wire(i as i32, self.input_b_bus.borrow().get_output_wire(i - 16));
         }
     }
 
-    pub fn wire_to_enabler(&mut self, c: &dyn Component, enabler_index: i32) {
+    pub fn wire_to_enabler<T>(&mut self, c: Rc<RefCell<T>>, enabler_index: i32)
+    where
+        T: Component,
+    {
         for i in 0..BUS_WIDTH {
-            self.enablers[enabler_index as usize].set_input_wire(i, c.get_output_wire(i))
+            self.enablers[enabler_index as usize].set_input_wire(i, c.borrow().get_output_wire(i))
         }
     }
 }
@@ -166,21 +174,21 @@ impl ALU {
             match enabler {
                 Operation::ADD => {
                     self.and_gates[0].update(
-                        self.adder.get_carry_out(),
+                        self.adder.borrow().get_carry_out(),
                         self.op_decoder.get_output_wire(Operation::ADD.into()),
                     );
                     self.carry_out.update(self.and_gates[0].get());
                 }
                 Operation::SHR => {
                     self.and_gates[1].update(
-                        self.right_shifer.get(),
+                        self.right_shifer.borrow().get(),
                         self.op_decoder.get_output_wire(Operation::SHR.into()),
                     );
                     self.carry_out.update(self.and_gates[1].get());
                 }
                 Operation::SHL => {
                     self.and_gates[2].update(
-                        self.left_shifer.get(),
+                        self.left_shifer.borrow().get(),
                         self.op_decoder.get_output_wire(Operation::SHL.into()),
                     );
                     self.carry_out.update(self.and_gates[2].get());
@@ -223,81 +231,64 @@ impl ALU {
     }
 
     fn update_comparator(&mut self) {
-        let mut comparator_cloned = self.comparator.clone();
-
-        self.set_wire_on_component(comparator_cloned.as_mut());
-        comparator_cloned.update();
-        self.a_is_larger.update(comparator_cloned.larger());
-        self.is_equal.update(comparator_cloned.equal());
-
-        self.comparator = comparator_cloned;
+        self.set_wire_on_component(self.comparator.clone());
+        self.comparator.borrow_mut().update();
+        self.a_is_larger.update(self.comparator.borrow().larger());
+        self.is_equal.update(self.comparator.borrow().equal());
     }
 
     fn update_xorer(&mut self) {
-        let mut xorer_cloned = self.xorer.clone();
-
-        self.set_wire_on_component(xorer_cloned.as_mut());
-        xorer_cloned.update();
-        self.wire_to_enabler(xorer_cloned.as_ref(), 6);
-
-        self.xorer = xorer_cloned;
+        self.set_wire_on_component(self.xorer.clone());
+        self.xorer.borrow_mut().update();
+        self.wire_to_enabler(self.xorer.clone(), 6);
     }
 
     fn update_orer(&mut self) {
-        let mut orer_cloned = self.orer.clone();
-
-        self.set_wire_on_component(orer_cloned.as_mut());
-        orer_cloned.update();
-        self.wire_to_enabler(orer_cloned.as_ref(), 5);
-
-        self.orer = orer_cloned;
+        self.set_wire_on_component(self.orer.clone());
+        self.orer.borrow_mut().update();
+        self.wire_to_enabler(self.orer.clone(), 5);
     }
 
     fn update_ander(&mut self) {
-        let mut ander_cloned = self.ander.clone();
-
-        self.set_wire_on_component(ander_cloned.as_mut());
-        ander_cloned.update();
-        self.wire_to_enabler(ander_cloned.as_mut(), 4);
-
-        self.ander = ander_cloned;
+        self.set_wire_on_component(self.ander.clone());
+        self.ander.borrow_mut().update();
+        self.wire_to_enabler(self.ander.clone(), 4);
     }
 
     fn update_notter(&mut self) {
         for i in (0..BUS_WIDTH).rev() {
             self.notter
+                .borrow_mut()
                 .set_input_wire(i, self.input_a_bus.borrow().get_output_wire(i))
         }
-        self.notter.update();
-        self.wire_to_enabler(self.notter.clone().as_ref(), 3);
+        self.notter.borrow_mut().update();
+        self.wire_to_enabler(self.notter.clone(), 3);
     }
 
     fn update_right_shifter(&mut self) {
         for i in (0..BUS_WIDTH).rev() {
             self.right_shifer
+                .borrow_mut()
                 .set_input_wire(i, self.input_a_bus.borrow().get_output_wire(i));
         }
-        self.right_shifer.update(self.carry_in.get());
-        self.wire_to_enabler(self.right_shifer.clone().as_ref(), 2);
+        self.right_shifer.borrow_mut().update(self.carry_in.get());
+        self.wire_to_enabler(self.right_shifer.clone(), 2);
     }
 
     fn update_left_shifter(&mut self) {
         for i in (0..BUS_WIDTH).rev() {
             self.left_shifer
+                .borrow_mut()
                 .set_input_wire(i, self.input_a_bus.borrow().get_output_wire(i));
         }
-        self.left_shifer.update(self.carry_in.get());
-        self.wire_to_enabler(self.left_shifer.clone().as_ref(), 1);
+        self.left_shifer.borrow_mut().update(self.carry_in.get());
+        self.wire_to_enabler(self.left_shifer.clone(), 1);
     }
 
     fn update_adder(&mut self) {
-        let mut adder_cloned = self.adder.clone();
-
-        self.set_wire_on_component(adder_cloned.as_mut());
-        adder_cloned.update(self.carry_in.get());
-        self.wire_to_enabler(adder_cloned.as_ref(), 0);
-
-        self.adder = adder_cloned;
+        self.set_wire_on_component(self.adder.clone());
+        self.adder.borrow_mut().update(self.carry_in.get());
+        self.wire_to_enabler(self.adder.clone(), 0);
     }
 }
 

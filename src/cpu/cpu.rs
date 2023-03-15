@@ -14,24 +14,24 @@ pub struct CPU {
     gp_reg2: Rc<RefCell<Register>>,
     gp_reg3: Rc<RefCell<Register>>,
 
-    tmp: Option<Rc<RefCell<Register>>>,
-    acc: Option<Rc<RefCell<Register>>>,
-    iar: Rc<RefCell<Register>>,        // Instruction address register
-    ir: Option<Rc<RefCell<Register>>>, // Instruction register
-    flags: Option<Rc<RefCell<Register>>>,
+    tmp: Rc<RefCell<Register>>,
+    acc: Rc<RefCell<Register>>,
+    iar: Rc<RefCell<Register>>, // Instruction address register
+    ir: Rc<RefCell<Register>>,  // Instruction register
+    flags: Rc<RefCell<Register>>,
 
     clock_state: bool,
     memory: Rc<RefCell<Memory64K>>,
-    alu: Option<Rc<RefCell<ALU>>>,
+    alu: Rc<RefCell<ALU>>,
     stepper: Stepper,
-    busone: Option<Rc<RefCell<BusOne>>>,
+    busone: Rc<RefCell<BusOne>>,
 
     main_bus: Rc<RefCell<Bus>>,
-    tmp_bus: Option<Rc<RefCell<Bus>>>,
-    busone_output: Option<Rc<RefCell<Bus>>>,
-    control_bus: Rc<RefCell<Bus>>,
-    acc_bus: Option<Rc<RefCell<Bus>>>,
-    alu_to_flags_bus: Rc<RefCell<Bus>>,
+    pub tmp_bus: Rc<RefCell<Bus>>,
+    pub busone_output: Rc<RefCell<Bus>>,
+    pub control_bus: Rc<RefCell<Bus>>,
+    acc_bus: Rc<RefCell<Bus>>,
+    pub alu_to_flags_bus: Rc<RefCell<Bus>>,
     flags_bus: Rc<RefCell<Bus>>,
     io_bus: Rc<RefCell<IOBus>>,
 
@@ -110,8 +110,88 @@ pub struct CPU {
 }
 
 impl CPU {
+    fn println_self(&self) {
+        println!(
+                "step: {} op: {} {} {} ir: {:#X} iar: {:#X} acc: {:#X} reg: {:#X} {:#X} {:#X} {:#X} main_bus: {:#X} acc_bus: {:#X}",
+                self.stepper,
+                self.alu_op_and_gates[2].get() as i32,
+                self.alu_op_and_gates[1].get() as i32,
+                self.alu_op_and_gates[0].get() as i32,
+                self.ir.borrow().value(),
+                self.iar.borrow().value(),
+                self.acc.borrow().value(),
+                self.gp_reg0.borrow().value(),
+                self.gp_reg1.borrow().value(),
+                self.gp_reg2.borrow().value(),
+                self.gp_reg3.borrow().value(),
+                self.main_bus.borrow().get_value(),
+                self.acc_bus.borrow().get_value(),
+            );
+    }
+
     pub fn new(main_bus: Rc<RefCell<Bus>>, memory: Rc<RefCell<Memory64K>>) -> Self {
-        let mut cpu = Self {
+        // TMP
+        let tmp_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let tmp = Rc::new(RefCell::new(Register::new(
+            "TMP",
+            main_bus.clone(),
+            tmp_bus.clone(),
+        )));
+
+        // tmp register is always enabled, and we initialise it with value 0
+        CPU::update_enable_status(tmp.clone(), true);
+        CPU::update_set_status(tmp.clone(), true);
+        CPU::update_on(tmp.clone());
+        CPU::update_set_status(tmp.clone(), false);
+
+        // ACC
+        let acc_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let acc = Rc::new(RefCell::new(Register::new(
+            "ACC",
+            acc_bus.clone(),
+            main_bus.clone(),
+        )));
+
+        // IR
+        //
+        let control_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let ir = Rc::new(RefCell::new(Register::new(
+            "IR",
+            main_bus.clone(),
+            control_bus.clone(),
+        )));
+        ir.borrow_mut().disable();
+
+        // FLAGS
+        let alu_to_flags_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let flags_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let flags = Rc::new(RefCell::new(Register::new(
+            "FLAGS",
+            alu_to_flags_bus.clone(),
+            flags_bus.clone(),
+        )));
+
+        CPU::update_enable_status(flags.clone(), true);
+        CPU::update_set_status(flags.clone(), true);
+        CPU::update_on(flags.clone());
+        CPU::update_set_status(flags.clone(), false);
+
+        // BUS one
+        let busone_output = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let busone = Rc::new(RefCell::new(BusOne::new(
+            tmp_bus.clone(),
+            busone_output.clone(),
+        )));
+
+        // ALU
+        let alu = Rc::new(RefCell::new(ALU::new(
+            main_bus.clone(),
+            busone_output.clone(),
+            acc_bus.clone(),
+            alu_to_flags_bus.clone(),
+        )));
+
+        Self {
             gp_reg0: Rc::new(RefCell::new(Register::new(
                 "R0",
                 main_bus.clone(),
@@ -132,27 +212,27 @@ impl CPU {
                 main_bus.clone(),
                 main_bus.clone(),
             ))),
-            tmp: None,
-            acc: None,
-            ir: None,
+            tmp,
+            acc,
+            ir,
             iar: Rc::new(RefCell::new(Register::new(
                 "IAR",
                 main_bus.clone(),
                 main_bus.clone(),
             ))),
-            flags: None,
+            flags,
             clock_state: false,
             memory,
-            alu: None,
+            alu,
             stepper: Stepper::new(),
-            busone: None,
+            busone,
             main_bus: main_bus.clone(),
-            tmp_bus: None,
-            busone_output: None,
-            control_bus: Rc::new(RefCell::new(Bus::new(BUS_WIDTH))),
-            acc_bus: None,
-            alu_to_flags_bus: Rc::new(RefCell::new(Bus::new(BUS_WIDTH))),
-            flags_bus: Rc::new(RefCell::new(Bus::new(BUS_WIDTH))),
+            tmp_bus,
+            busone_output,
+            control_bus,
+            acc_bus,
+            alu_to_flags_bus,
+            flags_bus,
             io_bus: Rc::new(RefCell::new(IOBus::new())),
             step4_gates: (0..8)
                 .map(|_| AND::new())
@@ -237,64 +317,7 @@ impl CPU {
             carry_temp: Bit::new(),
             carry_and_gate: AND::new(),
             peripherals: Vec::new(),
-        };
-
-        // IR
-        cpu.ir = Some(Rc::new(RefCell::new(Register::new(
-            "IR",
-            cpu.main_bus.clone(),
-            cpu.control_bus.clone(),
-        ))));
-        cpu.ir.as_ref().unwrap().borrow_mut().disable();
-
-        cpu.flags = Some(Rc::new(RefCell::new(Register::new(
-            "FLAGS",
-            cpu.alu_to_flags_bus.clone(),
-            cpu.flags_bus.clone(),
-        ))));
-
-        CPU::update_enable_status(cpu.flags.as_ref().unwrap().clone(), true);
-        CPU::update_set_status(cpu.flags.as_ref().unwrap().clone(), true);
-        CPU::update_on(cpu.flags.as_ref().unwrap().clone());
-        CPU::update_set_status(cpu.flags.as_ref().unwrap().clone(), false);
-
-        // TMP
-        cpu.tmp_bus = Some(Rc::new(RefCell::new(Bus::new(BUS_WIDTH))));
-        cpu.tmp = Some(Rc::new(RefCell::new(Register::new(
-            "TMP",
-            cpu.main_bus.clone(),
-            cpu.tmp_bus.as_ref().unwrap().clone(),
-        ))));
-
-        // tmp register is always enabled, and we initialise it with value 0
-        CPU::update_enable_status(cpu.tmp.as_ref().unwrap().clone(), true);
-        CPU::update_set_status(cpu.tmp.as_ref().unwrap().clone(), true);
-        CPU::update_on(cpu.tmp.as_ref().unwrap().clone());
-        CPU::update_set_status(cpu.tmp.as_ref().unwrap().clone(), false);
-
-        cpu.busone_output = Some(Rc::new(RefCell::new(Bus::new(BUS_WIDTH))));
-        cpu.busone = Some(Rc::new(RefCell::new(BusOne::new(
-            cpu.tmp_bus.as_ref().unwrap().clone(),
-            cpu.busone_output.as_ref().unwrap().clone(),
-        ))));
-
-        // ACC
-        cpu.acc_bus = Some(Rc::new(RefCell::new(Bus::new(BUS_WIDTH))));
-        cpu.acc = Some(Rc::new(RefCell::new(Register::new(
-            "ACC",
-            cpu.acc_bus.as_ref().unwrap().clone(),
-            cpu.main_bus.clone(),
-        ))));
-
-        // ALU
-        cpu.alu = Some(Rc::new(RefCell::new(ALU::new(
-            cpu.main_bus.clone(),
-            cpu.busone_output.as_ref().unwrap().clone(),
-            cpu.acc_bus.as_ref().unwrap().clone(),
-            cpu.alu_to_flags_bus.clone(),
-        ))));
-
-        cpu
+        }
     }
 
     fn update_enable_status<T>(enableable: Rc<RefCell<T>>, state: bool)
@@ -346,10 +369,10 @@ impl CPU {
 
     pub fn step(&mut self) {
         for _ in 0..2 {
-            match self.clock_state {
-                true => self.clock_state = false,
-                false => self.clock_state = true,
-            }
+            self.clock_state = match self.clock_state {
+                true => false,
+                false => true,
+            };
             self.to_step(self.clock_state);
         }
     }
@@ -361,6 +384,7 @@ impl CPU {
         self.run_step_6_gates();
 
         self.run_enable(clock_state);
+
         self.update_states();
         if clock_state {
             self.run_enable(false);
@@ -378,10 +402,7 @@ impl CPU {
     }
 
     fn run_step_4_gates(&mut self) {
-        self.step4_gates[0].update(
-            self.stepper.get_output_wire(3),
-            self.ir.as_ref().unwrap().borrow().bit(8),
-        );
+        self.step4_gates[0].update(self.stepper.get_output_wire(3), self.ir.borrow().bit(8));
 
         let mut gate = 1;
         for selector in 0..7 {
@@ -395,18 +416,14 @@ impl CPU {
         self.step4_gate3_and.update(
             self.stepper.get_output_wire(3),
             self.instr_decoder3x8.selector_gates[7].get(),
-            self.ir.as_ref().unwrap().borrow().bit(12),
+            self.ir.borrow().bit(12),
         );
 
-        self.ir_bit4_not_gate
-            .update(self.ir.as_ref().unwrap().borrow().bit(12));
+        self.ir_bit4_not_gate.update(self.ir.borrow().bit(12));
     }
 
     fn run_step_5_gates(&mut self) {
-        self.step5_gates[0].update(
-            self.stepper.get_output_wire(4),
-            self.ir.as_ref().unwrap().borrow().bit(8),
-        );
+        self.step5_gates[0].update(self.stepper.get_output_wire(4), self.ir.borrow().bit(8));
 
         self.step5_gates[1].update(
             self.stepper.get_output_wire(4),
@@ -440,7 +457,7 @@ impl CPU {
     fn run_step_6_gates(&mut self) {
         self.step6_gates[0].update(
             self.stepper.get_output_wire(5),
-            self.ir.as_ref().unwrap().borrow().bit(8),
+            self.ir.borrow().bit(8),
             self.ir_instruction_not_gate.get(),
         );
 
@@ -464,25 +481,25 @@ impl CPU {
         Self::update_on(self.memory.borrow().address_register.clone());
 
         // IR
-        Self::update_on(self.ir.as_ref().unwrap().clone());
+        Self::update_on(self.ir.clone());
 
         // RAM
         Self::update_on(self.memory.clone());
 
         // TMP
-        Self::update_on(self.tmp.as_ref().unwrap().clone());
+        Self::update_on(self.tmp.clone());
 
         // FLAGS
-        Self::update_on(self.flags.as_ref().unwrap().clone());
+        Self::update_on(self.flags.clone());
 
         // BUS1
-        Self::update_on(self.busone.as_ref().unwrap().clone());
+        Self::update_on(self.busone.clone());
 
         // ALU
         self.update_alu();
 
         // ACC
-        Self::update_on(self.acc.as_ref().unwrap().clone());
+        Self::update_on(self.acc.clone());
 
         // R0
         Self::update_on(self.gp_reg0.clone());
@@ -502,20 +519,21 @@ impl CPU {
     }
 
     fn clear_main_bus(&mut self) {
-        for i in 0..BUS_WIDTH {
-            self.main_bus.borrow_mut().set_input_wire(i, false);
-        }
+        // for i in 0..BUS_WIDTH {
+        //     self.main_bus.borrow_mut().set_input_wire(i, false);
+        // }
+        self.main_bus.borrow_mut().set_value(0);
     }
 
     fn update_instruction_decoder3x8(&mut self) {
         self.instr_decoder3x8
             .bit0_not_gate
-            .update(self.ir.as_ref().unwrap().borrow().bit(8));
+            .update(self.ir.borrow().bit(8));
 
         self.instr_decoder3x8.decoder.update(
-            self.ir.as_ref().unwrap().borrow().bit(9),
-            self.ir.as_ref().unwrap().borrow().bit(10),
-            self.ir.as_ref().unwrap().borrow().bit(11),
+            self.ir.borrow().bit(9),
+            self.ir.borrow().bit(10),
+            self.ir.borrow().bit(11),
         );
 
         for i in 0..8 {
@@ -527,10 +545,9 @@ impl CPU {
     }
 
     fn update_io_bus(&mut self) {
-        self.io_bus.borrow_mut().update(
-            self.ir.as_ref().unwrap().borrow().bit(12),
-            self.ir.as_ref().unwrap().borrow().bit(13),
-        )
+        self.io_bus
+            .borrow_mut()
+            .update(self.ir.borrow().bit(12), self.ir.borrow().bit(13))
     }
 
     fn update_peripherals(&mut self) {
@@ -542,34 +559,32 @@ impl CPU {
     fn update_alu(&mut self) {
         // update ALU operation based on instruction register
         self.alu_op_and_gates[2].update(
-            self.ir.as_ref().unwrap().borrow().bit(9),
-            self.ir.as_ref().unwrap().borrow().bit(8),
+            self.ir.borrow().bit(9),
+            self.ir.borrow().bit(8),
             self.stepper.get_output_wire(4),
         );
 
         self.alu_op_and_gates[1].update(
-            self.ir.as_ref().unwrap().borrow().bit(10),
-            self.ir.as_ref().unwrap().borrow().bit(8),
+            self.ir.borrow().bit(10),
+            self.ir.borrow().bit(8),
             self.stepper.get_output_wire(4),
         );
         self.alu_op_and_gates[0].update(
-            self.ir.as_ref().unwrap().borrow().bit(11),
-            self.ir.as_ref().unwrap().borrow().bit(8),
+            self.ir.borrow().bit(11),
+            self.ir.borrow().bit(8),
             self.stepper.get_output_wire(4),
         );
 
-        self.alu.as_ref().unwrap().borrow_mut().op[2].update(self.alu_op_and_gates[2].get());
-        self.alu.as_ref().unwrap().borrow_mut().op[1].update(self.alu_op_and_gates[1].get());
-        self.alu.as_ref().unwrap().borrow_mut().op[0].update(self.alu_op_and_gates[0].get());
+        self.alu.borrow_mut().op[2].update(self.alu_op_and_gates[2].get());
+        self.alu.borrow_mut().op[1].update(self.alu_op_and_gates[1].get());
+        self.alu.borrow_mut().op[0].update(self.alu_op_and_gates[0].get());
 
         self.alu
-            .as_ref()
-            .unwrap()
             .borrow_mut()
             .carry_in
             .update(self.carry_and_gate.get());
 
-        self.alu.as_ref().unwrap().borrow_mut().update();
+        self.alu.borrow_mut().update();
     }
 }
 
@@ -607,17 +622,14 @@ impl CPU {
         Self::update_enable_status(self.iar.clone(), self.iar_enable_and_gate.get());
     }
 
-    fn run_enable_on_bus_one(&mut self, state: bool) {
+    fn run_enable_on_bus_one(&mut self, _: bool) {
         self.bus_one_enable_or_gate.update(
             self.stepper.get_output_wire(0),
             self.step4_gates[7].get(),
             self.step4_gates[6].get(),
             self.step4_gates[3].get(),
         );
-        Self::update_enable_status(
-            self.busone.as_ref().unwrap().clone(),
-            self.bus_one_enable_or_gate.get(),
-        );
+        Self::update_enable_status(self.busone.clone(), self.bus_one_enable_or_gate.get());
     }
 
     fn run_enable_on_acc(&mut self, state: bool) {
@@ -630,10 +642,7 @@ impl CPU {
         self.acc_enable_and_gate
             .update(state, self.acc_enable_or_gate.get());
 
-        Self::update_enable_status(
-            self.acc.as_ref().unwrap().clone(),
-            self.acc_enable_and_gate.get(),
-        );
+        Self::update_enable_status(self.acc.clone(), self.acc_enable_and_gate.get());
     }
 
     fn run_enable_on_ram(&mut self, state: bool) {
@@ -651,7 +660,7 @@ impl CPU {
 
     fn run_enable_on_register_b(&mut self) {
         self.register_b_enable_or_gate.update(
-            self.stepper.get_output_wire(0),
+            self.step4_gates[0].get(),
             self.step5_gates[2].get(),
             self.step4_gates[4].get(),
             self.step4_gate3_and.get(),
@@ -671,14 +680,10 @@ impl CPU {
     }
 
     fn run_enable_general_purpose_registers(&mut self, state: bool) {
-        self.instruction_decoder_enables2x4[0].update(
-            self.ir.as_ref().unwrap().borrow().bit(14),
-            self.ir.as_ref().unwrap().borrow().bit(15),
-        );
-        self.instruction_decoder_enables2x4[1].update(
-            self.ir.as_ref().unwrap().borrow().bit(12),
-            self.ir.as_ref().unwrap().borrow().bit(13),
-        );
+        self.instruction_decoder_enables2x4[0]
+            .update(self.ir.borrow().bit(14), self.ir.borrow().bit(15));
+        self.instruction_decoder_enables2x4[1]
+            .update(self.ir.borrow().bit(12), self.ir.borrow().bit(13));
 
         // R0
         self.gp_reg_enable_and_gates[0].update(
@@ -754,9 +759,9 @@ impl CPU {
 impl CPU {
     fn run_set(&mut self, state: bool) {
         self.ir_instruction_and_gate.update(
-            self.ir.as_ref().unwrap().borrow().bit(11),
-            self.ir.as_ref().unwrap().borrow().bit(10),
-            self.ir.as_ref().unwrap().borrow().bit(9),
+            self.ir.borrow().bit(11),
+            self.ir.borrow().bit(10),
+            self.ir.borrow().bit(9),
         );
         self.ir_instruction_not_gate
             .update(self.ir_instruction_and_gate.get());
@@ -778,7 +783,7 @@ impl CPU {
     fn refresh_flag_state_gates(&mut self) {
         // C
         self.flag_state_gates[0].update(
-            self.ir.as_ref().unwrap().borrow().bit(12),
+            self.ir.borrow().bit(12),
             self.flags_bus
                 .borrow()
                 .get_output_wire(FlagState::Carry as i32),
@@ -786,7 +791,7 @@ impl CPU {
 
         // A
         self.flag_state_gates[1].update(
-            self.ir.as_ref().unwrap().borrow().bit(13),
+            self.ir.borrow().bit(13),
             self.flags_bus
                 .borrow()
                 .get_output_wire(FlagState::ALarger as i32),
@@ -794,7 +799,7 @@ impl CPU {
 
         // E
         self.flag_state_gates[2].update(
-            self.ir.as_ref().unwrap().borrow().bit(14),
+            self.ir.borrow().bit(14),
             self.flags_bus
                 .borrow()
                 .get_output_wire(FlagState::Equal as i32),
@@ -802,7 +807,7 @@ impl CPU {
 
         // Z
         self.flag_state_gates[3].update(
-            self.ir.as_ref().unwrap().borrow().bit(15),
+            self.ir.borrow().bit(15),
             self.flags_bus
                 .borrow()
                 .get_output_wire(FlagState::Zero as i32),
@@ -856,10 +861,7 @@ impl CPU {
     fn run_set_on_ir(&mut self, state: bool) {
         self.ir_set_and_gate
             .update(state, self.stepper.get_output_wire(1));
-        Self::update_set_status(
-            self.ir.as_ref().unwrap().clone(),
-            self.ir_set_and_gate.get(),
-        );
+        Self::update_set_status(self.ir.clone(), self.ir_set_and_gate.get());
     }
 
     fn run_set_on_acc(&mut self, state: bool) {
@@ -871,10 +873,7 @@ impl CPU {
         );
         self.acc_set_and_gate
             .update(state, self.acc_set_or_gate.get());
-        Self::update_set_status(
-            self.acc.as_ref().unwrap().clone(),
-            self.acc_set_and_gate.get(),
-        );
+        Self::update_set_status(self.acc.clone(), self.acc_set_and_gate.get());
     }
 
     fn run_set_on_ram(&mut self, state: bool) {
@@ -887,10 +886,7 @@ impl CPU {
         self.tmp_set_and_gate
             .update(state, self.step4_gates[0].get());
 
-        Self::update_set_status(
-            self.tmp.as_ref().unwrap().clone(),
-            self.tmp_set_and_gate.get(),
-        );
+        Self::update_set_status(self.tmp.clone(), self.tmp_set_and_gate.get());
 
         self.carry_temp.update(
             self.flags_bus
@@ -908,10 +904,7 @@ impl CPU {
 
         self.flags_set_and_gate
             .update(state, self.flags_set_or_gate.get());
-        Self::update_set_status(
-            self.flags.as_ref().unwrap().clone(),
-            self.flags_set_and_gate.get(),
-        );
+        Self::update_set_status(self.flags.clone(), self.flags_set_and_gate.get());
     }
 
     fn run_set_on_register_b(&mut self) {
@@ -926,10 +919,8 @@ impl CPU {
     }
 
     fn run_set_general_purpose_registers(&mut self, state: bool) {
-        self.instruction_decoder_set2x4.update(
-            self.ir.as_ref().unwrap().borrow().bit(14),
-            self.ir.as_ref().unwrap().borrow().bit(15),
-        );
+        self.instruction_decoder_set2x4
+            .update(self.ir.borrow().bit(14), self.ir.borrow().bit(15));
 
         // R0
         self.gp_reg_set_and_gates[0].update(
@@ -969,77 +960,1105 @@ impl CPU {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_cpu_alu_add() {
+    fn get_cpu() -> CPU {
         let main_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
         let memory = Rc::new(RefCell::new(Memory64K::new(main_bus.clone())));
-        clear_memory(main_bus.clone(), memory.clone());
-
-        let cpu = Rc::new(RefCell::new(CPU::new(main_bus.clone(), memory.clone())));
-
-        let inputs = vec![0x0002, 0x0003, 0x0004, 0x0005];
-        test_instruction(
-            cpu.clone(),
-            0x0081,
-            inputs.to_vec(),
-            vec![inputs[0] + inputs[0], inputs[1], inputs[2], inputs[3]],
-        );
+        CPU::new(main_bus.clone(), memory.clone())
     }
 
-    fn test_instruction(
-        cpu: Rc<RefCell<CPU>>,
-        instruction: u16,
-        input_registers: Vec<u16>,
-        expected_output_registers: Vec<u16>,
-    ) {
-        cpu.borrow_mut()
-            .set_cpu_memory_location(0x0000, instruction);
-        println!("0x0000: {}", cpu.borrow().memory.borrow().data[0][0]);
-        assert_eq!(
-            format!("{}", cpu.borrow().memory.borrow().data[0][0]),
-            format!("{:016b}", instruction),
-            "Instruction error: 0x0000: {} instruction: {:16b}",
-            cpu.borrow().memory.borrow().data[0][0],
-            instruction
-        );
+    #[test]
+    fn test_cpu_iar_incremented_on_every_cycle() {
+        let mut cpu = get_cpu();
+        cpu.set_iar(0x0000);
 
-        for i in 0..input_registers.len() {
-            cpu.borrow_mut()
-                .set_cpu_register(i as u16, input_registers[i]);
+        for i in 0..1000 {
+            cpu.do_fetch_decode_execute();
+            cpu.check_iar(i + 1);
+        }
+    }
+
+    #[test]
+    fn test_cpu_instruction_received_from_memory() {
+        let mut cpu = get_cpu();
+        let instructions = vec![0x008A, 0x0082, 0x0088, 0x0094, 0x00B1];
+
+        let mut addr = 0xFF00;
+        for i in instructions.iter() {
+            set_memory_location(cpu.memory.clone(), addr, *i);
+            addr += 1;
         }
 
-        cpu.borrow_mut().set_iar(0x0000);
+        cpu.set_iar(0xFF00);
 
-        cpu.borrow_mut().do_fetch_decode_execute();
-
-        cpu.borrow().check_registers(
-            expected_output_registers[0],
-            expected_output_registers[1],
-            expected_output_registers[2],
-            expected_output_registers[3],
-        )
+        for i in instructions.iter() {
+            cpu.do_fetch_decode_execute();
+            cpu.check_ir(*i);
+        }
     }
+
+    #[test]
+    fn test_cpu_flags_register_all_false() {
+        let mut cpu = get_cpu();
+        set_memory_location(cpu.memory.clone(), 0x0000, 0x0081);
+        cpu.set_registers(vec![0x0009, 0x00A, 0x0002, 0x0003]);
+        cpu.set_iar(0x0000);
+
+        cpu.do_fetch_decode_execute();
+
+        cpu.check_flags_register(false, false, false, false);
+    }
+
+    #[test]
+    fn test_cpu_flags_register_carry_flag_enabled() {
+        let mut cpu = get_cpu();
+        set_memory_location(cpu.memory.clone(), 0x0000, 0x0081);
+        cpu.set_registers(vec![0x0020, 0xFFFF, 0x0002, 0x0003]);
+        cpu.set_iar(0x0000);
+
+        cpu.do_fetch_decode_execute();
+
+        cpu.check_flags_register(true, false, false, false);
+    }
+
+    #[test]
+    fn test_cpu_flags_register_is_larger_flag_enabled() {
+        let mut cpu = get_cpu();
+        set_memory_location(cpu.memory.clone(), 0x0000, 0x0081);
+        cpu.set_registers(vec![0x0021, 0x0020, 0x0002, 0x0003]);
+        cpu.set_iar(0x0000);
+
+        cpu.do_fetch_decode_execute();
+
+        cpu.check_flags_register(false, true, false, false);
+    }
+
+    #[test]
+    fn test_cpu_flags_register_is_equal_flag_enabled() {
+        let mut cpu = get_cpu();
+        set_memory_location(cpu.memory.clone(), 0x0000, 0x0081);
+        cpu.set_registers(vec![0x0021, 0x0021, 0x0002, 0x0003]);
+        cpu.set_iar(0x0000);
+
+        cpu.do_fetch_decode_execute();
+
+        cpu.check_flags_register(false, false, true, false);
+    }
+
+    #[test]
+    fn test_cpu_flags_register_is_zero_flag_enabled() {
+        let mut cpu = get_cpu();
+        set_memory_location(cpu.memory.clone(), 0x0000, 0x0081);
+        cpu.set_registers(vec![0x0001, 0xFFFF, 0x0002, 0x0003]);
+        cpu.set_iar(0x0000);
+
+        cpu.do_fetch_decode_execute();
+
+        cpu.check_flags_register(true, false, false, true);
+    }
+
+    #[test]
+    fn test_cpu_flags_register_multiple_enabled() {
+        let mut cpu = get_cpu();
+        set_memory_location(cpu.memory.clone(), 0x0000, 0x0081);
+        cpu.set_registers(vec![0xFFFF, 0x0001, 0x0002, 0x0003]);
+        cpu.set_iar(0x0000);
+
+        cpu.do_fetch_decode_execute();
+
+        cpu.check_flags_register(true, true, false, true);
+    }
+
+    #[test]
+    fn test_cpu_ld() {
+        let test_ld = |instruction: u16,
+                       mem_address: u16,
+                       mem_value: u16,
+                       input_registers: Vec<u16>,
+                       expected_output_registers: Vec<u16>| {
+            let mut cpu = get_cpu();
+            let ins_addr = 0x0000;
+            set_memory_location(cpu.memory.clone(), ins_addr, instruction);
+            cpu.set_iar(ins_addr);
+            set_memory_location(cpu.memory.clone(), mem_address, mem_value);
+            cpu.set_registers(input_registers);
+
+            cpu.do_fetch_decode_execute();
+
+            cpu.check_registers(
+                expected_output_registers[0],
+                expected_output_registers[1],
+                expected_output_registers[2],
+                expected_output_registers[3],
+            );
+        };
+
+        test_ld(
+            // LD R0, R0
+            0x0000,
+            0x0080,
+            0x0023,
+            vec![0x0080, 0x0081, 0x0082, 0x0083],
+            vec![0x0023, 0x0081, 0x0082, 0x0083],
+        );
+        test_ld(
+            // LD R0, R1
+            0x0001,
+            0x0084,
+            0x00F2,
+            vec![0x0084, 0x0085, 0x0086, 0x0087],
+            vec![0x0084, 0x00F2, 0x0086, 0x0087],
+        );
+        test_ld(
+            // LD R0, R2
+            0x0002,
+            0x0088,
+            0x0001,
+            vec![0x0088, 0x0089, 0x008A, 0x008B],
+            vec![0x0088, 0x0089, 0x0001, 0x008B],
+        );
+        test_ld(
+            // LD R0, R3
+            0x0003,
+            0x008C,
+            0x005A,
+            vec![0x008C, 0x008D, 0x008E, 0x008F],
+            vec![0x008C, 0x008D, 0x008E, 0x005A],
+        );
+
+        test_ld(
+            // LD R1, R0
+            0x0004,
+            0x0091,
+            0x0023,
+            vec![0x0090, 0x0091, 0x0092, 0x0093],
+            vec![0x0023, 0x0091, 0x0092, 0x0093],
+        );
+        test_ld(
+            // LD R1, R1
+            0x0005,
+            0x0095,
+            0x00F2,
+            vec![0x0094, 0x0095, 0x0096, 0x0097],
+            vec![0x0094, 0x00F2, 0x0096, 0x0097],
+        );
+        test_ld(
+            // LD R1, R2
+            0x0006,
+            0x0099,
+            0x0001,
+            vec![0x0098, 0x0099, 0x009A, 0x009B],
+            vec![0x0098, 0x0099, 0x0001, 0x009B],
+        );
+        test_ld(
+            // LD R1, R3
+            0x0007,
+            0x009D,
+            0x005A,
+            vec![0x009C, 0x009D, 0x009E, 0x009F],
+            vec![0x009C, 0x009D, 0x009E, 0x005A],
+        );
+
+        test_ld(
+            // LD R2, R0
+            0x0008,
+            0x00A2,
+            0x0023,
+            vec![0x00A0, 0x00A1, 0x00A2, 0x00A3],
+            vec![0x0023, 0x00A1, 0x00A2, 0x00A3],
+        );
+        test_ld(
+            // LD R2, R1
+            0x0009,
+            0x00A6,
+            0x00F2,
+            vec![0x00A4, 0x00A5, 0x00A6, 0x00A7],
+            vec![0x00A4, 0x00F2, 0x00A6, 0x00A7],
+        );
+        test_ld(
+            // LD R2, R2
+            0x000A,
+            0x00AA,
+            0x0001,
+            vec![0x00A8, 0x00A9, 0x00AA, 0x00AB],
+            vec![0x00A8, 0x00A9, 0x0001, 0x00AB],
+        );
+        test_ld(
+            // LD R2, R3
+            0x000B,
+            0x00AE,
+            0x005A,
+            vec![0x00AC, 0x00AD, 0x00AE, 0x00AF],
+            vec![0x00AC, 0x00AD, 0x00AE, 0x005A],
+        );
+
+        test_ld(
+            // LD R3, R0
+            0x000C,
+            0x00B3,
+            0x0023,
+            vec![0x00B0, 0x00B1, 0x00B2, 0x00B3],
+            vec![0x0023, 0x00B1, 0x00B2, 0x00B3],
+        );
+        test_ld(
+            // LD R3, R1
+            0x000D,
+            0x00B7,
+            0x00F2,
+            vec![0x00B4, 0x00B5, 0x00B6, 0x00B7],
+            vec![0x00B4, 0x00F2, 0x00B6, 0x00B7],
+        );
+        test_ld(
+            // LD R3, R2
+            0x000E,
+            0x22BB,
+            0xAB01,
+            vec![0x00B8, 0x00B9, 0x00BA, 0x22BB],
+            vec![0x00B8, 0x00B9, 0xAB01, 0x22BB],
+        );
+        test_ld(
+            // LD R3, R3
+            0x000F,
+            0x00BF,
+            0x005A,
+            vec![0x00BC, 0x00BD, 0x00BE, 0x00BF],
+            vec![0x00BC, 0x00BD, 0x00BE, 0x005A],
+        );
+    }
+
+    #[test]
+    fn test_cpu_st() {
+        let test_st = |instruction: u16,
+                       input_registers: Vec<u16>,
+                       expected_value_addredd: u16,
+                       expected_value: u16| {
+            let mut cpu = get_cpu();
+
+            // ST value into memory
+            let ins_addr = 0x0000;
+            set_memory_location(cpu.memory.clone(), ins_addr, instruction);
+            cpu.set_iar(ins_addr);
+            cpu.set_registers(input_registers.clone());
+
+            cpu.do_fetch_decode_execute();
+
+            //LD value into register zero
+            set_memory_location(cpu.memory.clone(), ins_addr + 1, 0x0000);
+            cpu.set_iar(ins_addr + 1);
+
+            cpu.set_registers(vec![
+                expected_value_addredd,
+                input_registers[1].clone(),
+                input_registers[2],
+                input_registers[3],
+            ]);
+
+            cpu.do_fetch_decode_execute();
+
+            assert_eq!(cpu.gp_reg0.borrow().value(), expected_value);
+        };
+
+        test_st(0x0010, vec![0x00A0, 0x0001, 0x0001, 0x0001], 0x00A0, 0x00A0); // ST R0, R0
+        test_st(0x0011, vec![0x00A1, 0x0029, 0x0001, 0x0001], 0x00A1, 0x0029); // ST R0, R1
+        test_st(0x0012, vec![0x00A2, 0x0001, 0x007F, 0x0001], 0x00A2, 0x007F); // ST R0, R2
+        test_st(0x0013, vec![0x00A3, 0x0001, 0x0001, 0x001B], 0x00A3, 0x001B); // ST R0, R3
+
+        test_st(0x0014, vec![0x00A0, 0x00B4, 0x0001, 0x0001], 0x00B4, 0x00A0); // ST R1, R0
+        test_st(0x0015, vec![0x0001, 0x00B5, 0x0001, 0x0001], 0x00B5, 0x00B5); // ST R1, R1
+        test_st(0x0016, vec![0x0001, 0x00B6, 0x007F, 0x0001], 0x00B6, 0x007F); // ST R1, R2
+        test_st(0x0017, vec![0x0001, 0x00B7, 0x0001, 0x001B], 0x00B7, 0x001B); // ST R1, R3
+
+        test_st(0x0018, vec![0x00A0, 0x0001, 0x00C8, 0x0001], 0x00C8, 0x00A0); // ST R2, R0
+        test_st(0x0019, vec![0x0001, 0x0029, 0x00C9, 0x0001], 0x00C9, 0x0029); // ST R2, R1
+        test_st(0x001A, vec![0x0001, 0x0001, 0x00CA, 0x0001], 0x00CA, 0x00CA); // ST R2, R2
+        test_st(0x001B, vec![0x0001, 0x0001, 0x00CB, 0x001B], 0x00CB, 0x001B); // ST R2, R3
+
+        test_st(0x001C, vec![0x00A0, 0x0001, 0x0001, 0x00DC], 0x00DC, 0x00A0); // ST R3, R0
+        test_st(0x001D, vec![0x0001, 0x0029, 0x0001, 0x00DD], 0x00DD, 0x0029); // ST R3, R1
+        test_st(0x001E, vec![0x0001, 0x0001, 0x1A7F, 0xFCDE], 0xFCDE, 0x1A7F); // ST R3, R2
+        test_st(0x001F, vec![0x0001, 0x0001, 0x0001, 0x00DF], 0x00DF, 0x00DF); // ST R3, R3
+    }
+
+    #[test]
+    fn test_cpu_data() {
+        let mut cpu = get_cpu();
+        let ins_addr = 0x0000;
+
+        // DATA R0
+        set_memory_location(cpu.memory.clone(), ins_addr, 0x0020);
+        set_memory_location(cpu.memory.clone(), ins_addr + 1, 0xF071);
+
+        // DATA R1
+        set_memory_location(cpu.memory.clone(), ins_addr + 2, 0x0021);
+        set_memory_location(cpu.memory.clone(), ins_addr + 3, 0xF172);
+
+        // DATA R2
+        set_memory_location(cpu.memory.clone(), ins_addr + 4, 0x0022);
+        set_memory_location(cpu.memory.clone(), ins_addr + 5, 0xF273);
+
+        // DATA R3
+        set_memory_location(cpu.memory.clone(), ins_addr + 6, 0x0023);
+        set_memory_location(cpu.memory.clone(), ins_addr + 7, 0xF374);
+
+        cpu.set_iar(ins_addr);
+
+        cpu.set_registers(vec![0x0001, 0x0001, 0x0001, 0x0001]);
+
+        for _ in 0..4 {
+            cpu.do_fetch_decode_execute();
+        }
+
+        cpu.check_registers(0xF071, 0xF172, 0xF273, 0xF374);
+
+        // check IAR has incremented 2 each time
+        cpu.check_iar(0x0008)
+    }
+
+    #[test]
+    fn test_cpu_jmpr() {
+        let test_jmpr = |instruction: u16, input_registers: Vec<u16>, expected_iar: u16| {
+            let mut cpu = get_cpu();
+            let ins_addr = 0x0000;
+            // JMPR
+            set_memory_location(cpu.memory.clone(), ins_addr, instruction);
+            cpu.set_iar(ins_addr);
+            cpu.set_registers(input_registers.clone());
+
+            cpu.do_fetch_decode_execute();
+
+            // registers shouldn't change
+            cpu.check_registers(
+                input_registers[0],
+                input_registers[1],
+                input_registers[2],
+                input_registers[3],
+            );
+
+            cpu.check_iar(expected_iar);
+        };
+        test_jmpr(0x0030, vec![0x0083, 0x0001, 0x0001, 0x0001], 0x0083); // JR R0
+        test_jmpr(0x0031, vec![0x0001, 0x00F1, 0x0001, 0x0001], 0x00F1); // JR R1
+        test_jmpr(0x0032, vec![0x0001, 0x0001, 0x00BB, 0x0001], 0x00BB); // JR R2
+        test_jmpr(0x0033, vec![0x0001, 0x0001, 0x0001, 0xFF19], 0xFF19); // JR R3
+    }
+
+    #[test]
+    fn test_cpu_jmp() {
+        let test_jmp = |expected_iar: u16| {
+            let mut cpu = get_cpu();
+            let ins_addr = 0x0000;
+
+            // JMP
+            set_memory_location(cpu.memory.clone(), ins_addr, 0x0040);
+            set_memory_location(cpu.memory.clone(), ins_addr + 1, expected_iar);
+
+            cpu.set_iar(ins_addr);
+
+            let input_registers = vec![0x0001, 0x0001, 0x0001, 0x0001];
+            cpu.set_registers(input_registers.clone());
+
+            cpu.do_fetch_decode_execute();
+
+            // registers shouldn't change
+            cpu.check_registers(
+                input_registers[0],
+                input_registers[1],
+                input_registers[2],
+                input_registers[3],
+            );
+
+            // check IAR has jumped to the new location
+            cpu.check_iar(expected_iar);
+        };
+
+        for i in 0..0x0005 {
+            test_jmp(i);
+        }
+    }
+
+    #[test]
+    fn test_cpu_jmpz() {
+        // JMPZ
+        // perform NOT on R0 (0x00FF) to trigger zero flag
+        test_jmp_conditional(
+            0x0051,
+            0x00AE,
+            0x00B0,
+            vec![0xFFFF, 0x0001, 0x0001, 0x0010],
+            0x00AE,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x0051,
+            0x00AF,
+            0x00B0,
+            vec![0x0000, 0x0011, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpe() {
+        // JMPE
+        test_jmp_conditional(
+            0x0052,
+            0x00AE,
+            0x00F1,
+            vec![0x0000, 0x0000, 0x0001, 0x0020],
+            0x00AE,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x0052,
+            0x00AF,
+            0x00F1,
+            vec![0x0010, 0x0011, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpez() {
+        // JMPEZ
+        // Jump if A = B or zero flag
+        // a = b
+        test_jmp_conditional(
+            0x0053,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0002, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // zero flag (using and)
+        test_jmp_conditional(
+            0x0053,
+            0x0020,
+            0x00C1,
+            vec![0x0001, 0x00FE, 0x0002, 0x0020],
+            0x0020,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x0053,
+            0x0021,
+            0x00F1,
+            vec![0x0001, 0x0003, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpa() {
+        // JMPA
+        test_jmp_conditional(
+            0x0054,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0001, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x0054,
+            0x0021,
+            0x00F1,
+            vec![0x0001, 0x0003, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpaz() {
+        // JMPAZ
+        // Jump is A is larger or zero flag
+        // a larger
+        test_jmp_conditional(
+            0x0055,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0001, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // zero flag (using and)
+        test_jmp_conditional(
+            0x0055,
+            0x0020,
+            0x00C1,
+            vec![0x0001, 0x00FE, 0x0002, 0x0002],
+            0x0020,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x0055,
+            0x0021,
+            0x00F1,
+            vec![0x0001, 0x0003, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpae() {
+        // JMPAE
+        // Jump is A is larger or A = B
+        // a larger
+        test_jmp_conditional(
+            0x0056,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0001, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        //a = b
+        test_jmp_conditional(
+            0x0056,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0002, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x0056,
+            0x0021,
+            0x00F1,
+            vec![0x0001, 0x0003, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpaez() {
+        // JMPAEZ
+        // Jump if a is larger OR a = b OR zero flag
+
+        // a larger
+        test_jmp_conditional(
+            0x0057,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0001, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // a = b
+        test_jmp_conditional(
+            0x0057,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0002, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // zero flag (using and)
+        test_jmp_conditional(
+            0x0057,
+            0x0020,
+            0x00C1,
+            vec![0x0001, 0x00FE, 0x0002, 0x0002],
+            0x0020,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x0057,
+            0x0021,
+            0x00F1,
+            vec![0x0001, 0x0003, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpc() {
+        // JMPC
+        test_jmp_conditional(
+            0x0058,
+            0x0090,
+            0x0081,
+            vec![0x0004, 0xFFFF, 0x0001, 0x0020],
+            0x0090,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x0058,
+            0x0091,
+            0x0081,
+            vec![0x0005, 0x0006, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpcz() {
+        // JMPCZ
+        // Jump If Carry or zero flag
+        // carry condition
+        test_jmp_conditional(
+            0x0059,
+            0x0090,
+            0x0081,
+            vec![0x0004, 0xFFFF, 0x0001, 0x0020],
+            0x0090,
+        );
+        // zero flag
+        test_jmp_conditional(
+            0x0059,
+            0x0090,
+            0x00B0,
+            vec![0xFFFF, 0x00FE, 0x00FE, 0x00FE],
+            0x0090,
+        );
+        // should not jump in false case
+        test_jmp_conditional(
+            0x0059,
+            0x0091,
+            0x0081,
+            vec![0x0001, 0x0002, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpce() {
+        // JMPCE
+        // Jump If Carry or A = B
+        // carry condition
+        test_jmp_conditional(
+            0x005A,
+            0x0090,
+            0x0081,
+            vec![0x0004, 0xFFFF, 0x0001, 0x0020],
+            0x0090,
+        );
+        // a = b
+        test_jmp_conditional(
+            0x005A,
+            0x0090,
+            0x0081,
+            vec![0x0002, 0x0002, 0x0001, 0x0020],
+            0x0090,
+        );
+        // should not jump in false case
+        test_jmp_conditional(
+            0x005A,
+            0x0091,
+            0x0081,
+            vec![0x0001, 0x0002, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpcez() {
+        // JMPCEZ
+        // Jump if Carry OR a = b OR zero flag
+
+        // carry condition
+        test_jmp_conditional(
+            0x005B,
+            0x0090,
+            0x0081,
+            vec![0x0004, 0xFFFF, 0x0001, 0x0020],
+            0x0090,
+        );
+
+        // a = b
+        test_jmp_conditional(
+            0x005B,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0002, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // zero flag (using and)
+        test_jmp_conditional(
+            0x005B,
+            0x0020,
+            0x00C1,
+            vec![0x0001, 0x00FE, 0x0002, 0x0002],
+            0x0020,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x005B,
+            0x0091,
+            0x0081,
+            vec![0x0001, 0x0002, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpca() {
+        // JMPCA
+        // Jump If Carry or A larger
+        // carry condition
+        test_jmp_conditional(
+            0x005C,
+            0x0090,
+            0x0081,
+            vec![0x0004, 0xFFFF, 0x0001, 0x0020],
+            0x0090,
+        );
+        // a is larger
+        test_jmp_conditional(
+            0x005C,
+            0x0090,
+            0x0081,
+            vec![0x000A, 0x0001, 0x0001, 0x0020],
+            0x0090,
+        );
+        // should not jump in false case
+        test_jmp_conditional(
+            0x005C,
+            0x0091,
+            0x0081,
+            vec![0x0001, 0x0001, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpcaz() {
+        // JMPCAZ
+        // Jump if Carry OR A is Larger OR zero flag
+
+        // carry condition
+        test_jmp_conditional(
+            0x005D,
+            0x0090,
+            0x0081,
+            vec![0x0004, 0xFFFF, 0x0001, 0x0020],
+            0x0090,
+        );
+
+        // a larger
+        test_jmp_conditional(
+            0x005D,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0001, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // zero flag (using and)
+        test_jmp_conditional(
+            0x005D,
+            0x0020,
+            0x00C1,
+            vec![0x0001, 0x00FE, 0x0002, 0x0002],
+            0x0020,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x005D,
+            0x0091,
+            0x0081,
+            vec![0x0001, 0x0002, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpcae() {
+        // JMPCAE
+        // Jump if Carry OR A is Larger OR A = B
+
+        // carry condition
+        test_jmp_conditional(
+            0x005E,
+            0x0090,
+            0x0081,
+            vec![0x0004, 0xFFFF, 0x0001, 0x0020],
+            0x0090,
+        );
+
+        // a larger
+        test_jmp_conditional(
+            0x005E,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0001, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // a = b
+        test_jmp_conditional(
+            0x005E,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0002, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x005E,
+            0x0091,
+            0x0081,
+            vec![0x0001, 0x0002, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    #[test]
+    fn test_cpu_jmpcaez() {
+        // JMPCAEZ
+        // Jump if Carry OR A is Larger OR A = B OR zero flag
+
+        // carry condition
+        test_jmp_conditional(
+            0x005F,
+            0x0090,
+            0x0081,
+            vec![0x0004, 0xFFFF, 0x0001, 0x0020],
+            0x0090,
+        );
+
+        // a larger
+        test_jmp_conditional(
+            0x005F,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0001, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // a = b
+        test_jmp_conditional(
+            0x005F,
+            0x0020,
+            0x00F1,
+            vec![0x0002, 0x0002, 0x0001, 0x0020],
+            0x0020,
+        );
+
+        // zero flag (using and)
+        test_jmp_conditional(
+            0x005F,
+            0x0020,
+            0x00C1,
+            vec![0x0001, 0x00FE, 0x0002, 0x0002],
+            0x0020,
+        );
+
+        // should not jump in false case
+        test_jmp_conditional(
+            0x005F,
+            0x0091,
+            0x0081,
+            vec![0x0001, 0x0002, 0x0001, 0x0001],
+            0x0003,
+        );
+    }
+
+    fn test_jmp_conditional(
+        jmp_condition_instr: u16,
+        destination: u16,
+        initial_instr: u16,
+        input_registers: Vec<u16>,
+        expected_iar: u16,
+    ) {
+        let mut cpu = get_cpu();
+        let ins_addr = 0x0000;
+
+        set_memory_location(cpu.memory.clone(), ins_addr, initial_instr);
+        set_memory_location(cpu.memory.clone(), ins_addr + 1, jmp_condition_instr);
+        set_memory_location(cpu.memory.clone(), ins_addr + 2, destination);
+
+        cpu.set_iar(ins_addr);
+        cpu.set_registers(input_registers);
+
+        cpu.do_fetch_decode_execute();
+        cpu.do_fetch_decode_execute();
+
+        cpu.check_iar(expected_iar);
+    }
+
+    #[test]
+    fn test_cpu_clf() {
+        let test_clf = |initial_instruction: u16, initial_registers: Vec<u16>| {
+            let mut cpu = get_cpu();
+            let ins_addr = 0x0000;
+            set_memory_location(cpu.memory.clone(), ins_addr, initial_instruction);
+            set_memory_location(cpu.memory.clone(), ins_addr + 1, 0x0060);
+            cpu.set_iar(ins_addr);
+            cpu.set_registers(initial_registers);
+
+            cpu.do_fetch_decode_execute();
+            cpu.do_fetch_decode_execute();
+            cpu.check_flags_register(false, false, false, false);
+        };
+
+        // carry + zero + greater
+        test_clf(0x0081, vec![0xFFFF, 0x0001, 0x0000, 0x0000]);
+        // equal flag
+        test_clf(0x0081, vec![0x0001, 0x0001, 0x0000, 0x0000]);
+        // all flags should be false anyway
+        test_clf(0x0081, vec![0x0001, 0x0002, 0x0000, 0x0000]);
+    }
+
+    #[test]
+    fn test_cpu_io_input_instruction() {}
+
+    #[test]
+    fn test_cpu_io_output_instruction() {}
+
+    #[test]
+    fn test_cpu_alu_add() {
+        let mut cpu = get_cpu();
+        let inputs = vec![0x0002, 0x0003, 0x0004, 0x0005];
+
+        for i in 0..4 {
+            for j in 0..4 {
+                let mut res = vec![inputs[0], inputs[1], inputs[2], inputs[3]];
+                match i {
+                    0 => match j {
+                        0 => res[0] += inputs[0], // ADD R0, R0
+                        1 => res[1] += inputs[0], // ADD R1, R0
+                        2 => res[2] += inputs[0], // ADD R2, R0
+                        3 => res[3] += inputs[0], // ADD R3, R0
+                        _ => {}
+                    },
+                    1 => match j {
+                        0 => res[0] += inputs[1], // ADD R0, R1
+                        1 => res[1] += inputs[1], // ADD R1, R1
+                        2 => res[2] += inputs[1], // ADD R2, R1
+                        3 => res[3] += inputs[1], // ADD R3, R1
+                        _ => {}
+                    },
+                    2 => match j {
+                        0 => res[0] += inputs[2], // ADD R0, R2
+                        1 => res[1] += inputs[2], // ADD R1, R2
+                        2 => res[2] += inputs[2], // ADD R2, R2
+                        3 => res[3] += inputs[2], // ADD R3, R2
+                        _ => {}
+                    },
+                    3 => match j {
+                        0 => res[0] += inputs[3], // ADD R0, R3
+                        1 => res[1] += inputs[3], // ADD R1, R3
+                        2 => res[2] += inputs[3], // ADD R2, R3
+                        3 => res[3] += inputs[3], // ADD R3, R3
+                        _ => {}
+                    },
+                    _ => {}
+                }
+
+                cpu.test_instruction(0x0080 + i * 4 + j, inputs.to_vec(), res);
+            }
+        }
+    }
+
+    #[test]
+    fn test_cpu_alu_add_with_array() {
+        let test_alu_add_with_arrry =
+            |instruction: u16, input_registers: Vec<u16>, expected_output_registers: Vec<u16>| {
+                let mut cpu = get_cpu();
+                cpu.set_cpu_memory_location(0x0000, instruction);
+                cpu.set_cpu_memory_location(0x0001, instruction);
+                cpu.set_iar(0x0000);
+
+                cpu.set_registers(input_registers);
+                cpu.do_fetch_decode_execute();
+
+                cpu.set_registers(vec![0x0000, 0x0000, 0x0000, 0x0000]);
+                cpu.do_fetch_decode_execute();
+
+                cpu.check_registers(
+                    expected_output_registers[0],
+                    expected_output_registers[1],
+                    expected_output_registers[2],
+                    expected_output_registers[3],
+                );
+            };
+
+        test_alu_add_with_arrry(
+            0x0080,
+            vec![0xFFFE, 0x0000, 0x0000, 0x0000],
+            vec![0x0001, 0x0000, 0x0000, 0x0000],
+        );
+        test_alu_add_with_arrry(
+            0x0081,
+            vec![0xFFFF, 0x0000, 0x0000, 0x0000],
+            vec![0x0000, 0x0000, 0x0000, 0x0000],
+        );
+        test_alu_add_with_arrry(
+            0x0081,
+            vec![0xFFFF, 0x0001, 0x0000, 0x0000],
+            vec![0x0000, 0x0001, 0x0000, 0x0000],
+        );
+        test_alu_add_with_arrry(
+            0x0081,
+            vec![0xFFFE, 0x0005, 0x0000, 0x0000],
+            vec![0x0000, 0x0001, 0x0000, 0x0000],
+        );
+        test_alu_add_with_arrry(
+            0x0082,
+            vec![0xFFFE, 0x0000, 0x0005, 0x0000],
+            vec![0x0000, 0x0000, 0x0001, 0x0000],
+        );
+        test_alu_add_with_arrry(
+            0x0083,
+            vec![0xFFFE, 0x0000, 0x0000, 0x0005],
+            vec![0x0000, 0x0000, 0x0000, 0x0001],
+        );
+    }
+
+    #[test]
+    fn test_cpu_alu_shr() {}
+
+    #[test]
+    fn test_cpu_alu_shl() {}
+
+    #[test]
+    fn test_cpu_alu_not() {}
+
+    #[test]
+    fn test_cpu_alu_and() {}
+
+    #[test]
+    fn test_cpu_alu_or() {}
+
+    #[test]
+    fn test_cpu_alu_xor() {}
+
+    #[test]
+    fn test_cpu_alu_cmp() {}
+
+    #[test]
+    fn test_cpu_alu_subtract() {}
+
+    #[test]
+    fn test_cpu_multiply() {}
 
     fn clear_memory(bus: Rc<RefCell<Bus>>, memory: Rc<RefCell<Memory64K>>) {
         for i in 0..=0xFFFF {
-            set_memory_location(bus.clone(), memory.clone(), i, 0x0000);
+            set_memory_location(memory.clone(), i, 0x0000);
         }
     }
 
-    fn set_memory_location(
-        bus: Rc<RefCell<Bus>>,
-        memory: Rc<RefCell<Memory64K>>,
-        address: u16,
-        value: u16,
-    ) {
+    fn set_memory_location(memory: Rc<RefCell<Memory64K>>, address: u16, value: u16) {
         memory.borrow().address_register.borrow_mut().set();
-        bus.borrow_mut().set_value(address);
+        memory.borrow().bus.borrow_mut().set_value(address);
         memory.borrow_mut().update();
 
         memory.borrow().address_register.borrow_mut().unset();
         memory.borrow_mut().update();
 
-        bus.borrow_mut().set_value(value);
+        memory.borrow().bus.borrow_mut().set_value(value);
         memory.borrow_mut().set();
         memory.borrow_mut().update();
 
@@ -1048,6 +2067,32 @@ mod tests {
     }
 
     impl CPU {
+        fn test_instruction(
+            &mut self,
+            instruction: u16,
+            input_registers: Vec<u16>,
+            expected_output_registers: Vec<u16>,
+        ) {
+            self.set_cpu_memory_location(0x0000, instruction);
+            self.set_iar(0x0000);
+            self.set_registers(input_registers);
+
+            self.do_fetch_decode_execute();
+
+            self.check_registers(
+                expected_output_registers[0],
+                expected_output_registers[1],
+                expected_output_registers[2],
+                expected_output_registers[3],
+            )
+        }
+
+        fn set_registers(&mut self, values: Vec<u16>) {
+            for i in 0..values.len() {
+                self.set_cpu_register(i as u16, values[i]);
+            }
+        }
+
         fn set_cpu_memory_location(&mut self, address: u16, value: u16) {
             self.memory.borrow_mut().address_register.borrow_mut().set();
             self.main_bus.borrow_mut().set_value(address);
@@ -1067,6 +2112,7 @@ mod tests {
             self.memory.borrow_mut().unset();
             self.memory.borrow_mut().update();
         }
+
         fn set_cpu_register(&mut self, register: u16, value: u16) {
             match register {
                 0 => {
@@ -1117,35 +2163,6 @@ mod tests {
         fn do_fetch_decode_execute(&mut self) {
             for _ in 0..6 {
                 self.step();
-
-                let get_value_of_bus = |bus: &RefCell<Bus>| -> u16 {
-                    let mut x: u16 = 0;
-                    let mut result: u16 = 0;
-                    for i in (0..BUS_WIDTH).rev() {
-                        match bus.borrow().get_output_wire(i) {
-                            true => result = result | (1 << x),
-                            false => result = result ^ (result & (1 << x)),
-                        };
-                        x += 1;
-                    }
-                    result
-                };
-
-                println!(
-                "step: {} op: {} {} {} ir: {:#X} iar: {:#X} reg: {:#X} {:#X} {:#X} {:#X} main_bus: {:#X} acc_bus: {:#X}",
-                self.stepper,
-                self.alu_op_and_gates[2].get() as i32,
-                self.alu_op_and_gates[1].get() as i32,
-                self.alu_op_and_gates[0].get() as i32,
-                self.ir.as_ref().unwrap().borrow().value(),
-                self.iar.borrow().value(),
-                self.gp_reg0.borrow().value(),
-                self.gp_reg1.borrow().value(),
-                self.gp_reg2.borrow().value(),
-                self.gp_reg3.borrow().value(),
-                get_value_of_bus(self.main_bus.as_ref()),
-                get_value_of_bus(self.acc_bus.as_ref().unwrap()),
-            );
             }
         }
 
@@ -1169,7 +2186,64 @@ mod tests {
                 reg_value, expected,
                 "Expected register {} to have value of: {:#X} but got {:#X}",
                 register, expected, reg_value
+            )
+        }
+
+        fn check_iar(&self, exp_value: u16) {
+            assert_eq!(
+                self.iar.borrow().value(),
+                exp_value,
+                "Expected IAR to have value of: {:#X} but got {:#X}",
+                exp_value,
+                self.iar.borrow().value()
+            )
+        }
+
+        fn check_ir(&self, exp_value: u16) {
+            assert_eq!(
+                self.ir.borrow().value(),
+                exp_value,
+                "Expected IR to have value of: {:#X} but got {:#X}",
+                exp_value,
+                self.ir.borrow().value()
+            )
+        }
+
+        fn check_flags_register(
+            &mut self,
+            expected_carry: bool,
+            expected_is_larger: bool,
+            expected_is_equal: bool,
+            expected_is_zero: bool,
+        ) {
+            assert_eq!(
+                self.flags_bus.borrow().get_output_wire(0),
+                expected_carry,
+                "Expected carry flag to be: {} but got {}",
+                expected_carry,
+                self.flags_bus.borrow().get_output_wire(0)
             );
+            assert_eq!(
+                self.flags_bus.borrow().get_output_wire(1),
+                expected_is_larger,
+                "Expected is_larger flag to be: {} but got {}",
+                expected_is_larger,
+                self.flags_bus.borrow().get_output_wire(1)
+            );
+            assert_eq!(
+                self.flags_bus.borrow().get_output_wire(2),
+                expected_is_equal,
+                "Expected is_equal flag to be: {} but got {}",
+                expected_is_equal,
+                self.flags_bus.borrow().get_output_wire(2)
+            );
+            assert_eq!(
+                self.flags_bus.borrow().get_output_wire(3),
+                expected_is_zero,
+                "Expected is_zero flag to be: {} but got {}",
+                expected_is_zero,
+                self.flags_bus.borrow().get_output_wire(3)
+            )
         }
     }
 }

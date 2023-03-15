@@ -7,7 +7,7 @@ pub struct Register {
     pub name: String,
     pub set: Wire,
     pub enable: Wire,
-    pub word: Rc<RefCell<Word>>,
+    pub word: Word,
     pub enabler: Rc<RefCell<Enabler>>,
     pub outputs: [Wire; BUS_WIDTH as usize],
     pub input_bus: Rc<RefCell<Bus>>,
@@ -16,11 +16,11 @@ pub struct Register {
 
 impl Register {
     pub fn new(name: &str, input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
-        let res = Self {
+        let mut res = Self {
             name: name.to_string(),
             set: Wire::new("S".to_string(), false),
             enable: Wire::new("E".to_string(), false),
-            word: Rc::new(RefCell::new(Word::new())),
+            word: Word::new(),
             enabler: Rc::new(RefCell::new(Enabler::new())),
             outputs: (0..BUS_WIDTH)
                 .map(|_| Wire::new("Z".to_string(), false))
@@ -31,13 +31,13 @@ impl Register {
             output_bus,
         };
 
-        res.word.borrow_mut().connect_output(res.enabler.clone());
+        res.word.connect_output(res.enabler.clone());
 
         res
     }
 
     pub fn bit(&self, index: i32) -> bool {
-        self.word.borrow().get_output_wire(index)
+        self.word.get_output_wire(index)
     }
 
     pub fn value(&self) -> u16 {
@@ -45,7 +45,7 @@ impl Register {
         let mut x: u16 = 0;
 
         for i in (0..BUS_WIDTH).rev() {
-            match self.word.borrow().get_output_wire(i) {
+            match self.word.get_output_wire(i) {
                 true => value = value | (1 << x),
                 false => value = value ^ (value & (1 << x)),
             }
@@ -79,11 +79,10 @@ impl Updatable for Register {
     fn update(&mut self) {
         for i in (0..BUS_WIDTH).rev() {
             self.word
-                .borrow_mut()
                 .set_input_wire(i, self.input_bus.borrow().get_output_wire(i));
         }
 
-        self.word.borrow_mut().update(self.set.get());
+        self.word.update(self.set.get());
         self.enabler.borrow_mut().update(self.enable.get());
 
         for i in 0..self.enabler.borrow().outputs.len() {
@@ -213,13 +212,13 @@ mod tests {
         result
     }
 
-    fn get_component_value<T>(component: Rc<RefCell<T>>) -> u16
+    fn get_component_value<T>(component: T) -> u16
     where
         T: Component,
     {
         let mut result: u16 = 0;
         for i in (0..BUS_WIDTH).rev() {
-            match component.borrow().get_output_wire(i) {
+            match component.get_output_wire(i) {
                 true => result = result | (1 << i as u16),
                 false => result = result & (result ^ 1 << i as u16),
             }

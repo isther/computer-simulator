@@ -7,7 +7,7 @@ pub struct BusOne {
     pub input_bus: Rc<RefCell<Bus>>,
     pub output_bus: Rc<RefCell<Bus>>,
     pub inputs: [Wire; BUS_WIDTH as usize],
-    pub bus: Wire,
+    pub bus1: Wire,
     pub and_gates: [AND; (BUS_WIDTH - 1) as usize],
     pub not_gate: NOT,
     pub or_gate: OR,
@@ -25,7 +25,7 @@ impl BusOne {
                 .collect::<Vec<Wire>>()
                 .try_into()
                 .unwrap(),
-            bus: Wire::new("Z".to_string(), false),
+            bus1: Wire::new("Z".to_string(), false),
             and_gates: (0..BUS_WIDTH - 1)
                 .map(|_| AND::new())
                 .collect::<Vec<AND>>()
@@ -60,9 +60,11 @@ impl Component for BusOne {
     fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
         self.next = Some(component)
     }
+
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }
+
     fn get_output_wire(&self, i: i32) -> bool {
         self.outputs[i as usize].get()
     }
@@ -73,12 +75,12 @@ impl Updatable for BusOne {
         for i in (0..BUS_WIDTH).rev() {
             self.inputs[i as usize].update(self.input_bus.borrow().get_output_wire(i))
         }
-        self.not_gate.update(self.bus.get());
+        self.not_gate.update(self.bus1.get());
 
         for i in 0..self.and_gates.len() {
             self.and_gates[i].update(self.inputs[i].get(), self.not_gate.get());
         }
-        self.or_gate.update(self.inputs[15].get(), self.bus.get());
+        self.or_gate.update(self.inputs[15].get(), self.bus1.get());
 
         for i in 0..(self.outputs.len() - 1) {
             self.outputs[i].update(self.and_gates[i].get());
@@ -95,9 +97,10 @@ impl Updatable for BusOne {
 
 impl Enableable for BusOne {
     fn enable(&mut self) {
-        self.bus.update(true)
+        self.bus1.update(true)
     }
+
     fn disable(&mut self) {
-        self.bus.update(false)
+        self.bus1.update(false)
     }
 }
