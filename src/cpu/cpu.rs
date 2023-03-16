@@ -1,5 +1,5 @@
 use super::{
-    ANDGate3, Bit, Bus, BusOne, Component, Decoder2x4, Enableable, FlagState, IOBus,
+    ANDGate3, Bit, Bus, BusOne, Component, Decoder2x4, Enableable, FlagState, IOBus, Instruction,
     InstructionDecoder3x8, ORGate3, ORGate4, ORGate5, ORGate6, Register, Settable, Stepper,
     Updatable, Wire, ALU, AND, BUS_WIDTH, NOT, OR,
 };
@@ -1085,6 +1085,7 @@ mod tests {
             cpu.do_fetch_decode_execute();
 
             cpu.check_registers(
+                instruction,
                 expected_output_registers[0],
                 expected_output_registers[1],
                 expected_output_registers[2],
@@ -1307,7 +1308,7 @@ mod tests {
             cpu.do_fetch_decode_execute();
         }
 
-        cpu.check_registers(0xF071, 0xF172, 0xF273, 0xF374);
+        cpu.check_registers(0x0020, 0xF071, 0xF172, 0xF273, 0xF374);
 
         // check IAR has incremented 2 each time
         cpu.check_iar(0x0008)
@@ -1327,6 +1328,7 @@ mod tests {
 
             // registers shouldn't change
             cpu.check_registers(
+                instruction,
                 input_registers[0],
                 input_registers[1],
                 input_registers[2],
@@ -1360,6 +1362,7 @@ mod tests {
 
             // registers shouldn't change
             cpu.check_registers(
+                0x0040,
                 input_registers[0],
                 input_registers[1],
                 input_registers[2],
@@ -1978,6 +1981,7 @@ mod tests {
                 cpu.do_fetch_decode_execute();
 
                 cpu.check_registers(
+                    instruction,
                     expected_output_registers[0],
                     expected_output_registers[1],
                     expected_output_registers[2],
@@ -2018,36 +2022,381 @@ mod tests {
     }
 
     #[test]
-    fn test_cpu_alu_shr() {}
+    fn test_cpu_alu_shl() {
+        let mut cpu = get_cpu();
+        let ones = vec![0x0001, 0x0001, 0x0001, 0x0001];
 
-    #[test]
-    fn test_cpu_alu_shl() {}
-
-    #[test]
-    fn test_cpu_alu_not() {}
-
-    #[test]
-    fn test_cpu_alu_and() {}
-
-    #[test]
-    fn test_cpu_alu_or() {}
-
-    #[test]
-    fn test_cpu_alu_xor() {}
-
-    #[test]
-    fn test_cpu_alu_cmp() {}
-
-    #[test]
-    fn test_cpu_alu_subtract() {}
-
-    #[test]
-    fn test_cpu_multiply() {}
-
-    fn clear_memory(bus: Rc<RefCell<Bus>>, memory: Rc<RefCell<Memory64K>>) {
-        for i in 0..=0xFFFF {
-            set_memory_location(memory.clone(), i, 0x0000);
+        for shift in 0..16 {
+            cpu.test_shift(
+                // SHL R0
+                0x0090,
+                ones.clone(),
+                vec![0x0001 << shift, 0x0001, 0x0001, 0x0001],
+                shift,
+            );
+            cpu.test_shift(
+                // SHL R1
+                0x0095,
+                ones.clone(),
+                vec![0x0001, 0x0001 << shift, 0x0001, 0x0001],
+                shift,
+            );
+            cpu.test_shift(
+                // SHL R2
+                0x009A,
+                ones.clone(),
+                vec![0x0001, 0x0001, 0x0001 << shift, 0x0001],
+                shift,
+            );
+            cpu.test_shift(
+                // SHL R3
+                0x009F,
+                ones.clone(),
+                vec![0x0001, 0x0001, 0x0001, 0x0001 << shift],
+                shift,
+            );
         }
+    }
+
+    #[test]
+    fn test_cpu_alu_shr() {
+        let mut cpu = get_cpu();
+        let ones = vec![0x8000, 0x8000, 0x8000, 0x8000];
+
+        for shift in 0..16 {
+            cpu.test_shift(
+                // SHR R0
+                0x00A0,
+                ones.clone(),
+                vec![0x8000 >> shift, 0x8000, 0x8000, 0x8000],
+                shift,
+            );
+            cpu.test_shift(
+                // SHR R1
+                0x00A5,
+                ones.clone(),
+                vec![0x8000, 0x8000 >> shift, 0x8000, 0x8000],
+                shift,
+            );
+            cpu.test_shift(
+                // SHR R2
+                0x00AA,
+                ones.clone(),
+                vec![0x8000, 0x8000, 0x8000 >> shift, 0x8000],
+                shift,
+            );
+            cpu.test_shift(
+                // SHR R3
+                0x00AF,
+                ones.clone(),
+                vec![0x8000, 0x8000, 0x8000, 0x8000 >> shift],
+                shift,
+            );
+        }
+    }
+
+    #[test]
+    fn test_cpu_alu_not() {
+        let mut cpu = get_cpu();
+        cpu.test_instruction(
+            // NOT R0
+            0x00B0,
+            vec![0x0000, 0x0000, 0x0000, 0x0000],
+            vec![0xFFFF, 0x0000, 0x0000, 0x0000],
+        );
+        cpu.test_instruction(
+            // NOT R1
+            0x00B5,
+            vec![0x0000, 0xFF00, 0x0000, 0x0000],
+            vec![0x0000, 0x00FF, 0x0000, 0x0000],
+        );
+        cpu.test_instruction(
+            // NOT R2
+            0x00BA,
+            vec![0x0000, 0x0000, 0xEEEE, 0x0000],
+            vec![0x0000, 0x0000, 0x1111, 0x0000],
+        );
+        cpu.test_instruction(
+            // NOT R3
+            0x00BF,
+            vec![0x0000, 0x0000, 0x0000, 0x1100],
+            vec![0x0000, 0x0000, 0x0000, 0xEEFF],
+        );
+    }
+
+    #[test]
+    fn test_cpu_alu_and() {
+        let mut cpu = get_cpu();
+        let input = vec![0xF00F, 0x0F0F, 0x0FF0, 0x00F1];
+        for i in 0..4 {
+            for j in 0..4 {
+                let mut output = vec![input[0], input[1], input[2], input[3]];
+                match i {
+                    0 => match j {
+                        0 => output[0] = 0xF00F, // AND R0, R0
+                        1 => output[1] = 0x000F, // AND R0, R1
+                        2 => output[2] = 0x0000, // AND R0, R2
+                        3 => output[3] = 0x0001, // AND R0, R3
+                        _ => {}
+                    },
+                    1 => match j {
+                        0 => output[0] = 0x000F, // AND R1, R0
+                        1 => output[1] = 0x0F0F, // AND R1, R1
+                        2 => output[2] = 0x0F00, // AND R1, R2
+                        3 => output[3] = 0x0001, // AND R1, R3
+                        _ => {}
+                    },
+                    2 => match j {
+                        0 => output[0] = 0x0000, // AND R2, R0
+                        1 => output[1] = 0x0F00, // AND R2, R1
+                        2 => output[2] = 0x0FF0, // AND R2, R2
+                        3 => output[3] = 0x00F0, // AND R2, R3
+                        _ => {}
+                    },
+                    3 => match j {
+                        0 => output[0] = 0x0001, // AND R3, R0
+                        1 => output[1] = 0x0001, // AND R3, R1
+                        2 => output[2] = 0x00F0, // AND R3, R2
+                        3 => output[3] = 0x00F1, // AND R3, R3
+                        _ => {}
+                    },
+                    _ => {}
+                };
+                cpu.test_instruction(0x00C0 + i * 4 + j, input.to_vec(), output);
+            }
+        }
+    }
+
+    #[test]
+    fn test_cpu_alu_or() {
+        let mut cpu = get_cpu();
+        let input = vec![0xF00F, 0x0F0F, 0x0FF0, 0x00F1];
+        for i in 0..4 {
+            for j in 0..4 {
+                let mut output = vec![input[0], input[1], input[2], input[3]];
+                match i {
+                    0 => match j {
+                        0 => output[0] = 0xF00F, // OR R0, R0
+                        1 => output[1] = 0xFF0F, // OR R0, R1
+                        2 => output[2] = 0xFFFF, // OR R0, R2
+                        3 => output[3] = 0xF0FF, // OR R0, R3
+                        _ => {}
+                    },
+                    1 => match j {
+                        0 => output[0] = 0xFF0F, // OR R1, R0
+                        1 => output[1] = 0x0F0F, // OR R1, R1
+                        2 => output[2] = 0x0FFF, // OR R1, R2
+                        3 => output[3] = 0x0FFF, // OR R1, R3
+                        _ => {}
+                    },
+                    2 => match j {
+                        0 => output[0] = 0xFFFF, // OR R2, R0
+                        1 => output[1] = 0x0FFF, // OR R2, R1
+                        2 => output[2] = 0x0FF0, // OR R2, R2
+                        3 => output[3] = 0x0FF1, // OR R2, R3
+                        _ => {}
+                    },
+                    3 => match j {
+                        0 => output[0] = 0xF0FF, // OR R3, R0
+                        1 => output[1] = 0x0FFF, // OR R3, R1
+                        2 => output[2] = 0x0FF1, // OR R3, R2
+                        3 => output[3] = 0x00F1, // OR R3, R3
+                        _ => {}
+                    },
+                    _ => {}
+                };
+                cpu.test_instruction(0x00D0 + i * 4 + j, input.to_vec(), output);
+            }
+        }
+    }
+
+    #[test]
+    fn test_cpu_alu_xor() {
+        let mut cpu = get_cpu();
+        let input = vec![0xF00F, 0x0F0F, 0x0FF0, 0x00F1];
+        for i in 0..4 {
+            for j in 0..4 {
+                let mut output = vec![input[0], input[1], input[2], input[3]];
+                match i {
+                    0 => match j {
+                        0 => output[0] = 0x0000, // XOR R0, R0
+                        1 => output[1] = 0xFF00, // XOR R0, R1
+                        2 => output[2] = 0xFFFF, // XOR R0, R2
+                        3 => output[3] = 0xF0FE, // XOR R0, R3
+                        _ => {}
+                    },
+                    1 => match j {
+                        0 => output[0] = 0xFF00, // XOR R1, R0
+                        1 => output[1] = 0x0000, // XOR R1, R1
+                        2 => output[2] = 0x00FF, // XOR R1, R2
+                        3 => output[3] = 0x0FFE, // XOR R1, R3
+                        _ => {}
+                    },
+                    // let input = vec![0xF00F, 0x0F0F, 0x0FF0, 0x00F1];
+                    2 => match j {
+                        0 => output[0] = 0xFFFF, // XOR R2, R0
+                        1 => output[1] = 0x00FF, // XOR R2, R1
+                        2 => output[2] = 0x0000, // XOR R2, R2
+                        3 => output[3] = 0x0F01, // XOR R2, R3
+                        _ => {}
+                    },
+                    3 => match j {
+                        0 => output[0] = 0xF0FE, // XOR R3, R0
+                        1 => output[1] = 0x0FFE, // XOR R3, R1
+                        2 => output[2] = 0x0F01, // XOR R3, R2
+                        3 => output[3] = 0x0000, // XOR R3, R3
+                        _ => {}
+                    },
+                    _ => {}
+                };
+                cpu.test_instruction(0x00E0 + i * 4 + j, input.to_vec(), output);
+            }
+        }
+    }
+
+    #[test]
+    fn test_cpu_alu_cmp() {
+        let test_alu_cmp = |instruction: u16,
+                            input_registers: Vec<u16>,
+                            expected_output_registers: Vec<u16>,
+                            compare_a: i32,
+                            compare_b: i32| {
+            let mut cpu = get_cpu();
+            let ins_addr = 0x0000;
+            set_memory_location(cpu.memory.clone(), ins_addr, instruction);
+            cpu.set_registers(input_registers.clone());
+            cpu.set_iar(ins_addr);
+
+            cpu.do_fetch_decode_execute();
+
+            cpu.check_registers(
+                instruction,
+                expected_output_registers[0],
+                expected_output_registers[1],
+                expected_output_registers[2],
+                expected_output_registers[3],
+            );
+            cpu.check_flags_register(
+                false,
+                input_registers[compare_a as usize] > input_registers[compare_b as usize],
+                input_registers[compare_a as usize] == input_registers[compare_b as usize],
+                false,
+            );
+        };
+
+        let inputs = vec![0xAB92, 0x0092, 0x0045, 0x00AF];
+        let mut instruction = 0x00F0;
+        for i in 0..4 {
+            for j in 0..4 {
+                test_alu_cmp(instruction, inputs.clone(), inputs.clone(), i, j);
+                instruction += 1;
+            }
+        }
+
+        let zeros = vec![0x0000, 0x0000, 0x0000, 0x0000];
+        instruction = 0x00F0;
+        for i in 0..4 {
+            for j in 0..4 {
+                test_alu_cmp(instruction, zeros.clone(), zeros.clone(), i, j);
+                instruction += 1;
+            }
+        }
+    }
+
+    #[test]
+    fn test_cpu_alu_subtract() {
+        let test_alu_subtract = |input_a: u16, input_b: u16| {
+            let mut cpu = get_cpu();
+            cpu.set_registers(vec![input_a, input_b, 1, 0]);
+            set_memory_location(cpu.memory.clone(), 0x0000, 0x00B5); // NOT
+            set_memory_location(cpu.memory.clone(), 0x0001, 0x0089); // ADD R1, R2
+            set_memory_location(cpu.memory.clone(), 0x0002, 0x0060); // CLF
+            set_memory_location(cpu.memory.clone(), 0x0003, 0x0081); // ADD R1, R0
+
+            cpu.set_iar(0x0000);
+            cpu.do_fetch_decode_execute();
+            cpu.do_fetch_decode_execute();
+            cpu.do_fetch_decode_execute();
+            cpu.do_fetch_decode_execute();
+            cpu.check_register(0x0081, 1, input_a - input_b);
+        };
+
+        test_alu_subtract(0x0000, 0x0000);
+        test_alu_subtract(0xFFFF, 0x1111);
+        test_alu_subtract(0xFFFF, 0xFFFF);
+    }
+
+    #[test]
+    fn test_cpu_alu_multiply() {
+        let test_cpu_multiply = |test_id: u16, input_a: u16, input_b: u16| {
+            let mut cpu = get_cpu();
+            let ins_addr = 0x0000;
+
+            // DATA R3, 1
+            // XOR R2, R2
+            // CLF
+            // SHR R0
+            // JC ins_addr+9
+            // JMP ins_addr+11
+            // CLF
+            // ADD R1, R2
+            // CLF
+            // SHL R1
+            // SHL R3
+            // JC, ins_addr+18
+            // JMP, ins_addr+3
+
+            // DATA R3, 1
+            set_memory_location(cpu.memory.clone(), ins_addr + 0, Instruction::DATA3 as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 1, 0x0001);
+            // XOR R2, R2
+            set_memory_location(cpu.memory.clone(), ins_addr + 2, Instruction::XOR22 as u16);
+            // CLF
+            set_memory_location(cpu.memory.clone(), ins_addr + 3, Instruction::CLF as u16);
+            // SHR R0
+            set_memory_location(cpu.memory.clone(), ins_addr + 4, Instruction::SHR0 as u16);
+            // JC 59
+            set_memory_location(cpu.memory.clone(), ins_addr + 5, Instruction::JMPC as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 6, ins_addr + 9);
+            // JMP 61
+            set_memory_location(cpu.memory.clone(), ins_addr + 7, Instruction::JMP as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 8, ins_addr + 11);
+            // CLF
+            set_memory_location(cpu.memory.clone(), ins_addr + 9, Instruction::CLF as u16);
+            // ADD R1, R2
+            set_memory_location(cpu.memory.clone(), ins_addr + 10, Instruction::ADD12 as u16);
+            // CLF
+            set_memory_location(cpu.memory.clone(), ins_addr + 11, Instruction::CLF as u16);
+            // SHL R1
+            set_memory_location(cpu.memory.clone(), ins_addr + 12, Instruction::SHL1 as u16);
+            // SHL R3
+            set_memory_location(cpu.memory.clone(), ins_addr + 13, Instruction::SHL3 as u16);
+            // JC 68
+            set_memory_location(cpu.memory.clone(), ins_addr + 14, Instruction::JMPC as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 15, ins_addr + 18);
+            // JMP 53
+            set_memory_location(cpu.memory.clone(), ins_addr + 16, Instruction::JMP as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 17, ins_addr + 3);
+
+            cpu.set_registers(vec![input_a, input_b, 0, 0]);
+            cpu.set_iar(ins_addr);
+
+            loop {
+                cpu.do_fetch_decode_execute();
+                if cpu.iar.borrow().value() >= ins_addr + 18 {
+                    break;
+                }
+            }
+
+            cpu.check_register(test_id, 2, input_a * input_b);
+        };
+
+        test_cpu_multiply(0, 0x0000, 0x0000);
+        test_cpu_multiply(1, 0x0001, 0x0001);
+        test_cpu_multiply(2, 0x0001, 0x0002);
+        test_cpu_multiply(3, 0x0002, 0x0001);
+        test_cpu_multiply(4, 0x0002, 0x0002);
+        test_cpu_multiply(5, 0x000F, 0x000F);
     }
 
     fn set_memory_location(memory: Rc<RefCell<Memory64K>>, address: u16, value: u16) {
@@ -2080,11 +2429,39 @@ mod tests {
             self.do_fetch_decode_execute();
 
             self.check_registers(
+                instruction,
                 expected_output_registers[0],
                 expected_output_registers[1],
                 expected_output_registers[2],
                 expected_output_registers[3],
             )
+        }
+
+        fn test_shift(
+            &mut self,
+            instruction: u16,
+            input_registers: Vec<u16>,
+            expected_output_registers: Vec<u16>,
+            shifts: u16,
+        ) {
+            for i in 0..shifts {
+                set_memory_location(self.memory.clone(), i, instruction);
+            }
+
+            self.set_registers(input_registers);
+            self.set_iar(0x0000);
+
+            for _ in 0..shifts {
+                self.do_fetch_decode_execute();
+            }
+
+            self.check_registers(
+                instruction,
+                expected_output_registers[0],
+                expected_output_registers[1],
+                expected_output_registers[2],
+                expected_output_registers[3],
+            );
         }
 
         fn set_registers(&mut self, values: Vec<u16>) {
@@ -2166,14 +2543,21 @@ mod tests {
             }
         }
 
-        fn check_registers(&self, exp_reg0: u16, exp_reg1: u16, exp_reg2: u16, exp_reg3: u16) {
-            self.check_register(0, exp_reg0);
-            self.check_register(1, exp_reg1);
-            self.check_register(2, exp_reg2);
-            self.check_register(3, exp_reg3);
+        fn check_registers(
+            &self,
+            instruction: u16,
+            exp_reg0: u16,
+            exp_reg1: u16,
+            exp_reg2: u16,
+            exp_reg3: u16,
+        ) {
+            self.check_register(instruction, 0, exp_reg0);
+            self.check_register(instruction, 1, exp_reg1);
+            self.check_register(instruction, 2, exp_reg2);
+            self.check_register(instruction, 3, exp_reg3);
         }
 
-        fn check_register(&self, register: u16, expected: u16) {
+        fn check_register(&self, instruction: u16, register: u16, expected: u16) {
             let reg_value: u16 = match register {
                 0 => self.gp_reg0.borrow().value(),
                 1 => self.gp_reg1.borrow().value(),
@@ -2184,8 +2568,8 @@ mod tests {
 
             assert_eq!(
                 reg_value, expected,
-                "Expected register {} to have value of: {:#X} but got {:#X}",
-                register, expected, reg_value
+                "Instruction: {:#X}, Expected register {} to have value of: {:#>04X} but got {:#>04X}",
+           instruction,     register, expected, reg_value
             )
         }
 
