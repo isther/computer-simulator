@@ -44,10 +44,13 @@ pub struct Word {
     next: Option<Rc<RefCell<dyn Component>>>,
 }
 
-//TODO:Debug info
 impl Debug for Word {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "")
+        write!(
+            f,
+            "{}",
+            String::from_iter(self.bits.iter().map(|b| format!("{}", b.get() as u32)))
+        )
     }
 }
 
