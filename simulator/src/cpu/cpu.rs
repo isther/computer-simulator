@@ -1,5 +1,5 @@
 use super::{
-    ANDGate3, Bit, Bus, BusOne, Component, Decoder2x4, Enableable, FlagState, IOBus, Instruction,
+    ANDGate3, Bit, Bus, BusOne, Component, Decoder2x4, Enableable, FlagState, IOBus,
     InstructionDecoder3x8, ORGate3, ORGate4, ORGate5, ORGate6, Register, Settable, Stepper,
     Updatable, Wire, ALU, AND, BUS_WIDTH, NOT, OR,
 };
@@ -2347,35 +2347,35 @@ mod tests {
             // JMP, ins_addr+3
 
             // DATA R3, 1
-            set_memory_location(cpu.memory.clone(), ins_addr + 0, Instruction::DATA3 as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 0, 0x0023);
             set_memory_location(cpu.memory.clone(), ins_addr + 1, 0x0001);
             // XOR R2, R2
-            set_memory_location(cpu.memory.clone(), ins_addr + 2, Instruction::XOR22 as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 2, 0x00EA);
             // CLF
-            set_memory_location(cpu.memory.clone(), ins_addr + 3, Instruction::CLF as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 3, 0x0060);
             // SHR R0
-            set_memory_location(cpu.memory.clone(), ins_addr + 4, Instruction::SHR0 as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 4, 0x00A0);
             // JC 59
-            set_memory_location(cpu.memory.clone(), ins_addr + 5, Instruction::JMPC as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 5, 0x0058);
             set_memory_location(cpu.memory.clone(), ins_addr + 6, ins_addr + 9);
             // JMP 61
-            set_memory_location(cpu.memory.clone(), ins_addr + 7, Instruction::JMP as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 7, 0x0040);
             set_memory_location(cpu.memory.clone(), ins_addr + 8, ins_addr + 11);
             // CLF
-            set_memory_location(cpu.memory.clone(), ins_addr + 9, Instruction::CLF as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 9, 0x0060);
             // ADD R1, R2
-            set_memory_location(cpu.memory.clone(), ins_addr + 10, Instruction::ADD12 as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 10, 0x0086);
             // CLF
-            set_memory_location(cpu.memory.clone(), ins_addr + 11, Instruction::CLF as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 11, 0x0060);
             // SHL R1
-            set_memory_location(cpu.memory.clone(), ins_addr + 12, Instruction::SHL1 as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 12, 0x0095);
             // SHL R3
-            set_memory_location(cpu.memory.clone(), ins_addr + 13, Instruction::SHL3 as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 13, 0x009F);
             // JC 68
-            set_memory_location(cpu.memory.clone(), ins_addr + 14, Instruction::JMPC as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 14, 0x0058);
             set_memory_location(cpu.memory.clone(), ins_addr + 15, ins_addr + 18);
             // JMP 53
-            set_memory_location(cpu.memory.clone(), ins_addr + 16, Instruction::JMP as u16);
+            set_memory_location(cpu.memory.clone(), ins_addr + 16, 0x0040);
             set_memory_location(cpu.memory.clone(), ins_addr + 17, ins_addr + 3);
 
             cpu.set_registers(vec![input_a, input_b, 0, 0]);
