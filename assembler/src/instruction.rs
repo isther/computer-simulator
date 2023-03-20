@@ -1,27 +1,26 @@
-use crate::assembler::NEXTINSTRUCTION;
-use crate::error::Error;
-use crate::markers::{Label, Marker, Number, Symbol};
-use std::any::{Any, TypeId};
+use crate::{
+    error::Error,
+    markers::{Label, Marker, Number, Symbol},
+    IOMode, Register, NEXTINSTRUCTION,
+};
+use std::{
+    any::{Any, TypeId},
+    cell::RefCell,
+    fmt::Display,
+    rc::Rc,
+};
 
-type LabelResolver = fn(&Label) -> Result<u16, Error>;
-type SymbolResolver = fn(&Symbol) -> Result<u16, Error>;
-type Register = u16;
-type IoMode = &'static str;
+pub trait Resolver {
+    fn label_resolver(&self, _: &Label) -> Result<u16, Error> {
+        Ok(0)
+    }
+    fn symbol_resolver(&self, _: &Symbol) -> Result<u16, Error> {
+        Ok(0)
+    }
+}
 
-const REG0: Register = 0;
-const REG1: Register = 1;
-const REG2: Register = 2;
-const REG3: Register = 3;
-const ADDRESS_MODE: IoMode = "Addr";
-const DATA_MODE: IoMode = "Data";
-
-pub trait Instruction: Any {
-    fn string(&self) -> String;
-    fn emit(
-        &self,
-        label_resolver: Option<LabelResolver>,
-        symbol_resolver: Option<SymbolResolver>,
-    ) -> Result<Vec<u16>, Error>;
+pub trait Instruction: Any + Display {
+    fn emit(&self, resolver: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error>;
     fn size(&self) -> u16;
     fn as_any(&self) -> &dyn Any;
 }
@@ -50,13 +49,13 @@ pub trait Instruction: Any {
 // 0x000E = LD R3, R2
 // 0x000F = LD R3, R3
 
-struct LOAD {
+pub struct LOAD {
     memory_address_reg: Register,
     to_register: Register,
 }
 
 impl LOAD {
-    fn new(memory_address_reg: Register, to_register: Register) -> Self {
+    pub fn new(memory_address_reg: Register, to_register: Register) -> Self {
         Self {
             memory_address_reg,
             to_register,
@@ -64,20 +63,26 @@ impl LOAD {
     }
 }
 
-impl Instruction for LOAD {
-    fn string(&self) -> String {
-        format!("LD R{}, R{}", self.memory_address_reg, self.to_register)
+impl Display for LOAD {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "LD R{}, R{}",
+            self.memory_address_reg as u16, self.to_register as u16
+        )
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for LOAD {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.memory_address_reg {
-                REG0 => Ok(0x0000),
-                REG1 => Ok(0x0004),
-                REG2 => Ok(0x0008),
-                REG3 => Ok(0x000C),
-                _ => Err(Error::UnknownRegister(self.memory_address_reg.to_string())),
-            }? + self.to_register,
+                Register::REG0 => Ok(0x0000),
+                Register::REG1 => Ok(0x0004),
+                Register::REG2 => Ok(0x0008),
+                Register::REG3 => Ok(0x000C),
+            }? as u16
+                + self.to_register as u16,
         ])
     }
 
@@ -114,13 +119,13 @@ impl Instruction for LOAD {
 // 0x001E = ST R3, R2
 // 0x001F = ST R3, R3
 
-struct STORE {
+pub struct STORE {
     from_register: Register,
     to_register: Register,
 }
 
 impl STORE {
-    fn new(from_register: Register, to_register: Register) -> Self {
+    pub fn new(from_register: Register, to_register: Register) -> Self {
         Self {
             from_register,
             to_register,
@@ -128,20 +133,26 @@ impl STORE {
     }
 }
 
-impl Instruction for STORE {
-    fn string(&self) -> String {
-        format!("ST R{}, R{}", self.from_register, self.to_register)
+impl Display for STORE {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "ST R{}, R{}",
+            self.from_register as u16, self.to_register as u16
+        )
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for STORE {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.from_register {
-                REG0 => Ok(0x0010),
-                REG1 => Ok(0x0014),
-                REG2 => Ok(0x0018),
-                REG3 => Ok(0x001C),
-                _ => Err(Error::UnknownRegister(self.from_register.to_string())),
-            }? + self.to_register,
+                Register::REG0 => Ok(0x0010),
+                Register::REG1 => Ok(0x0014),
+                Register::REG2 => Ok(0x0018),
+                Register::REG3 => Ok(0x001C),
+            }? as u16
+                + self.to_register as u16,
         ])
     }
 
@@ -162,39 +173,39 @@ impl Instruction for STORE {
 // 0x0022 = DATA R2
 // 0x0023 = DATA R3
 
-struct DATA<T: Marker> {
+pub struct DATA<T: Marker> {
     to_register: Register,
     data: T,
 }
 
 impl<T: Marker> DATA<T> {
-    fn new(to_register: Register, data: T) -> Self {
+    pub fn new(to_register: Register, data: T) -> Self {
         Self { to_register, data }
     }
 }
 
-impl<T: Marker> Instruction for DATA<T> {
-    fn string(&self) -> String {
-        format!("DATA R{}, {}", self.to_register, self.data.string())
+impl<T: Marker> Display for DATA<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "DATA R{}, {}", self.to_register as u16, self.data)
     }
+}
 
-    fn emit(
-        &self,
-        _: Option<LabelResolver>,
-        symbol_resolver: Option<SymbolResolver>,
-    ) -> Result<Vec<u16>, Error> {
+impl<T: Marker> Instruction for DATA<T> {
+    fn emit(&self, resolver: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         let instruction = match self.to_register {
-            REG0 => Ok(0x0020),
-            REG1 => Ok(0x0021),
-            REG2 => Ok(0x0022),
-            REG3 => Ok(0x0023),
-            _ => Err(Error::UnknownRegister(self.to_register.to_string())),
+            Register::REG0 => Ok(0x0020),
+            Register::REG1 => Ok(0x0021),
+            Register::REG2 => Ok(0x0022),
+            Register::REG3 => Ok(0x0023),
         }?;
 
         if TypeId::of::<Symbol>() == self.data.type_id() {
             Ok(vec![
                 instruction,
-                symbol_resolver.unwrap()(self.data.as_any().downcast_ref::<Symbol>().unwrap())?,
+                resolver
+                    .unwrap()
+                    .borrow()
+                    .symbol_resolver(self.data.as_any().downcast_ref::<Symbol>().unwrap())?,
             ])
         } else if TypeId::of::<Number>() == self.data.type_id() {
             Ok(vec![
@@ -202,7 +213,7 @@ impl<T: Marker> Instruction for DATA<T> {
                 self.data.as_any().downcast_ref::<Number>().unwrap().value,
             ])
         } else {
-            Err(Error::UnknownMarker(self.data.string()))
+            Err(Error::UnknownMarker(self.data.to_string()))
         }
     }
 
@@ -222,28 +233,29 @@ impl<T: Marker> Instruction for DATA<T> {
 // 0x0031 = JR R1
 // 0x0032 = JR R2
 // 0x0033 = JR R3
-struct JR {
+pub struct JR {
     register: Register,
 }
 
 impl JR {
-    fn new(register: Register) -> Self {
+    pub fn new(register: Register) -> Self {
         Self { register }
     }
 }
 
-impl Instruction for JR {
-    fn string(&self) -> String {
-        format!("JR R{}", self.register)
+impl Display for JR {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "JR R{}", self.register as u16)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for JR {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![match self.register {
-            REG0 => Ok(0x0030),
-            REG1 => Ok(0x0031),
-            REG2 => Ok(0x0032),
-            REG3 => Ok(0x0033),
-            _ => Err(Error::UnknownRegister(self.register.to_string())),
+            Register::REG0 => Ok(0x0030),
+            Register::REG1 => Ok(0x0031),
+            Register::REG2 => Ok(0x0032),
+            Register::REG3 => Ok(0x0033),
         }?])
     }
 
@@ -261,27 +273,31 @@ impl Instruction for JR {
 // ----------------------
 // 0x0040 = JMP <value>
 
-struct JMP {
+pub struct JMP {
     jump_location: Label,
 }
 
 impl JMP {
-    fn new(jump_location: Label) -> Self {
+    pub fn new(jump_location: Label) -> Self {
         Self { jump_location }
     }
 }
 
-impl Instruction for JMP {
-    fn string(&self) -> String {
-        format!("JMP {}", self.jump_location.string())
+impl Display for JMP {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "JMP {}", self.jump_location)
     }
+}
 
-    fn emit(
-        &self,
-        label_resolver: Option<LabelResolver>,
-        _: Option<SymbolResolver>,
-    ) -> Result<Vec<u16>, Error> {
-        Ok(vec![0x0040, label_resolver.unwrap()(&self.jump_location)?])
+impl Instruction for JMP {
+    fn emit(&self, resolver: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+        Ok(vec![
+            0x0040,
+            resolver
+                .unwrap()
+                .borrow()
+                .label_resolver(&self.jump_location)?,
+        ])
     }
 
     fn size(&self) -> u16 {
@@ -313,13 +329,13 @@ impl Instruction for JMP {
 // 0x005E = JMPCAE <value>
 // 0x005F = JMPCAEZ <value>
 
-struct JMPF {
+pub struct JMPF {
     flags: Vec<String>,
     jump_location: Label,
 }
 
 impl JMPF {
-    fn new(flags: Vec<String>, jump_location: Label) -> Self {
+    pub fn new(flags: Vec<String>, jump_location: Label) -> Self {
         Self {
             flags,
             jump_location,
@@ -327,16 +343,14 @@ impl JMPF {
     }
 }
 
-impl Instruction for JMPF {
-    fn string(&self) -> String {
-        format!("JMP{} {}", self.flags.join(""), self.jump_location.string())
+impl Display for JMPF {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "JMP{} {}", self.flags.join(""), self.jump_location)
     }
+}
 
-    fn emit(
-        &self,
-        label_resolver: Option<LabelResolver>,
-        _: Option<SymbolResolver>,
-    ) -> Result<Vec<u16>, Error> {
+impl Instruction for JMPF {
+    fn emit(&self, resolver: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.flags.join("").as_str() {
                 "Z" => Ok(0x0051),
@@ -356,7 +370,10 @@ impl Instruction for JMPF {
                 "CAEZ" => Ok(0x005F),
                 _ => Err(Error::UnknownFlag(self.flags.join(""))),
             }?,
-            label_resolver.unwrap()(&self.jump_location)?,
+            resolver
+                .unwrap()
+                .borrow()
+                .label_resolver(&self.jump_location)?,
         ])
     }
 
@@ -372,20 +389,22 @@ impl Instruction for JMPF {
 // CLF (CLEAR FLAGS)
 // ----------------------
 // 0x0060 CLF
-struct CLF {}
+pub struct CLF {}
 
 impl CLF {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {}
     }
 }
 
-impl Instruction for CLF {
-    fn string(&self) -> String {
-        "CLF".to_string()
+impl Display for CLF {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "CLF")
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for CLF {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![0x0060])
     }
 
@@ -408,13 +427,13 @@ impl Instruction for CLF {
 // 0x0075 = IN Addr, R1
 // 0x0076 = IN Addr, R2
 // 0x0077 = IN Addr, R3
-struct IN {
-    io_mode: IoMode,
+pub struct IN {
+    io_mode: IOMode,
     to_register: Register,
 }
 
 impl IN {
-    fn new(io_mode: IoMode, to_register: Register) -> Self {
+    pub fn new(io_mode: IOMode, to_register: Register) -> Self {
         Self {
             io_mode,
             to_register,
@@ -422,18 +441,20 @@ impl IN {
     }
 }
 
-impl Instruction for IN {
-    fn string(&self) -> String {
-        format!("IN {}, R{}", self.io_mode, self.to_register)
+impl Display for IN {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "IN {}, R{}", self.io_mode, self.to_register)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for IN {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.io_mode {
-                DATA_MODE => Ok(0x0070),
-                ADDRESS_MODE => Ok(0x0074),
-                _ => Err(Error::UnknownIoMode(self.io_mode.to_string())),
-            }? + self.to_register,
+                IOMode::DataMode => Ok(0x0070),
+                IOMode::AddressMode => Ok(0x0074),
+            }? as u16
+                + self.to_register as u16,
         ])
     }
 
@@ -456,13 +477,13 @@ impl Instruction for IN {
 // 0x007D = OUT Addr, R1
 // 0x007E = OUT Addr, R2
 // 0x007F = OUT Addr, R3
-struct OUT {
-    io_mode: IoMode,
+pub struct OUT {
+    io_mode: IOMode,
     to_register: Register,
 }
 
 impl OUT {
-    fn new(io_mode: IoMode, to_register: Register) -> Self {
+    pub fn new(io_mode: IOMode, to_register: Register) -> Self {
         Self {
             io_mode,
             to_register,
@@ -470,18 +491,20 @@ impl OUT {
     }
 }
 
-impl Instruction for OUT {
-    fn string(&self) -> String {
-        format!("OUT {}, R{}", self.io_mode, self.to_register)
+impl Display for OUT {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "OUT {}, R{}", self.io_mode, self.to_register)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for OUT {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.io_mode {
-                DATA_MODE => Ok(0x0078),
-                ADDRESS_MODE => Ok(0x007C),
-                _ => Err(Error::UnknownIoMode(self.io_mode.to_string())),
-            }? + self.to_register,
+                IOMode::DataMode => Ok(0x0078),
+                IOMode::AddressMode => Ok(0x007C),
+            }? as u16
+                + self.to_register as u16,
         ])
     }
 
@@ -515,13 +538,13 @@ impl Instruction for OUT {
 // 0x008D = ADD R3, R1
 // 0x008E = ADD R3, R2
 // 0x008F = ADD R3, R3
-struct ADD {
+pub struct ADD {
     register_b: Register,
     register_a: Register,
 }
 
 impl ADD {
-    fn new(register_a: Register, register_b: Register) -> ADD {
+    pub fn new(register_a: Register, register_b: Register) -> ADD {
         ADD {
             register_a,
             register_b,
@@ -529,20 +552,22 @@ impl ADD {
     }
 }
 
-impl Instruction for ADD {
-    fn string(&self) -> String {
-        format!("ADD R{}, R{}", self.register_a, self.register_b)
+impl Display for ADD {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "ADD R{}, R{}", self.register_a, self.register_b)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for ADD {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.register_a {
-                REG0 => Ok(0x0080),
-                REG1 => Ok(0x0084),
-                REG2 => Ok(0x0088),
-                REG3 => Ok(0x008C),
-                _ => Err(Error::UnknownRegister(self.register_a.to_string())),
-            }? + self.register_b,
+                Register::REG0 => Ok(0x0080),
+                Register::REG1 => Ok(0x0084),
+                Register::REG2 => Ok(0x0088),
+                Register::REG3 => Ok(0x008C),
+            }? as u16
+                + self.register_b as u16,
         ])
     }
 
@@ -561,28 +586,29 @@ impl Instruction for ADD {
 // 0x0095 = SHL R1
 // 0x009A = SHL R2
 // 0x009F = SHL R3
-struct SHL {
+pub struct SHL {
     register: Register,
 }
 
 impl SHL {
-    fn new(register: Register) -> SHL {
+    pub fn new(register: Register) -> SHL {
         SHL { register }
     }
 }
 
-impl Instruction for SHL {
-    fn string(&self) -> String {
-        format!("SHL R{}", self.register)
+impl Display for SHL {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "SHL R{}", self.register)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for SHL {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![match self.register {
-            REG0 => Ok(0x0090),
-            REG1 => Ok(0x0095),
-            REG2 => Ok(0x009A),
-            REG3 => Ok(0x009F),
-            _ => Err(Error::UnknownRegister(self.register.to_string())),
+            Register::REG0 => Ok(0x0090),
+            Register::REG1 => Ok(0x0095),
+            Register::REG2 => Ok(0x009A),
+            Register::REG3 => Ok(0x009F),
         }?])
     }
 
@@ -601,28 +627,29 @@ impl Instruction for SHL {
 // 0x00A5 = SHR R1
 // 0x00AA = SHR R2
 // 0x00AF = SHR R3
-struct SHR {
+pub struct SHR {
     register: Register,
 }
 
 impl SHR {
-    fn new(register: Register) -> SHR {
+    pub fn new(register: Register) -> SHR {
         SHR { register }
     }
 }
 
-impl Instruction for SHR {
-    fn string(&self) -> String {
-        format!("SHR R{}", self.register)
+impl Display for SHR {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "SHR R{}", self.register)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for SHR {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![match self.register {
-            REG0 => Ok(0x00A0),
-            REG1 => Ok(0x00A5),
-            REG2 => Ok(0x00AA),
-            REG3 => Ok(0x00AF),
-            _ => Err(Error::UnknownRegister(self.register.to_string())),
+            Register::REG0 => Ok(0x00A0),
+            Register::REG1 => Ok(0x00A5),
+            Register::REG2 => Ok(0x00AA),
+            Register::REG3 => Ok(0x00AF),
         }?])
     }
 
@@ -641,28 +668,29 @@ impl Instruction for SHR {
 // 0x00B5 = NOT R1
 // 0x00BA = NOT R2
 // 0x00BF = NOT R3
-struct NOT {
+pub struct NOT {
     register: Register,
 }
 
 impl NOT {
-    fn new(register: Register) -> NOT {
+    pub fn new(register: Register) -> NOT {
         NOT { register }
     }
 }
 
-impl Instruction for NOT {
-    fn string(&self) -> String {
-        format!("NOT R{}", self.register)
+impl Display for NOT {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "NOT R{}", self.register)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for NOT {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![match self.register {
-            REG0 => Ok(0x00B0),
-            REG1 => Ok(0x00B5),
-            REG2 => Ok(0x00BA),
-            REG3 => Ok(0x00BF),
-            _ => Err(Error::UnknownRegister(self.register.to_string())),
+            Register::REG0 => Ok(0x00B0),
+            Register::REG1 => Ok(0x00B5),
+            Register::REG2 => Ok(0x00BA),
+            Register::REG3 => Ok(0x00BF),
         }?])
     }
 
@@ -696,13 +724,13 @@ impl Instruction for NOT {
 // 0x00CD = AND R3, R1
 // 0x00CE = AND R3, R2
 // 0x00CF = AND R3, R3
-struct AND {
+pub struct AND {
     register_a: Register,
     register_b: Register,
 }
 
 impl AND {
-    fn new(register_a: Register, register_b: Register) -> AND {
+    pub fn new(register_a: Register, register_b: Register) -> AND {
         AND {
             register_a,
             register_b,
@@ -710,20 +738,22 @@ impl AND {
     }
 }
 
-impl Instruction for AND {
-    fn string(&self) -> String {
-        format!("AND R{}, R{}", self.register_a, self.register_b)
+impl Display for AND {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "AND R{}, R{}", self.register_a, self.register_b)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for AND {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.register_a {
-                REG0 => Ok(0x00C0),
-                REG1 => Ok(0x00C4),
-                REG2 => Ok(0x00C8),
-                REG3 => Ok(0x00CC),
-                _ => Err(Error::UnknownRegister(self.register_a.to_string())),
-            }? + self.register_b,
+                Register::REG0 => Ok(0x00C0),
+                Register::REG1 => Ok(0x00C4),
+                Register::REG2 => Ok(0x00C8),
+                Register::REG3 => Ok(0x00CC),
+            }? as u16
+                + self.register_b as u16,
         ])
     }
 
@@ -757,13 +787,13 @@ impl Instruction for AND {
 // 0x00DD = OR R3, R1
 // 0x00DE = OR R3, R2
 // 0x00DF = OR R3, R3
-struct OR {
+pub struct OR {
     register_a: Register,
     register_b: Register,
 }
 
 impl OR {
-    fn new(register_a: Register, register_b: Register) -> OR {
+    pub fn new(register_a: Register, register_b: Register) -> OR {
         OR {
             register_a,
             register_b,
@@ -771,20 +801,22 @@ impl OR {
     }
 }
 
-impl Instruction for OR {
-    fn string(&self) -> String {
-        format!("OR R{}, R{}", self.register_a, self.register_b)
+impl Display for OR {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "OR R{}, R{}", self.register_a, self.register_b)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for OR {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.register_a {
-                REG0 => Ok(0x00D0),
-                REG1 => Ok(0x00D4),
-                REG2 => Ok(0x00D8),
-                REG3 => Ok(0x00DC),
-                _ => Err(Error::UnknownRegister(self.register_a.to_string())),
-            }? + self.register_b,
+                Register::REG0 => Ok(0x00D0),
+                Register::REG1 => Ok(0x00D4),
+                Register::REG2 => Ok(0x00D8),
+                Register::REG3 => Ok(0x00DC),
+            }? as u16
+                + self.register_b as u16,
         ])
     }
 
@@ -818,13 +850,13 @@ impl Instruction for OR {
 // 0x00ED = XOR R3, R1
 // 0x00EE = XOR R3, R2
 // 0x00EF = XOR R3, R3
-struct XOR {
+pub struct XOR {
     register_a: Register,
     register_b: Register,
 }
 
 impl XOR {
-    fn new(register_a: Register, register_b: Register) -> XOR {
+    pub fn new(register_a: Register, register_b: Register) -> XOR {
         XOR {
             register_a,
             register_b,
@@ -832,20 +864,22 @@ impl XOR {
     }
 }
 
-impl Instruction for XOR {
-    fn string(&self) -> String {
-        format!("XOR R{}, R{}", self.register_a, self.register_b)
+impl Display for XOR {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "XOR R{}, R{}", self.register_a, self.register_b)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for XOR {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.register_a {
-                REG0 => Ok(0x00E0),
-                REG1 => Ok(0x00E4),
-                REG2 => Ok(0x00E8),
-                REG3 => Ok(0x00EC),
-                _ => Err(Error::UnknownRegister(self.register_a.to_string())),
-            }? + self.register_b,
+                Register::REG0 => Ok(0x00E0),
+                Register::REG1 => Ok(0x00E4),
+                Register::REG2 => Ok(0x00E8),
+                Register::REG3 => Ok(0x00EC),
+            }? as u16
+                + self.register_b as u16,
         ])
     }
 
@@ -879,13 +913,13 @@ impl Instruction for XOR {
 // 0x00FD = CMP R3, R1
 // 0x00FE = CMP R3, R2
 // 0x00FF = CMP R3, R3
-struct CMP {
+pub struct CMP {
     register_a: Register,
     register_b: Register,
 }
 
 impl CMP {
-    fn new(register_a: Register, register_b: Register) -> CMP {
+    pub fn new(register_a: Register, register_b: Register) -> CMP {
         CMP {
             register_a,
             register_b,
@@ -893,20 +927,22 @@ impl CMP {
     }
 }
 
-impl Instruction for CMP {
-    fn string(&self) -> String {
-        format!("CMP R{}, R{}", self.register_a, self.register_b)
+impl Display for CMP {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "CMP R{}, R{}", self.register_a, self.register_b)
     }
+}
 
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
+impl Instruction for CMP {
+    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.register_a {
-                REG0 => Ok(0x00F0),
-                REG1 => Ok(0x00F4),
-                REG2 => Ok(0x00F8),
-                REG3 => Ok(0x00FC),
-                _ => Err(Error::UnknownRegister(self.register_a.to_string())),
-            }? + self.register_b,
+                Register::REG0 => Ok(0x00F0),
+                Register::REG1 => Ok(0x00F4),
+                Register::REG2 => Ok(0x00F8),
+                Register::REG3 => Ok(0x00FC),
+            }? as u16
+                + self.register_b as u16,
         ])
     }
 
@@ -919,82 +955,41 @@ impl Instruction for CMP {
     }
 }
 
-// PLACEHOLDER INSTRUCTIONS - these are used by the assembler
-pub struct DEFLABEL {
-    pub name: String,
-}
-
-impl Instruction for DEFLABEL {
-    fn string(&self) -> String {
-        self.name.clone()
-    }
-
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
-        Ok(vec![])
-    }
-
-    fn size(&self) -> u16 {
-        0
-    }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
-
-pub struct DEFSYMBOL {
-    pub name: String,
-    pub value: u16,
-}
-
-impl Instruction for DEFSYMBOL {
-    fn string(&self) -> String {
-        format!("%{} = 0x{:X}", self.name, self.value)
-    }
-
-    fn emit(&self, _: Option<LabelResolver>, _: Option<SymbolResolver>) -> Result<Vec<u16>, Error> {
-        Ok(vec![])
-    }
-
-    fn size(&self) -> u16 {
-        0
-    }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-}
-
 // PSUEDO INSTRUCTIONS - these are  composite instructions that may map to multiple opcodes
-struct CALL {
+pub struct CALL {
     routine: Label,
 }
 
 impl CALL {
-    fn new(routine: Label) -> CALL {
+    pub fn new(routine: Label) -> CALL {
         CALL { routine }
     }
 }
 
-impl Instruction for CALL {
-    fn string(&self) -> String {
-        format!("CALL {}", self.routine.string())
+impl Display for CALL {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "CALL {}", self.routine)
     }
+}
 
-    fn emit(
-        &self,
-        label_resolver: Option<LabelResolver>,
-        symbol_resolver: Option<SymbolResolver>,
-    ) -> Result<Vec<u16>, Error> {
-        let next_instruction_address = symbol_resolver.unwrap()(&Symbol::new(NEXTINSTRUCTION))?;
+impl Instruction for CALL {
+    fn emit(&self, resolver: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+        let next_instruction_address = resolver
+            .as_ref()
+            .unwrap()
+            .borrow()
+            .symbol_resolver(&Symbol::new(NEXTINSTRUCTION))?;
         let composite_instructions: Vec<Box<dyn Instruction>> = vec![
-            Box::new(DATA::new(REG3, Number::new(next_instruction_address))),
+            Box::new(DATA::new(
+                Register::REG3,
+                Number::new(next_instruction_address),
+            )),
             Box::new(JMP::new(self.routine.clone())),
         ];
 
         let mut emiited = Vec::new();
         for i in composite_instructions.iter() {
-            let mut e = i.emit(label_resolver, symbol_resolver)?;
+            let mut e = i.emit(resolver.clone())?;
             emiited.append(&mut e);
         }
 
@@ -1010,8 +1005,6 @@ impl Instruction for CALL {
     }
 }
 
-// Instructions - useful list data structure for convienience
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1021,128 +1014,464 @@ mod tests {
     fn test_instruction_two_reg_string() {
         let instructions: Vec<(Box<dyn Instruction>, &str)> = vec![
             // LOAD
-            (Box::new(LOAD::new(REG0, REG0)), "LD R0, R0"),
-            (Box::new(LOAD::new(REG0, REG1)), "LD R0, R1"),
-            (Box::new(LOAD::new(REG0, REG2)), "LD R0, R2"),
-            (Box::new(LOAD::new(REG0, REG3)), "LD R0, R3"),
-            (Box::new(LOAD::new(REG1, REG0)), "LD R1, R0"),
-            (Box::new(LOAD::new(REG1, REG1)), "LD R1, R1"),
-            (Box::new(LOAD::new(REG1, REG2)), "LD R1, R2"),
-            (Box::new(LOAD::new(REG1, REG3)), "LD R1, R3"),
-            (Box::new(LOAD::new(REG2, REG0)), "LD R2, R0"),
-            (Box::new(LOAD::new(REG2, REG1)), "LD R2, R1"),
-            (Box::new(LOAD::new(REG2, REG2)), "LD R2, R2"),
-            (Box::new(LOAD::new(REG2, REG3)), "LD R2, R3"),
-            (Box::new(LOAD::new(REG3, REG0)), "LD R3, R0"),
-            (Box::new(LOAD::new(REG3, REG1)), "LD R3, R1"),
-            (Box::new(LOAD::new(REG3, REG2)), "LD R3, R2"),
-            (Box::new(LOAD::new(REG3, REG3)), "LD R3, R3"),
+            (
+                Box::new(LOAD::new(Register::REG0, Register::REG0)),
+                "LD R0, R0",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG0, Register::REG1)),
+                "LD R0, R1",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG0, Register::REG2)),
+                "LD R0, R2",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG0, Register::REG3)),
+                "LD R0, R3",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG1, Register::REG0)),
+                "LD R1, R0",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG1, Register::REG1)),
+                "LD R1, R1",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG1, Register::REG2)),
+                "LD R1, R2",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG1, Register::REG3)),
+                "LD R1, R3",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG2, Register::REG0)),
+                "LD R2, R0",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG2, Register::REG1)),
+                "LD R2, R1",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG2, Register::REG2)),
+                "LD R2, R2",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG2, Register::REG3)),
+                "LD R2, R3",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG3, Register::REG0)),
+                "LD R3, R0",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG3, Register::REG1)),
+                "LD R3, R1",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG3, Register::REG2)),
+                "LD R3, R2",
+            ),
+            (
+                Box::new(LOAD::new(Register::REG3, Register::REG3)),
+                "LD R3, R3",
+            ),
             // STORE
-            (Box::new(STORE::new(REG0, REG0)), "ST R0, R0"),
-            (Box::new(STORE::new(REG0, REG1)), "ST R0, R1"),
-            (Box::new(STORE::new(REG0, REG2)), "ST R0, R2"),
-            (Box::new(STORE::new(REG0, REG3)), "ST R0, R3"),
-            (Box::new(STORE::new(REG1, REG0)), "ST R1, R0"),
-            (Box::new(STORE::new(REG1, REG1)), "ST R1, R1"),
-            (Box::new(STORE::new(REG1, REG2)), "ST R1, R2"),
-            (Box::new(STORE::new(REG1, REG3)), "ST R1, R3"),
-            (Box::new(STORE::new(REG2, REG0)), "ST R2, R0"),
-            (Box::new(STORE::new(REG2, REG1)), "ST R2, R1"),
-            (Box::new(STORE::new(REG2, REG2)), "ST R2, R2"),
-            (Box::new(STORE::new(REG2, REG3)), "ST R2, R3"),
-            (Box::new(STORE::new(REG3, REG0)), "ST R3, R0"),
-            (Box::new(STORE::new(REG3, REG1)), "ST R3, R1"),
-            (Box::new(STORE::new(REG3, REG2)), "ST R3, R2"),
-            (Box::new(STORE::new(REG3, REG3)), "ST R3, R3"),
+            (
+                Box::new(STORE::new(Register::REG0, Register::REG0)),
+                "ST R0, R0",
+            ),
+            (
+                Box::new(STORE::new(Register::REG0, Register::REG1)),
+                "ST R0, R1",
+            ),
+            (
+                Box::new(STORE::new(Register::REG0, Register::REG2)),
+                "ST R0, R2",
+            ),
+            (
+                Box::new(STORE::new(Register::REG0, Register::REG3)),
+                "ST R0, R3",
+            ),
+            (
+                Box::new(STORE::new(Register::REG1, Register::REG0)),
+                "ST R1, R0",
+            ),
+            (
+                Box::new(STORE::new(Register::REG1, Register::REG1)),
+                "ST R1, R1",
+            ),
+            (
+                Box::new(STORE::new(Register::REG1, Register::REG2)),
+                "ST R1, R2",
+            ),
+            (
+                Box::new(STORE::new(Register::REG1, Register::REG3)),
+                "ST R1, R3",
+            ),
+            (
+                Box::new(STORE::new(Register::REG2, Register::REG0)),
+                "ST R2, R0",
+            ),
+            (
+                Box::new(STORE::new(Register::REG2, Register::REG1)),
+                "ST R2, R1",
+            ),
+            (
+                Box::new(STORE::new(Register::REG2, Register::REG2)),
+                "ST R2, R2",
+            ),
+            (
+                Box::new(STORE::new(Register::REG2, Register::REG3)),
+                "ST R2, R3",
+            ),
+            (
+                Box::new(STORE::new(Register::REG3, Register::REG0)),
+                "ST R3, R0",
+            ),
+            (
+                Box::new(STORE::new(Register::REG3, Register::REG1)),
+                "ST R3, R1",
+            ),
+            (
+                Box::new(STORE::new(Register::REG3, Register::REG2)),
+                "ST R3, R2",
+            ),
+            (
+                Box::new(STORE::new(Register::REG3, Register::REG3)),
+                "ST R3, R3",
+            ),
             // ADD
-            (Box::new(ADD::new(REG0, REG0)), "ADD R0, R0"),
-            (Box::new(ADD::new(REG0, REG1)), "ADD R0, R1"),
-            (Box::new(ADD::new(REG0, REG2)), "ADD R0, R2"),
-            (Box::new(ADD::new(REG0, REG3)), "ADD R0, R3"),
-            (Box::new(ADD::new(REG1, REG0)), "ADD R1, R0"),
-            (Box::new(ADD::new(REG1, REG1)), "ADD R1, R1"),
-            (Box::new(ADD::new(REG1, REG2)), "ADD R1, R2"),
-            (Box::new(ADD::new(REG1, REG3)), "ADD R1, R3"),
-            (Box::new(ADD::new(REG2, REG0)), "ADD R2, R0"),
-            (Box::new(ADD::new(REG2, REG1)), "ADD R2, R1"),
-            (Box::new(ADD::new(REG2, REG2)), "ADD R2, R2"),
-            (Box::new(ADD::new(REG2, REG3)), "ADD R2, R3"),
-            (Box::new(ADD::new(REG3, REG0)), "ADD R3, R0"),
-            (Box::new(ADD::new(REG3, REG1)), "ADD R3, R1"),
-            (Box::new(ADD::new(REG3, REG2)), "ADD R3, R2"),
-            (Box::new(ADD::new(REG3, REG3)), "ADD R3, R3"),
+            (
+                Box::new(ADD::new(Register::REG0, Register::REG0)),
+                "ADD R0, R0",
+            ),
+            (
+                Box::new(ADD::new(Register::REG0, Register::REG1)),
+                "ADD R0, R1",
+            ),
+            (
+                Box::new(ADD::new(Register::REG0, Register::REG2)),
+                "ADD R0, R2",
+            ),
+            (
+                Box::new(ADD::new(Register::REG0, Register::REG3)),
+                "ADD R0, R3",
+            ),
+            (
+                Box::new(ADD::new(Register::REG1, Register::REG0)),
+                "ADD R1, R0",
+            ),
+            (
+                Box::new(ADD::new(Register::REG1, Register::REG1)),
+                "ADD R1, R1",
+            ),
+            (
+                Box::new(ADD::new(Register::REG1, Register::REG2)),
+                "ADD R1, R2",
+            ),
+            (
+                Box::new(ADD::new(Register::REG1, Register::REG3)),
+                "ADD R1, R3",
+            ),
+            (
+                Box::new(ADD::new(Register::REG2, Register::REG0)),
+                "ADD R2, R0",
+            ),
+            (
+                Box::new(ADD::new(Register::REG2, Register::REG1)),
+                "ADD R2, R1",
+            ),
+            (
+                Box::new(ADD::new(Register::REG2, Register::REG2)),
+                "ADD R2, R2",
+            ),
+            (
+                Box::new(ADD::new(Register::REG2, Register::REG3)),
+                "ADD R2, R3",
+            ),
+            (
+                Box::new(ADD::new(Register::REG3, Register::REG0)),
+                "ADD R3, R0",
+            ),
+            (
+                Box::new(ADD::new(Register::REG3, Register::REG1)),
+                "ADD R3, R1",
+            ),
+            (
+                Box::new(ADD::new(Register::REG3, Register::REG2)),
+                "ADD R3, R2",
+            ),
+            (
+                Box::new(ADD::new(Register::REG3, Register::REG3)),
+                "ADD R3, R3",
+            ),
             // AND
-            (Box::new(AND::new(REG0, REG0)), "AND R0, R0"),
-            (Box::new(AND::new(REG0, REG1)), "AND R0, R1"),
-            (Box::new(AND::new(REG0, REG2)), "AND R0, R2"),
-            (Box::new(AND::new(REG0, REG3)), "AND R0, R3"),
-            (Box::new(AND::new(REG1, REG0)), "AND R1, R0"),
-            (Box::new(AND::new(REG1, REG1)), "AND R1, R1"),
-            (Box::new(AND::new(REG1, REG2)), "AND R1, R2"),
-            (Box::new(AND::new(REG1, REG3)), "AND R1, R3"),
-            (Box::new(AND::new(REG2, REG0)), "AND R2, R0"),
-            (Box::new(AND::new(REG2, REG1)), "AND R2, R1"),
-            (Box::new(AND::new(REG2, REG2)), "AND R2, R2"),
-            (Box::new(AND::new(REG2, REG3)), "AND R2, R3"),
-            (Box::new(AND::new(REG3, REG0)), "AND R3, R0"),
-            (Box::new(AND::new(REG3, REG1)), "AND R3, R1"),
-            (Box::new(AND::new(REG3, REG2)), "AND R3, R2"),
-            (Box::new(AND::new(REG3, REG3)), "AND R3, R3"),
+            (
+                Box::new(AND::new(Register::REG0, Register::REG0)),
+                "AND R0, R0",
+            ),
+            (
+                Box::new(AND::new(Register::REG0, Register::REG1)),
+                "AND R0, R1",
+            ),
+            (
+                Box::new(AND::new(Register::REG0, Register::REG2)),
+                "AND R0, R2",
+            ),
+            (
+                Box::new(AND::new(Register::REG0, Register::REG3)),
+                "AND R0, R3",
+            ),
+            (
+                Box::new(AND::new(Register::REG1, Register::REG0)),
+                "AND R1, R0",
+            ),
+            (
+                Box::new(AND::new(Register::REG1, Register::REG1)),
+                "AND R1, R1",
+            ),
+            (
+                Box::new(AND::new(Register::REG1, Register::REG2)),
+                "AND R1, R2",
+            ),
+            (
+                Box::new(AND::new(Register::REG1, Register::REG3)),
+                "AND R1, R3",
+            ),
+            (
+                Box::new(AND::new(Register::REG2, Register::REG0)),
+                "AND R2, R0",
+            ),
+            (
+                Box::new(AND::new(Register::REG2, Register::REG1)),
+                "AND R2, R1",
+            ),
+            (
+                Box::new(AND::new(Register::REG2, Register::REG2)),
+                "AND R2, R2",
+            ),
+            (
+                Box::new(AND::new(Register::REG2, Register::REG3)),
+                "AND R2, R3",
+            ),
+            (
+                Box::new(AND::new(Register::REG3, Register::REG0)),
+                "AND R3, R0",
+            ),
+            (
+                Box::new(AND::new(Register::REG3, Register::REG1)),
+                "AND R3, R1",
+            ),
+            (
+                Box::new(AND::new(Register::REG3, Register::REG2)),
+                "AND R3, R2",
+            ),
+            (
+                Box::new(AND::new(Register::REG3, Register::REG3)),
+                "AND R3, R3",
+            ),
             // OR
-            (Box::new(OR::new(REG0, REG0)), "OR R0, R0"),
-            (Box::new(OR::new(REG0, REG1)), "OR R0, R1"),
-            (Box::new(OR::new(REG0, REG2)), "OR R0, R2"),
-            (Box::new(OR::new(REG0, REG3)), "OR R0, R3"),
-            (Box::new(OR::new(REG1, REG0)), "OR R1, R0"),
-            (Box::new(OR::new(REG1, REG1)), "OR R1, R1"),
-            (Box::new(OR::new(REG1, REG2)), "OR R1, R2"),
-            (Box::new(OR::new(REG1, REG3)), "OR R1, R3"),
-            (Box::new(OR::new(REG2, REG0)), "OR R2, R0"),
-            (Box::new(OR::new(REG2, REG1)), "OR R2, R1"),
-            (Box::new(OR::new(REG2, REG2)), "OR R2, R2"),
-            (Box::new(OR::new(REG2, REG3)), "OR R2, R3"),
-            (Box::new(OR::new(REG3, REG0)), "OR R3, R0"),
-            (Box::new(OR::new(REG3, REG1)), "OR R3, R1"),
-            (Box::new(OR::new(REG3, REG2)), "OR R3, R2"),
-            (Box::new(OR::new(REG3, REG3)), "OR R3, R3"),
+            (
+                Box::new(OR::new(Register::REG0, Register::REG0)),
+                "OR R0, R0",
+            ),
+            (
+                Box::new(OR::new(Register::REG0, Register::REG1)),
+                "OR R0, R1",
+            ),
+            (
+                Box::new(OR::new(Register::REG0, Register::REG2)),
+                "OR R0, R2",
+            ),
+            (
+                Box::new(OR::new(Register::REG0, Register::REG3)),
+                "OR R0, R3",
+            ),
+            (
+                Box::new(OR::new(Register::REG1, Register::REG0)),
+                "OR R1, R0",
+            ),
+            (
+                Box::new(OR::new(Register::REG1, Register::REG1)),
+                "OR R1, R1",
+            ),
+            (
+                Box::new(OR::new(Register::REG1, Register::REG2)),
+                "OR R1, R2",
+            ),
+            (
+                Box::new(OR::new(Register::REG1, Register::REG3)),
+                "OR R1, R3",
+            ),
+            (
+                Box::new(OR::new(Register::REG2, Register::REG0)),
+                "OR R2, R0",
+            ),
+            (
+                Box::new(OR::new(Register::REG2, Register::REG1)),
+                "OR R2, R1",
+            ),
+            (
+                Box::new(OR::new(Register::REG2, Register::REG2)),
+                "OR R2, R2",
+            ),
+            (
+                Box::new(OR::new(Register::REG2, Register::REG3)),
+                "OR R2, R3",
+            ),
+            (
+                Box::new(OR::new(Register::REG3, Register::REG0)),
+                "OR R3, R0",
+            ),
+            (
+                Box::new(OR::new(Register::REG3, Register::REG1)),
+                "OR R3, R1",
+            ),
+            (
+                Box::new(OR::new(Register::REG3, Register::REG2)),
+                "OR R3, R2",
+            ),
+            (
+                Box::new(OR::new(Register::REG3, Register::REG3)),
+                "OR R3, R3",
+            ),
             // XOR
-            (Box::new(XOR::new(REG0, REG0)), "XOR R0, R0"),
-            (Box::new(XOR::new(REG0, REG1)), "XOR R0, R1"),
-            (Box::new(XOR::new(REG0, REG2)), "XOR R0, R2"),
-            (Box::new(XOR::new(REG0, REG3)), "XOR R0, R3"),
-            (Box::new(XOR::new(REG1, REG0)), "XOR R1, R0"),
-            (Box::new(XOR::new(REG1, REG1)), "XOR R1, R1"),
-            (Box::new(XOR::new(REG1, REG2)), "XOR R1, R2"),
-            (Box::new(XOR::new(REG1, REG3)), "XOR R1, R3"),
-            (Box::new(XOR::new(REG2, REG0)), "XOR R2, R0"),
-            (Box::new(XOR::new(REG2, REG1)), "XOR R2, R1"),
-            (Box::new(XOR::new(REG2, REG2)), "XOR R2, R2"),
-            (Box::new(XOR::new(REG2, REG3)), "XOR R2, R3"),
-            (Box::new(XOR::new(REG3, REG0)), "XOR R3, R0"),
-            (Box::new(XOR::new(REG3, REG1)), "XOR R3, R1"),
-            (Box::new(XOR::new(REG3, REG2)), "XOR R3, R2"),
-            (Box::new(XOR::new(REG3, REG3)), "XOR R3, R3"),
+            (
+                Box::new(XOR::new(Register::REG0, Register::REG0)),
+                "XOR R0, R0",
+            ),
+            (
+                Box::new(XOR::new(Register::REG0, Register::REG1)),
+                "XOR R0, R1",
+            ),
+            (
+                Box::new(XOR::new(Register::REG0, Register::REG2)),
+                "XOR R0, R2",
+            ),
+            (
+                Box::new(XOR::new(Register::REG0, Register::REG3)),
+                "XOR R0, R3",
+            ),
+            (
+                Box::new(XOR::new(Register::REG1, Register::REG0)),
+                "XOR R1, R0",
+            ),
+            (
+                Box::new(XOR::new(Register::REG1, Register::REG1)),
+                "XOR R1, R1",
+            ),
+            (
+                Box::new(XOR::new(Register::REG1, Register::REG2)),
+                "XOR R1, R2",
+            ),
+            (
+                Box::new(XOR::new(Register::REG1, Register::REG3)),
+                "XOR R1, R3",
+            ),
+            (
+                Box::new(XOR::new(Register::REG2, Register::REG0)),
+                "XOR R2, R0",
+            ),
+            (
+                Box::new(XOR::new(Register::REG2, Register::REG1)),
+                "XOR R2, R1",
+            ),
+            (
+                Box::new(XOR::new(Register::REG2, Register::REG2)),
+                "XOR R2, R2",
+            ),
+            (
+                Box::new(XOR::new(Register::REG2, Register::REG3)),
+                "XOR R2, R3",
+            ),
+            (
+                Box::new(XOR::new(Register::REG3, Register::REG0)),
+                "XOR R3, R0",
+            ),
+            (
+                Box::new(XOR::new(Register::REG3, Register::REG1)),
+                "XOR R3, R1",
+            ),
+            (
+                Box::new(XOR::new(Register::REG3, Register::REG2)),
+                "XOR R3, R2",
+            ),
+            (
+                Box::new(XOR::new(Register::REG3, Register::REG3)),
+                "XOR R3, R3",
+            ),
             // CMP
-            (Box::new(CMP::new(REG0, REG0)), "CMP R0, R0"),
-            (Box::new(CMP::new(REG0, REG1)), "CMP R0, R1"),
-            (Box::new(CMP::new(REG0, REG2)), "CMP R0, R2"),
-            (Box::new(CMP::new(REG0, REG3)), "CMP R0, R3"),
-            (Box::new(CMP::new(REG1, REG0)), "CMP R1, R0"),
-            (Box::new(CMP::new(REG1, REG1)), "CMP R1, R1"),
-            (Box::new(CMP::new(REG1, REG2)), "CMP R1, R2"),
-            (Box::new(CMP::new(REG1, REG3)), "CMP R1, R3"),
-            (Box::new(CMP::new(REG2, REG0)), "CMP R2, R0"),
-            (Box::new(CMP::new(REG2, REG1)), "CMP R2, R1"),
-            (Box::new(CMP::new(REG2, REG2)), "CMP R2, R2"),
-            (Box::new(CMP::new(REG2, REG3)), "CMP R2, R3"),
-            (Box::new(CMP::new(REG3, REG0)), "CMP R3, R0"),
-            (Box::new(CMP::new(REG3, REG1)), "CMP R3, R1"),
-            (Box::new(CMP::new(REG3, REG2)), "CMP R3, R2"),
-            (Box::new(CMP::new(REG3, REG3)), "CMP R3, R3"),
+            (
+                Box::new(CMP::new(Register::REG0, Register::REG0)),
+                "CMP R0, R0",
+            ),
+            (
+                Box::new(CMP::new(Register::REG0, Register::REG1)),
+                "CMP R0, R1",
+            ),
+            (
+                Box::new(CMP::new(Register::REG0, Register::REG2)),
+                "CMP R0, R2",
+            ),
+            (
+                Box::new(CMP::new(Register::REG0, Register::REG3)),
+                "CMP R0, R3",
+            ),
+            (
+                Box::new(CMP::new(Register::REG1, Register::REG0)),
+                "CMP R1, R0",
+            ),
+            (
+                Box::new(CMP::new(Register::REG1, Register::REG1)),
+                "CMP R1, R1",
+            ),
+            (
+                Box::new(CMP::new(Register::REG1, Register::REG2)),
+                "CMP R1, R2",
+            ),
+            (
+                Box::new(CMP::new(Register::REG1, Register::REG3)),
+                "CMP R1, R3",
+            ),
+            (
+                Box::new(CMP::new(Register::REG2, Register::REG0)),
+                "CMP R2, R0",
+            ),
+            (
+                Box::new(CMP::new(Register::REG2, Register::REG1)),
+                "CMP R2, R1",
+            ),
+            (
+                Box::new(CMP::new(Register::REG2, Register::REG2)),
+                "CMP R2, R2",
+            ),
+            (
+                Box::new(CMP::new(Register::REG2, Register::REG3)),
+                "CMP R2, R3",
+            ),
+            (
+                Box::new(CMP::new(Register::REG3, Register::REG0)),
+                "CMP R3, R0",
+            ),
+            (
+                Box::new(CMP::new(Register::REG3, Register::REG1)),
+                "CMP R3, R1",
+            ),
+            (
+                Box::new(CMP::new(Register::REG3, Register::REG2)),
+                "CMP R3, R2",
+            ),
+            (
+                Box::new(CMP::new(Register::REG3, Register::REG3)),
+                "CMP R3, R3",
+            ),
         ];
 
         for i in instructions {
-            assert_eq!(i.0.string(), i.1);
+            assert_eq!(i.0.to_string(), i.1);
         }
     }
 
@@ -1150,128 +1479,128 @@ mod tests {
     fn test_instruction_two_reg() {
         let instructions: Vec<(Box<dyn Instruction>, u16)> = vec![
             // LOAD
-            (Box::new(LOAD::new(REG0, REG0)), 0x0000),
-            (Box::new(LOAD::new(REG0, REG1)), 0x0001),
-            (Box::new(LOAD::new(REG0, REG2)), 0x0002),
-            (Box::new(LOAD::new(REG0, REG3)), 0x0003),
-            (Box::new(LOAD::new(REG1, REG0)), 0x0004),
-            (Box::new(LOAD::new(REG1, REG1)), 0x0005),
-            (Box::new(LOAD::new(REG1, REG2)), 0x0006),
-            (Box::new(LOAD::new(REG1, REG3)), 0x0007),
-            (Box::new(LOAD::new(REG2, REG0)), 0x0008),
-            (Box::new(LOAD::new(REG2, REG1)), 0x0009),
-            (Box::new(LOAD::new(REG2, REG2)), 0x000A),
-            (Box::new(LOAD::new(REG2, REG3)), 0x000B),
-            (Box::new(LOAD::new(REG3, REG0)), 0x000C),
-            (Box::new(LOAD::new(REG3, REG1)), 0x000D),
-            (Box::new(LOAD::new(REG3, REG2)), 0x000E),
-            (Box::new(LOAD::new(REG3, REG3)), 0x000F),
+            (Box::new(LOAD::new(Register::REG0, Register::REG0)), 0x0000),
+            (Box::new(LOAD::new(Register::REG0, Register::REG1)), 0x0001),
+            (Box::new(LOAD::new(Register::REG0, Register::REG2)), 0x0002),
+            (Box::new(LOAD::new(Register::REG0, Register::REG3)), 0x0003),
+            (Box::new(LOAD::new(Register::REG1, Register::REG0)), 0x0004),
+            (Box::new(LOAD::new(Register::REG1, Register::REG1)), 0x0005),
+            (Box::new(LOAD::new(Register::REG1, Register::REG2)), 0x0006),
+            (Box::new(LOAD::new(Register::REG1, Register::REG3)), 0x0007),
+            (Box::new(LOAD::new(Register::REG2, Register::REG0)), 0x0008),
+            (Box::new(LOAD::new(Register::REG2, Register::REG1)), 0x0009),
+            (Box::new(LOAD::new(Register::REG2, Register::REG2)), 0x000A),
+            (Box::new(LOAD::new(Register::REG2, Register::REG3)), 0x000B),
+            (Box::new(LOAD::new(Register::REG3, Register::REG0)), 0x000C),
+            (Box::new(LOAD::new(Register::REG3, Register::REG1)), 0x000D),
+            (Box::new(LOAD::new(Register::REG3, Register::REG2)), 0x000E),
+            (Box::new(LOAD::new(Register::REG3, Register::REG3)), 0x000F),
             // STORE
-            (Box::new(STORE::new(REG0, REG0)), 0x0010),
-            (Box::new(STORE::new(REG0, REG1)), 0x0011),
-            (Box::new(STORE::new(REG0, REG2)), 0x0012),
-            (Box::new(STORE::new(REG0, REG3)), 0x0013),
-            (Box::new(STORE::new(REG1, REG0)), 0x0014),
-            (Box::new(STORE::new(REG1, REG1)), 0x0015),
-            (Box::new(STORE::new(REG1, REG2)), 0x0016),
-            (Box::new(STORE::new(REG1, REG3)), 0x0017),
-            (Box::new(STORE::new(REG2, REG0)), 0x0018),
-            (Box::new(STORE::new(REG2, REG1)), 0x0019),
-            (Box::new(STORE::new(REG2, REG2)), 0x001A),
-            (Box::new(STORE::new(REG2, REG3)), 0x001B),
-            (Box::new(STORE::new(REG3, REG0)), 0x001C),
-            (Box::new(STORE::new(REG3, REG1)), 0x001D),
-            (Box::new(STORE::new(REG3, REG2)), 0x001E),
-            (Box::new(STORE::new(REG3, REG3)), 0x001F),
+            (Box::new(STORE::new(Register::REG0, Register::REG0)), 0x0010),
+            (Box::new(STORE::new(Register::REG0, Register::REG1)), 0x0011),
+            (Box::new(STORE::new(Register::REG0, Register::REG2)), 0x0012),
+            (Box::new(STORE::new(Register::REG0, Register::REG3)), 0x0013),
+            (Box::new(STORE::new(Register::REG1, Register::REG0)), 0x0014),
+            (Box::new(STORE::new(Register::REG1, Register::REG1)), 0x0015),
+            (Box::new(STORE::new(Register::REG1, Register::REG2)), 0x0016),
+            (Box::new(STORE::new(Register::REG1, Register::REG3)), 0x0017),
+            (Box::new(STORE::new(Register::REG2, Register::REG0)), 0x0018),
+            (Box::new(STORE::new(Register::REG2, Register::REG1)), 0x0019),
+            (Box::new(STORE::new(Register::REG2, Register::REG2)), 0x001A),
+            (Box::new(STORE::new(Register::REG2, Register::REG3)), 0x001B),
+            (Box::new(STORE::new(Register::REG3, Register::REG0)), 0x001C),
+            (Box::new(STORE::new(Register::REG3, Register::REG1)), 0x001D),
+            (Box::new(STORE::new(Register::REG3, Register::REG2)), 0x001E),
+            (Box::new(STORE::new(Register::REG3, Register::REG3)), 0x001F),
             // ADD
-            (Box::new(ADD::new(REG0, REG0)), 0x0080),
-            (Box::new(ADD::new(REG0, REG1)), 0x0081),
-            (Box::new(ADD::new(REG0, REG2)), 0x0082),
-            (Box::new(ADD::new(REG0, REG3)), 0x0083),
-            (Box::new(ADD::new(REG1, REG0)), 0x0084),
-            (Box::new(ADD::new(REG1, REG1)), 0x0085),
-            (Box::new(ADD::new(REG1, REG2)), 0x0086),
-            (Box::new(ADD::new(REG1, REG3)), 0x0087),
-            (Box::new(ADD::new(REG2, REG0)), 0x0088),
-            (Box::new(ADD::new(REG2, REG1)), 0x0089),
-            (Box::new(ADD::new(REG2, REG2)), 0x008A),
-            (Box::new(ADD::new(REG2, REG3)), 0x008B),
-            (Box::new(ADD::new(REG3, REG0)), 0x008C),
-            (Box::new(ADD::new(REG3, REG1)), 0x008D),
-            (Box::new(ADD::new(REG3, REG2)), 0x008E),
-            (Box::new(ADD::new(REG3, REG3)), 0x008F),
+            (Box::new(ADD::new(Register::REG0, Register::REG0)), 0x0080),
+            (Box::new(ADD::new(Register::REG0, Register::REG1)), 0x0081),
+            (Box::new(ADD::new(Register::REG0, Register::REG2)), 0x0082),
+            (Box::new(ADD::new(Register::REG0, Register::REG3)), 0x0083),
+            (Box::new(ADD::new(Register::REG1, Register::REG0)), 0x0084),
+            (Box::new(ADD::new(Register::REG1, Register::REG1)), 0x0085),
+            (Box::new(ADD::new(Register::REG1, Register::REG2)), 0x0086),
+            (Box::new(ADD::new(Register::REG1, Register::REG3)), 0x0087),
+            (Box::new(ADD::new(Register::REG2, Register::REG0)), 0x0088),
+            (Box::new(ADD::new(Register::REG2, Register::REG1)), 0x0089),
+            (Box::new(ADD::new(Register::REG2, Register::REG2)), 0x008A),
+            (Box::new(ADD::new(Register::REG2, Register::REG3)), 0x008B),
+            (Box::new(ADD::new(Register::REG3, Register::REG0)), 0x008C),
+            (Box::new(ADD::new(Register::REG3, Register::REG1)), 0x008D),
+            (Box::new(ADD::new(Register::REG3, Register::REG2)), 0x008E),
+            (Box::new(ADD::new(Register::REG3, Register::REG3)), 0x008F),
             // AND
-            (Box::new(AND::new(REG0, REG0)), 0x00C0),
-            (Box::new(AND::new(REG0, REG1)), 0x00C1),
-            (Box::new(AND::new(REG0, REG2)), 0x00C2),
-            (Box::new(AND::new(REG0, REG3)), 0x00C3),
-            (Box::new(AND::new(REG1, REG0)), 0x00C4),
-            (Box::new(AND::new(REG1, REG1)), 0x00C5),
-            (Box::new(AND::new(REG1, REG2)), 0x00C6),
-            (Box::new(AND::new(REG1, REG3)), 0x00C7),
-            (Box::new(AND::new(REG2, REG0)), 0x00C8),
-            (Box::new(AND::new(REG2, REG1)), 0x00C9),
-            (Box::new(AND::new(REG2, REG2)), 0x00CA),
-            (Box::new(AND::new(REG2, REG3)), 0x00CB),
-            (Box::new(AND::new(REG3, REG0)), 0x00CC),
-            (Box::new(AND::new(REG3, REG1)), 0x00CD),
-            (Box::new(AND::new(REG3, REG2)), 0x00CE),
-            (Box::new(AND::new(REG3, REG3)), 0x00CF),
+            (Box::new(AND::new(Register::REG0, Register::REG0)), 0x00C0),
+            (Box::new(AND::new(Register::REG0, Register::REG1)), 0x00C1),
+            (Box::new(AND::new(Register::REG0, Register::REG2)), 0x00C2),
+            (Box::new(AND::new(Register::REG0, Register::REG3)), 0x00C3),
+            (Box::new(AND::new(Register::REG1, Register::REG0)), 0x00C4),
+            (Box::new(AND::new(Register::REG1, Register::REG1)), 0x00C5),
+            (Box::new(AND::new(Register::REG1, Register::REG2)), 0x00C6),
+            (Box::new(AND::new(Register::REG1, Register::REG3)), 0x00C7),
+            (Box::new(AND::new(Register::REG2, Register::REG0)), 0x00C8),
+            (Box::new(AND::new(Register::REG2, Register::REG1)), 0x00C9),
+            (Box::new(AND::new(Register::REG2, Register::REG2)), 0x00CA),
+            (Box::new(AND::new(Register::REG2, Register::REG3)), 0x00CB),
+            (Box::new(AND::new(Register::REG3, Register::REG0)), 0x00CC),
+            (Box::new(AND::new(Register::REG3, Register::REG1)), 0x00CD),
+            (Box::new(AND::new(Register::REG3, Register::REG2)), 0x00CE),
+            (Box::new(AND::new(Register::REG3, Register::REG3)), 0x00CF),
             // OR
-            (Box::new(OR::new(REG0, REG0)), 0x00D0),
-            (Box::new(OR::new(REG0, REG1)), 0x00D1),
-            (Box::new(OR::new(REG0, REG2)), 0x00D2),
-            (Box::new(OR::new(REG0, REG3)), 0x00D3),
-            (Box::new(OR::new(REG1, REG0)), 0x00D4),
-            (Box::new(OR::new(REG1, REG1)), 0x00D5),
-            (Box::new(OR::new(REG1, REG2)), 0x00D6),
-            (Box::new(OR::new(REG1, REG3)), 0x00D7),
-            (Box::new(OR::new(REG2, REG0)), 0x00D8),
-            (Box::new(OR::new(REG2, REG1)), 0x00D9),
-            (Box::new(OR::new(REG2, REG2)), 0x00DA),
-            (Box::new(OR::new(REG2, REG3)), 0x00DB),
-            (Box::new(OR::new(REG3, REG0)), 0x00DC),
-            (Box::new(OR::new(REG3, REG1)), 0x00DD),
-            (Box::new(OR::new(REG3, REG2)), 0x00DE),
-            (Box::new(OR::new(REG3, REG3)), 0x00DF),
+            (Box::new(OR::new(Register::REG0, Register::REG0)), 0x00D0),
+            (Box::new(OR::new(Register::REG0, Register::REG1)), 0x00D1),
+            (Box::new(OR::new(Register::REG0, Register::REG2)), 0x00D2),
+            (Box::new(OR::new(Register::REG0, Register::REG3)), 0x00D3),
+            (Box::new(OR::new(Register::REG1, Register::REG0)), 0x00D4),
+            (Box::new(OR::new(Register::REG1, Register::REG1)), 0x00D5),
+            (Box::new(OR::new(Register::REG1, Register::REG2)), 0x00D6),
+            (Box::new(OR::new(Register::REG1, Register::REG3)), 0x00D7),
+            (Box::new(OR::new(Register::REG2, Register::REG0)), 0x00D8),
+            (Box::new(OR::new(Register::REG2, Register::REG1)), 0x00D9),
+            (Box::new(OR::new(Register::REG2, Register::REG2)), 0x00DA),
+            (Box::new(OR::new(Register::REG2, Register::REG3)), 0x00DB),
+            (Box::new(OR::new(Register::REG3, Register::REG0)), 0x00DC),
+            (Box::new(OR::new(Register::REG3, Register::REG1)), 0x00DD),
+            (Box::new(OR::new(Register::REG3, Register::REG2)), 0x00DE),
+            (Box::new(OR::new(Register::REG3, Register::REG3)), 0x00DF),
             // XOR
-            (Box::new(XOR::new(REG0, REG0)), 0x00E0),
-            (Box::new(XOR::new(REG0, REG1)), 0x00E1),
-            (Box::new(XOR::new(REG0, REG2)), 0x00E2),
-            (Box::new(XOR::new(REG0, REG3)), 0x00E3),
-            (Box::new(XOR::new(REG1, REG0)), 0x00E4),
-            (Box::new(XOR::new(REG1, REG1)), 0x00E5),
-            (Box::new(XOR::new(REG1, REG2)), 0x00E6),
-            (Box::new(XOR::new(REG1, REG3)), 0x00E7),
-            (Box::new(XOR::new(REG2, REG0)), 0x00E8),
-            (Box::new(XOR::new(REG2, REG1)), 0x00E9),
-            (Box::new(XOR::new(REG2, REG2)), 0x00EA),
-            (Box::new(XOR::new(REG2, REG3)), 0x00EB),
-            (Box::new(XOR::new(REG3, REG0)), 0x00EC),
-            (Box::new(XOR::new(REG3, REG1)), 0x00ED),
-            (Box::new(XOR::new(REG3, REG2)), 0x00EE),
-            (Box::new(XOR::new(REG3, REG3)), 0x00EF),
+            (Box::new(XOR::new(Register::REG0, Register::REG0)), 0x00E0),
+            (Box::new(XOR::new(Register::REG0, Register::REG1)), 0x00E1),
+            (Box::new(XOR::new(Register::REG0, Register::REG2)), 0x00E2),
+            (Box::new(XOR::new(Register::REG0, Register::REG3)), 0x00E3),
+            (Box::new(XOR::new(Register::REG1, Register::REG0)), 0x00E4),
+            (Box::new(XOR::new(Register::REG1, Register::REG1)), 0x00E5),
+            (Box::new(XOR::new(Register::REG1, Register::REG2)), 0x00E6),
+            (Box::new(XOR::new(Register::REG1, Register::REG3)), 0x00E7),
+            (Box::new(XOR::new(Register::REG2, Register::REG0)), 0x00E8),
+            (Box::new(XOR::new(Register::REG2, Register::REG1)), 0x00E9),
+            (Box::new(XOR::new(Register::REG2, Register::REG2)), 0x00EA),
+            (Box::new(XOR::new(Register::REG2, Register::REG3)), 0x00EB),
+            (Box::new(XOR::new(Register::REG3, Register::REG0)), 0x00EC),
+            (Box::new(XOR::new(Register::REG3, Register::REG1)), 0x00ED),
+            (Box::new(XOR::new(Register::REG3, Register::REG2)), 0x00EE),
+            (Box::new(XOR::new(Register::REG3, Register::REG3)), 0x00EF),
             // CMP
-            (Box::new(CMP::new(REG0, REG0)), 0x00F0),
-            (Box::new(CMP::new(REG0, REG1)), 0x00F1),
-            (Box::new(CMP::new(REG0, REG2)), 0x00F2),
-            (Box::new(CMP::new(REG0, REG3)), 0x00F3),
-            (Box::new(CMP::new(REG1, REG0)), 0x00F4),
-            (Box::new(CMP::new(REG1, REG1)), 0x00F5),
-            (Box::new(CMP::new(REG1, REG2)), 0x00F6),
-            (Box::new(CMP::new(REG1, REG3)), 0x00F7),
-            (Box::new(CMP::new(REG2, REG0)), 0x00F8),
-            (Box::new(CMP::new(REG2, REG1)), 0x00F9),
-            (Box::new(CMP::new(REG2, REG2)), 0x00FA),
-            (Box::new(CMP::new(REG2, REG3)), 0x00FB),
-            (Box::new(CMP::new(REG3, REG0)), 0x00FC),
-            (Box::new(CMP::new(REG3, REG1)), 0x00FD),
-            (Box::new(CMP::new(REG3, REG2)), 0x00FE),
-            (Box::new(CMP::new(REG3, REG3)), 0x00FF),
+            (Box::new(CMP::new(Register::REG0, Register::REG0)), 0x00F0),
+            (Box::new(CMP::new(Register::REG0, Register::REG1)), 0x00F1),
+            (Box::new(CMP::new(Register::REG0, Register::REG2)), 0x00F2),
+            (Box::new(CMP::new(Register::REG0, Register::REG3)), 0x00F3),
+            (Box::new(CMP::new(Register::REG1, Register::REG0)), 0x00F4),
+            (Box::new(CMP::new(Register::REG1, Register::REG1)), 0x00F5),
+            (Box::new(CMP::new(Register::REG1, Register::REG2)), 0x00F6),
+            (Box::new(CMP::new(Register::REG1, Register::REG3)), 0x00F7),
+            (Box::new(CMP::new(Register::REG2, Register::REG0)), 0x00F8),
+            (Box::new(CMP::new(Register::REG2, Register::REG1)), 0x00F9),
+            (Box::new(CMP::new(Register::REG2, Register::REG2)), 0x00FA),
+            (Box::new(CMP::new(Register::REG2, Register::REG3)), 0x00FB),
+            (Box::new(CMP::new(Register::REG3, Register::REG0)), 0x00FC),
+            (Box::new(CMP::new(Register::REG3, Register::REG1)), 0x00FD),
+            (Box::new(CMP::new(Register::REG3, Register::REG2)), 0x00FE),
+            (Box::new(CMP::new(Register::REG3, Register::REG3)), 0x00FF),
         ];
 
         for i in instructions {
-            assert_eq!(i.0.emit(None, None).unwrap(), vec![i.1]);
+            assert_eq!(i.0.emit(None).unwrap(), vec![i.1]);
         }
     }
 
@@ -1279,29 +1608,29 @@ mod tests {
     fn test_instruction_one_reg_string() {
         let instructions: Vec<(Box<dyn Instruction>, &str)> = vec![
             // JR
-            (Box::new(JR::new(REG0)), "JR R0"),
-            (Box::new(JR::new(REG1)), "JR R1"),
-            (Box::new(JR::new(REG2)), "JR R2"),
-            (Box::new(JR::new(REG3)), "JR R3"),
+            (Box::new(JR::new(Register::REG0)), "JR R0"),
+            (Box::new(JR::new(Register::REG1)), "JR R1"),
+            (Box::new(JR::new(Register::REG2)), "JR R2"),
+            (Box::new(JR::new(Register::REG3)), "JR R3"),
             // NOT
-            (Box::new(NOT::new(REG0)), "NOT R0"),
-            (Box::new(NOT::new(REG1)), "NOT R1"),
-            (Box::new(NOT::new(REG2)), "NOT R2"),
-            (Box::new(NOT::new(REG3)), "NOT R3"),
+            (Box::new(NOT::new(Register::REG0)), "NOT R0"),
+            (Box::new(NOT::new(Register::REG1)), "NOT R1"),
+            (Box::new(NOT::new(Register::REG2)), "NOT R2"),
+            (Box::new(NOT::new(Register::REG3)), "NOT R3"),
             // SHL
-            (Box::new(SHL::new(REG0)), "SHL R0"),
-            (Box::new(SHL::new(REG1)), "SHL R1"),
-            (Box::new(SHL::new(REG2)), "SHL R2"),
-            (Box::new(SHL::new(REG3)), "SHL R3"),
+            (Box::new(SHL::new(Register::REG0)), "SHL R0"),
+            (Box::new(SHL::new(Register::REG1)), "SHL R1"),
+            (Box::new(SHL::new(Register::REG2)), "SHL R2"),
+            (Box::new(SHL::new(Register::REG3)), "SHL R3"),
             // SHR
-            (Box::new(SHR::new(REG0)), "SHR R0"),
-            (Box::new(SHR::new(REG1)), "SHR R1"),
-            (Box::new(SHR::new(REG2)), "SHR R2"),
-            (Box::new(SHR::new(REG3)), "SHR R3"),
+            (Box::new(SHR::new(Register::REG0)), "SHR R0"),
+            (Box::new(SHR::new(Register::REG1)), "SHR R1"),
+            (Box::new(SHR::new(Register::REG2)), "SHR R2"),
+            (Box::new(SHR::new(Register::REG3)), "SHR R3"),
         ];
 
         for i in instructions {
-            assert_eq!(i.0.string(), i.1);
+            assert_eq!(i.0.to_string(), i.1);
         }
     }
 
@@ -1309,87 +1638,142 @@ mod tests {
     fn test_instruction_one_reg() {
         let instructions: Vec<(Box<dyn Instruction>, u16)> = vec![
             // JR
-            (Box::new(JR::new(REG0)), 0x0030),
-            (Box::new(JR::new(REG1)), 0x0031),
-            (Box::new(JR::new(REG2)), 0x0032),
-            (Box::new(JR::new(REG3)), 0x0033),
+            (Box::new(JR::new(Register::REG0)), 0x0030),
+            (Box::new(JR::new(Register::REG1)), 0x0031),
+            (Box::new(JR::new(Register::REG2)), 0x0032),
+            (Box::new(JR::new(Register::REG3)), 0x0033),
             // NOT
-            (Box::new(NOT::new(REG0)), 0x00B0),
-            (Box::new(NOT::new(REG1)), 0x00B5),
-            (Box::new(NOT::new(REG2)), 0x00BA),
-            (Box::new(NOT::new(REG3)), 0x00BF),
+            (Box::new(NOT::new(Register::REG0)), 0x00B0),
+            (Box::new(NOT::new(Register::REG1)), 0x00B5),
+            (Box::new(NOT::new(Register::REG2)), 0x00BA),
+            (Box::new(NOT::new(Register::REG3)), 0x00BF),
             // SHL
-            (Box::new(SHL::new(REG0)), 0x0090),
-            (Box::new(SHL::new(REG1)), 0x0095),
-            (Box::new(SHL::new(REG2)), 0x009A),
-            (Box::new(SHL::new(REG3)), 0x009F),
+            (Box::new(SHL::new(Register::REG0)), 0x0090),
+            (Box::new(SHL::new(Register::REG1)), 0x0095),
+            (Box::new(SHL::new(Register::REG2)), 0x009A),
+            (Box::new(SHL::new(Register::REG3)), 0x009F),
             // SHR
-            (Box::new(SHR::new(REG0)), 0x00A0),
-            (Box::new(SHR::new(REG1)), 0x00A5),
-            (Box::new(SHR::new(REG2)), 0x00AA),
-            (Box::new(SHR::new(REG3)), 0x00AF),
+            (Box::new(SHR::new(Register::REG0)), 0x00A0),
+            (Box::new(SHR::new(Register::REG1)), 0x00A5),
+            (Box::new(SHR::new(Register::REG2)), 0x00AA),
+            (Box::new(SHR::new(Register::REG3)), 0x00AF),
         ];
 
         for i in instructions {
-            assert_eq!(i.0.emit(None, None).unwrap(), vec![i.1]);
+            assert_eq!(i.0.emit(None).unwrap(), vec![i.1]);
         }
     }
 
     #[test]
     fn test_instruction_data_string() {
         let instructions: Vec<(DATA<Number>, &str)> = vec![
-            (DATA::new(REG0, Number::new(0x0001)), "DATA R0, 0x0001"),
-            (DATA::new(REG1, Number::new(0x0002)), "DATA R1, 0x0002"),
-            (DATA::new(REG2, Number::new(0x0003)), "DATA R2, 0x0003"),
-            (DATA::new(REG3, Number::new(0x0004)), "DATA R3, 0x0004"),
+            (
+                DATA::new(Register::REG0, Number::new(0x0001)),
+                "DATA R0, 0x0001",
+            ),
+            (
+                DATA::new(Register::REG1, Number::new(0x0002)),
+                "DATA R1, 0x0002",
+            ),
+            (
+                DATA::new(Register::REG2, Number::new(0x0003)),
+                "DATA R2, 0x0003",
+            ),
+            (
+                DATA::new(Register::REG3, Number::new(0x0004)),
+                "DATA R3, 0x0004",
+            ),
         ];
         for i in instructions {
-            assert_eq!(i.0.string(), i.1);
+            assert_eq!(i.0.to_string(), i.1);
         }
 
         let instructions: Vec<(DATA<Symbol>, &str)> = vec![
-            (DATA::new(REG0, Symbol::new("aaa")), "DATA R0, %aaa"),
-            (DATA::new(REG1, Symbol::new("bbb")), "DATA R1, %bbb"),
-            (DATA::new(REG2, Symbol::new("ccc")), "DATA R2, %ccc"),
-            (DATA::new(REG3, Symbol::new("ddd")), "DATA R3, %ddd"),
+            (
+                DATA::new(Register::REG0, Symbol::new("aaa")),
+                "DATA R0, %aaa",
+            ),
+            (
+                DATA::new(Register::REG1, Symbol::new("bbb")),
+                "DATA R1, %bbb",
+            ),
+            (
+                DATA::new(Register::REG2, Symbol::new("ccc")),
+                "DATA R2, %ccc",
+            ),
+            (
+                DATA::new(Register::REG3, Symbol::new("ddd")),
+                "DATA R3, %ddd",
+            ),
         ];
 
         for i in instructions {
-            assert_eq!(i.0.string(), i.1);
+            assert_eq!(i.0.to_string(), i.1);
         }
     }
 
     #[test]
     fn test_instruction_data() {
         let instructions: Vec<(DATA<Number>, Vec<u16>)> = vec![
-            (DATA::new(REG0, Number::new(0x0001)), vec![0x0020, 0x0001]),
-            (DATA::new(REG1, Number::new(0x0002)), vec![0x0021, 0x0002]),
-            (DATA::new(REG2, Number::new(0x0003)), vec![0x0022, 0x0003]),
-            (DATA::new(REG3, Number::new(0x0004)), vec![0x0023, 0x0004]),
+            (
+                DATA::new(Register::REG0, Number::new(0x0001)),
+                vec![0x0020, 0x0001],
+            ),
+            (
+                DATA::new(Register::REG1, Number::new(0x0002)),
+                vec![0x0021, 0x0002],
+            ),
+            (
+                DATA::new(Register::REG2, Number::new(0x0003)),
+                vec![0x0022, 0x0003],
+            ),
+            (
+                DATA::new(Register::REG3, Number::new(0x0004)),
+                vec![0x0023, 0x0004],
+            ),
         ];
         for i in instructions {
-            assert_eq!(i.0.emit(None, None).unwrap(), i.1);
+            assert_eq!(i.0.emit(None).unwrap(), i.1);
         }
 
         let instructions: Vec<(DATA<Symbol>, Vec<u16>)> = vec![
-            (DATA::new(REG0, Symbol::new("aaa")), vec![0x0020, 0xA000]),
-            (DATA::new(REG1, Symbol::new("bbb")), vec![0x0021, 0xB000]),
-            (DATA::new(REG2, Symbol::new("ccc")), vec![0x0022, 0xC000]),
-            (DATA::new(REG3, Symbol::new("ddd")), vec![0x0023, 0xD000]),
+            (
+                DATA::new(Register::REG0, Symbol::new("aaa")),
+                vec![0x0020, 0xA000],
+            ),
+            (
+                DATA::new(Register::REG1, Symbol::new("bbb")),
+                vec![0x0021, 0xB000],
+            ),
+            (
+                DATA::new(Register::REG2, Symbol::new("ccc")),
+                vec![0x0022, 0xC000],
+            ),
+            (
+                DATA::new(Register::REG3, Symbol::new("ddd")),
+                vec![0x0023, 0xD000],
+            ),
         ];
 
-        let dummy_symbol_resolver: SymbolResolver = |s: &Symbol| -> Result<u16, Error> {
-            match s.name.as_str() {
-                "aaa" => Ok(0xA000),
-                "bbb" => Ok(0xB000),
-                "ccc" => Ok(0xC000),
-                "ddd" => Ok(0xD000),
-                _ => Err(Error::UnknownSymbol(s.name.clone())),
+        struct DummyResolver;
+        impl Resolver for DummyResolver {
+            fn symbol_resolver(&self, symbol: &Symbol) -> Result<u16, Error> {
+                match symbol.name.as_str() {
+                    "aaa" => Ok(0xA000),
+                    "bbb" => Ok(0xB000),
+                    "ccc" => Ok(0xC000),
+                    "ddd" => Ok(0xD000),
+                    _ => Err(Error::UnknownSymbol(symbol.name.clone())),
+                }
             }
-        };
+        }
 
         for i in instructions {
-            assert_eq!(i.0.emit(None, Some(dummy_symbol_resolver)).unwrap(), i.1);
+            assert_eq!(
+                i.0.emit(Some(Rc::new(RefCell::new(DummyResolver))))
+                    .unwrap(),
+                i.1
+            );
         }
     }
 
@@ -1397,27 +1781,75 @@ mod tests {
     fn test_instruction_io_string() {
         let instructions: Vec<(Box<dyn Instruction>, &str)> = vec![
             // Data mode
-            (Box::new(IN::new(DATA_MODE, REG0)), "IN Data, R0"),
-            (Box::new(IN::new(DATA_MODE, REG1)), "IN Data, R1"),
-            (Box::new(IN::new(DATA_MODE, REG2)), "IN Data, R2"),
-            (Box::new(IN::new(DATA_MODE, REG3)), "IN Data, R3"),
-            (Box::new(OUT::new(DATA_MODE, REG0)), "OUT Data, R0"),
-            (Box::new(OUT::new(DATA_MODE, REG1)), "OUT Data, R1"),
-            (Box::new(OUT::new(DATA_MODE, REG2)), "OUT Data, R2"),
-            (Box::new(OUT::new(DATA_MODE, REG3)), "OUT Data, R3"),
+            (
+                Box::new(IN::new(IOMode::DataMode, Register::REG0)),
+                "IN Data, R0",
+            ),
+            (
+                Box::new(IN::new(IOMode::DataMode, Register::REG1)),
+                "IN Data, R1",
+            ),
+            (
+                Box::new(IN::new(IOMode::DataMode, Register::REG2)),
+                "IN Data, R2",
+            ),
+            (
+                Box::new(IN::new(IOMode::DataMode, Register::REG3)),
+                "IN Data, R3",
+            ),
+            (
+                Box::new(OUT::new(IOMode::DataMode, Register::REG0)),
+                "OUT Data, R0",
+            ),
+            (
+                Box::new(OUT::new(IOMode::DataMode, Register::REG1)),
+                "OUT Data, R1",
+            ),
+            (
+                Box::new(OUT::new(IOMode::DataMode, Register::REG2)),
+                "OUT Data, R2",
+            ),
+            (
+                Box::new(OUT::new(IOMode::DataMode, Register::REG3)),
+                "OUT Data, R3",
+            ),
             // Address mode
-            (Box::new(IN::new(ADDRESS_MODE, REG0)), "IN Addr, R0"),
-            (Box::new(IN::new(ADDRESS_MODE, REG1)), "IN Addr, R1"),
-            (Box::new(IN::new(ADDRESS_MODE, REG2)), "IN Addr, R2"),
-            (Box::new(IN::new(ADDRESS_MODE, REG3)), "IN Addr, R3"),
-            (Box::new(OUT::new(ADDRESS_MODE, REG0)), "OUT Addr, R0"),
-            (Box::new(OUT::new(ADDRESS_MODE, REG1)), "OUT Addr, R1"),
-            (Box::new(OUT::new(ADDRESS_MODE, REG2)), "OUT Addr, R2"),
-            (Box::new(OUT::new(ADDRESS_MODE, REG3)), "OUT Addr, R3"),
+            (
+                Box::new(IN::new(IOMode::AddressMode, Register::REG0)),
+                "IN Addr, R0",
+            ),
+            (
+                Box::new(IN::new(IOMode::AddressMode, Register::REG1)),
+                "IN Addr, R1",
+            ),
+            (
+                Box::new(IN::new(IOMode::AddressMode, Register::REG2)),
+                "IN Addr, R2",
+            ),
+            (
+                Box::new(IN::new(IOMode::AddressMode, Register::REG3)),
+                "IN Addr, R3",
+            ),
+            (
+                Box::new(OUT::new(IOMode::AddressMode, Register::REG0)),
+                "OUT Addr, R0",
+            ),
+            (
+                Box::new(OUT::new(IOMode::AddressMode, Register::REG1)),
+                "OUT Addr, R1",
+            ),
+            (
+                Box::new(OUT::new(IOMode::AddressMode, Register::REG2)),
+                "OUT Addr, R2",
+            ),
+            (
+                Box::new(OUT::new(IOMode::AddressMode, Register::REG3)),
+                "OUT Addr, R3",
+            ),
         ];
 
         for i in instructions {
-            assert_eq!(i.0.string(), i.1);
+            assert_eq!(i.0.to_string(), i.1);
         }
     }
 
@@ -1425,27 +1857,51 @@ mod tests {
     fn test_instruction_io() {
         let instructions: Vec<(Box<dyn Instruction>, u16)> = vec![
             // Data mode
-            (Box::new(IN::new(DATA_MODE, REG0)), 0x0070),
-            (Box::new(IN::new(DATA_MODE, REG1)), 0x0071),
-            (Box::new(IN::new(DATA_MODE, REG2)), 0x0072),
-            (Box::new(IN::new(DATA_MODE, REG3)), 0x0073),
-            (Box::new(OUT::new(DATA_MODE, REG0)), 0x0078),
-            (Box::new(OUT::new(DATA_MODE, REG1)), 0x0079),
-            (Box::new(OUT::new(DATA_MODE, REG2)), 0x007A),
-            (Box::new(OUT::new(DATA_MODE, REG3)), 0x007B),
+            (Box::new(IN::new(IOMode::DataMode, Register::REG0)), 0x0070),
+            (Box::new(IN::new(IOMode::DataMode, Register::REG1)), 0x0071),
+            (Box::new(IN::new(IOMode::DataMode, Register::REG2)), 0x0072),
+            (Box::new(IN::new(IOMode::DataMode, Register::REG3)), 0x0073),
+            (Box::new(OUT::new(IOMode::DataMode, Register::REG0)), 0x0078),
+            (Box::new(OUT::new(IOMode::DataMode, Register::REG1)), 0x0079),
+            (Box::new(OUT::new(IOMode::DataMode, Register::REG2)), 0x007A),
+            (Box::new(OUT::new(IOMode::DataMode, Register::REG3)), 0x007B),
             // Address mode
-            (Box::new(IN::new(ADDRESS_MODE, REG0)), 0x0074),
-            (Box::new(IN::new(ADDRESS_MODE, REG1)), 0x0075),
-            (Box::new(IN::new(ADDRESS_MODE, REG2)), 0x0076),
-            (Box::new(IN::new(ADDRESS_MODE, REG3)), 0x0077),
-            (Box::new(OUT::new(ADDRESS_MODE, REG0)), 0x007C),
-            (Box::new(OUT::new(ADDRESS_MODE, REG1)), 0x007D),
-            (Box::new(OUT::new(ADDRESS_MODE, REG2)), 0x007E),
-            (Box::new(OUT::new(ADDRESS_MODE, REG3)), 0x007F),
+            (
+                Box::new(IN::new(IOMode::AddressMode, Register::REG0)),
+                0x0074,
+            ),
+            (
+                Box::new(IN::new(IOMode::AddressMode, Register::REG1)),
+                0x0075,
+            ),
+            (
+                Box::new(IN::new(IOMode::AddressMode, Register::REG2)),
+                0x0076,
+            ),
+            (
+                Box::new(IN::new(IOMode::AddressMode, Register::REG3)),
+                0x0077,
+            ),
+            (
+                Box::new(OUT::new(IOMode::AddressMode, Register::REG0)),
+                0x007C,
+            ),
+            (
+                Box::new(OUT::new(IOMode::AddressMode, Register::REG1)),
+                0x007D,
+            ),
+            (
+                Box::new(OUT::new(IOMode::AddressMode, Register::REG2)),
+                0x007E,
+            ),
+            (
+                Box::new(OUT::new(IOMode::AddressMode, Register::REG3)),
+                0x007F,
+            ),
         ];
 
         for i in instructions {
-            assert_eq!(i.0.emit(None, None).unwrap(), vec![i.1]);
+            assert_eq!(i.0.emit(None).unwrap(), vec![i.1]);
         }
     }
 
@@ -1457,7 +1913,7 @@ mod tests {
         ];
 
         for i in instructions {
-            assert_eq!(i.0.string(), i.1);
+            assert_eq!(i.0.to_string(), i.1);
         }
     }
 
@@ -1468,16 +1924,23 @@ mod tests {
             (JMP::new(Label::new("bar")), vec![0x0040, 0x0002]),
         ];
 
-        let dummy_label_resolver: LabelResolver = |l: &Label| -> Result<u16, Error> {
-            match l.name.as_str() {
-                "foo" => Ok(0x0001),
-                "bar" => Ok(0x0002),
-                _ => Err(Error::UnknownLabel(l.name.clone())),
+        struct DummyResolver;
+        impl Resolver for DummyResolver {
+            fn label_resolver(&self, label: &Label) -> Result<u16, Error> {
+                match label.name.as_str() {
+                    "foo" => Ok(0x0001),
+                    "bar" => Ok(0x0002),
+                    _ => Err(Error::UnknownLabel(label.name.clone())),
+                }
             }
-        };
+        }
 
         for i in instructions {
-            assert_eq!(i.0.emit(Some(dummy_label_resolver), None).unwrap(), i.1);
+            assert_eq!(
+                i.0.emit(Some(Rc::new(RefCell::new(DummyResolver))))
+                    .unwrap(),
+                i.1
+            );
         }
     }
 
@@ -1486,7 +1949,7 @@ mod tests {
         let instructions: Vec<(CLF, &str)> = vec![(CLF::new(), "CLF")];
 
         for i in instructions {
-            assert_eq!(i.0.string(), i.1);
+            assert_eq!(i.0.to_string(), i.1);
         }
     }
 
@@ -1495,7 +1958,7 @@ mod tests {
         let instructions: Vec<(CLF, u16)> = vec![(CLF::new(), 0x0060)];
 
         for i in instructions {
-            assert_eq!(i.0.emit(None, None).unwrap(), vec![i.1]);
+            assert_eq!(i.0.emit(None).unwrap(), vec![i.1]);
         }
     }
 
@@ -1507,7 +1970,7 @@ mod tests {
         ];
 
         for i in instructions {
-            assert_eq!(i.0.string(), i.1);
+            assert_eq!(i.0.to_string(), i.1);
         }
     }
 
@@ -1524,23 +1987,27 @@ mod tests {
             ),
         ];
 
-        let dummy_label_resolver: LabelResolver = |l: &Label| -> Result<u16, Error> {
-            match l.name.as_str() {
-                "foo" => Ok(0x0001),
-                "bar" => Ok(0x0002),
-                _ => Err(Error::UnknownLabel(l.name.clone())),
+        struct DummyResolver;
+        impl Resolver for DummyResolver {
+            fn symbol_resolver(&self, symbol: &Symbol) -> Result<u16, Error> {
+                match symbol.name.as_str() {
+                    "NEXTINSTRUCTION" => Ok(0x1234),
+                    _ => Err(Error::UnknownSymbol(symbol.name.clone())),
+                }
             }
-        };
-        let dummy_symbol_resolver: SymbolResolver = |l: &Symbol| -> Result<u16, Error> {
-            match l.name.as_str() {
-                "NEXTINSTRUCTION" => Ok(0x1234),
-                _ => Err(Error::UnknownSymbol(l.name.clone())),
+
+            fn label_resolver(&self, label: &Label) -> Result<u16, Error> {
+                match label.name.as_str() {
+                    "foo" => Ok(0x0001),
+                    "bar" => Ok(0x0002),
+                    _ => Err(Error::UnknownLabel(label.name.clone())),
+                }
             }
-        };
+        }
 
         for i in instructions {
             assert_eq!(
-                i.0.emit(Some(dummy_label_resolver), Some(dummy_symbol_resolver))
+                i.0.emit(Some(Rc::new(RefCell::new(DummyResolver))))
                     .unwrap(),
                 i.1
             );
@@ -1633,7 +2100,7 @@ mod tests {
         ];
 
         for i in instructions {
-            assert_eq!(i.0.string(), i.1);
+            assert_eq!(i.0.to_string(), i.1);
         }
     }
 
@@ -1722,29 +2189,36 @@ mod tests {
             ),
         ];
 
-        let dummy_label_resolver: LabelResolver = |l: &Label| -> Result<u16, Error> {
-            match l.name.as_str() {
-                "foo1" => Ok(0x0001),
-                "foo2" => Ok(0x0002),
-                "foo3" => Ok(0x0003),
-                "foo4" => Ok(0x0004),
-                "foo5" => Ok(0x0005),
-                "foo6" => Ok(0x0006),
-                "foo7" => Ok(0x0007),
-                "foo8" => Ok(0x0008),
-                "foo9" => Ok(0x0009),
-                "fooA" => Ok(0x000A),
-                "fooB" => Ok(0x000B),
-                "fooC" => Ok(0x000C),
-                "fooD" => Ok(0x000D),
-                "fooE" => Ok(0x000E),
-                "fooF" => Ok(0x000F),
-                _ => Err(Error::UnknownLabel(l.name.clone())),
+        struct DummyResolver;
+        impl Resolver for DummyResolver {
+            fn label_resolver(&self, label: &Label) -> Result<u16, Error> {
+                match label.name.as_str() {
+                    "foo1" => Ok(0x0001),
+                    "foo2" => Ok(0x0002),
+                    "foo3" => Ok(0x0003),
+                    "foo4" => Ok(0x0004),
+                    "foo5" => Ok(0x0005),
+                    "foo6" => Ok(0x0006),
+                    "foo7" => Ok(0x0007),
+                    "foo8" => Ok(0x0008),
+                    "foo9" => Ok(0x0009),
+                    "fooA" => Ok(0x000A),
+                    "fooB" => Ok(0x000B),
+                    "fooC" => Ok(0x000C),
+                    "fooD" => Ok(0x000D),
+                    "fooE" => Ok(0x000E),
+                    "fooF" => Ok(0x000F),
+                    _ => Err(Error::UnknownLabel(label.name.clone())),
+                }
             }
-        };
+        }
 
         for i in instructions {
-            assert_eq!(i.0.emit(Some(dummy_label_resolver), None).unwrap(), i.1);
+            assert_eq!(
+                i.0.emit(Some(Rc::new(RefCell::new(DummyResolver))))
+                    .unwrap(),
+                i.1
+            );
         }
     }
 }

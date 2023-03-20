@@ -1,7 +1,7 @@
 use std::any::Any;
+use std::fmt::Display;
 
-pub trait Marker: Any {
-    fn string(&self) -> String;
+pub trait Marker: Any + Display {
     fn as_any(&self) -> &dyn Any;
 }
 
@@ -19,12 +19,14 @@ impl Label {
 }
 
 impl Marker for Label {
-    fn string(&self) -> String {
-        format!("{}", self.name)
-    }
-
     fn as_any(&self) -> &dyn Any {
         self
+    }
+}
+
+impl Display for Label {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.name)
     }
 }
 
@@ -41,12 +43,14 @@ impl Symbol {
 }
 
 impl Marker for Symbol {
-    fn string(&self) -> String {
-        format!("%{}", self.name)
-    }
-
     fn as_any(&self) -> &dyn Any {
         self
+    }
+}
+
+impl Display for Symbol {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "%{}", self.name)
     }
 }
 
@@ -61,11 +65,13 @@ impl Number {
 }
 
 impl Marker for Number {
-    fn string(&self) -> String {
-        format!("0x{:>04X}", self.value)
-    }
-
     fn as_any(&self) -> &dyn Any {
         self
+    }
+}
+
+impl Display for Number {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "0x{:>04X}", self.value)
     }
 }

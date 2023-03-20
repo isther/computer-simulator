@@ -2,9 +2,6 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Unknown register: R{0}")]
-    UnknownRegister(String),
-
     #[error("Unknown flag: {0}")]
     UnknownFlag(String),
 
@@ -19,4 +16,17 @@ pub enum Error {
 
     #[error("Unknown label: {0}")]
     UnknownLabel(String),
+
+    #[error("Downcast Error")]
+    DowncastError,
+
+    #[error("Label '{0}' already exists, all labels should be unique")]
+    LabelExist(String),
+
+    #[error("Symbol '{0}' already exists, all symbols should be unique")]
+    SymbolExist(String),
+
+    // reserved
+    #[error("symbol '{0}' is reserved for internal use, please use another symbol name")]
+    SymbolReserved(String),
 }
