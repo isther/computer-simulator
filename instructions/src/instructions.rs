@@ -1,47 +1,13 @@
 use crate::{
     error::Error,
     markers::{Label, Marker, Number, Symbol},
-    IOMode, Register, NEXTINSTRUCTION,
+    IOMode, Instruction, Register, Resolver, NEXTINSTRUCTION,
 };
 use std::{
     any::{Any, TypeId},
     fmt::Display,
     rc::Rc,
 };
-
-pub trait Resolver: ResolverClone {
-    fn label_resolver(&self, _: &Label) -> Result<u16, Error> {
-        Ok(0)
-    }
-    fn symbol_resolver(&self, _: &Symbol) -> Result<u16, Error> {
-        Ok(0)
-    }
-}
-
-pub trait ResolverClone {
-    fn clone_box(&self) -> Box<dyn Resolver>;
-}
-
-impl<T> ResolverClone for T
-where
-    T: 'static + Resolver + Clone,
-{
-    fn clone_box(&self) -> Box<dyn Resolver> {
-        Box::new(self.clone())
-    }
-}
-
-impl Clone for Box<dyn Resolver> {
-    fn clone(&self) -> Box<dyn Resolver> {
-        self.clone_box()
-    }
-}
-
-pub trait Instruction: Any + Display {
-    fn emit(&self, resolver: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error>;
-    fn size(&self) -> u16;
-    fn as_any(&self) -> &dyn Any;
-}
 
 // LOADS
 // ----------------------
@@ -1010,6 +976,73 @@ impl Instruction for CALL {
 
     fn size(&self) -> u16 {
         4
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
+// PLACEHOLDER INSTRUCTIONS - these are used by the assembler
+pub struct DEFLABEL {
+    pub name: String,
+}
+
+impl DEFLABEL {
+    pub fn new(name: &str) -> Self {
+        Self {
+            name: name.to_string(),
+        }
+    }
+}
+
+impl Display for DEFLABEL {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:", self.name)
+    }
+}
+
+impl Instruction for DEFLABEL {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
+        Ok(vec![])
+    }
+
+    fn size(&self) -> u16 {
+        0
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
+pub struct DEFSYMBOL {
+    pub name: String,
+    pub value: u16,
+}
+
+impl DEFSYMBOL {
+    pub fn new(name: &str, value: u16) -> Self {
+        Self {
+            name: name.to_string(),
+            value,
+        }
+    }
+}
+
+impl Display for DEFSYMBOL {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "%{} = 0x{:X}", self.name, self.value)
+    }
+}
+
+impl Instruction for DEFSYMBOL {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
+        Ok(vec![])
+    }
+
+    fn size(&self) -> u16 {
+        0
     }
 
     fn as_any(&self) -> &dyn Any {

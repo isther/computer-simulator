@@ -1,4 +1,4 @@
-use crate::{
+use instructions::{
     IOMode, Instructions, Label, Number, Register, SafeInstruction, Symbol, ADD, AND, CALL, CLF,
     CMP, DATA, DEFLABEL, DEFSYMBOL, IN, JMP, JMPF, JR, LOAD, NOT, OUT, SHL, STORE, XOR,
 };
@@ -668,7 +668,7 @@ fn routine_draw_font_character(label_prefix: &str) -> Vec<SafeInstruction> {
         )),
         // otherwise jump back to start of loop and render next line of font
         Rc::new(JMP::new(Label::new(
-            &(label_prefix.to_owned() + "STARTLOOP"),
+            &(label_prefix.to_owned() + "-STARTLOOP"),
         ))),
     ]);
 
@@ -680,7 +680,7 @@ fn routine_draw_font_character(label_prefix: &str) -> Vec<SafeInstruction> {
         Rc::new(LOAD::new(Register::REG1, Register::REG1)),
         Rc::new(DATA::new(Register::REG2, Symbol::new("ONE"))),
         Rc::new(ADD::new(Register::REG2, Register::REG1)), //increment line X
-        Rc::new(DATA::new(Register::REG2, Symbol::new("LINE"))),
+        Rc::new(DATA::new(Register::REG2, Symbol::new("LINEX"))),
         Rc::new(STORE::new(Register::REG2, Register::REG1)),
         Rc::new(DATA::new(Register::REG0, Symbol::new("PEN-POSITION-ADDR"))),
         Rc::new(LOAD::new(Register::REG0, Register::REG0)),
@@ -769,7 +769,7 @@ fn routine_draw_font_character(label_prefix: &str) -> Vec<SafeInstruction> {
             &(label_prefix.to_owned() + "-resetlinex"),
         ))),
         // reset linex
-        Rc::new(DEFLABEL::new(&(label_prefix.to_owned() + "resetlinex"))),
+        Rc::new(DEFLABEL::new(&(label_prefix.to_owned() + "-resetlinex"))),
         Rc::new(DATA::new(Register::REG2, Symbol::new("LINEX"))), //reset linex
         Rc::new(DATA::new(Register::REG3, Number::new(0x0000))),
         Rc::new(STORE::new(Register::REG2, Register::REG3)),

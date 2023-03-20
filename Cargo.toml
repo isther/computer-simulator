@@ -1,2 +1,2 @@
 [workspace]
-members=["simulator", "assembler" ,"generator"]
+members=["simulator", "assembler" ,"generator", "instructions"]

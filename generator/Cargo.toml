@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-assembler={path="../assembler"}
+instructions={path="../instructions"}
 lazy_static = { version = "1.4.0", features = ["spin_no_std"] }
 clap={ version = "4.0.22", features = ["cargo", "derive"] }
 thiserror = "1.0"
