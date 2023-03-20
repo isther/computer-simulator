@@ -1,14 +1,6 @@
-use crate::error::Error;
-
-use std::{
-    any::{type_name, Any, TypeId},
-    cell::RefCell,
-    fmt::Display,
-    rc::Rc,
-};
+use std::{fmt::Display, rc::Rc};
 
 mod common;
-mod error;
 
 pub use assembler::{
     IOMode, Instruction, Label, Number, Register, Symbol, ADD, AND, CALL, CLF, CMP, DATA, DEFLABEL,
@@ -21,7 +13,7 @@ pub use common::{
 };
 
 // Instructions - useful list data structure for convienience
-pub type SafeInstruction = Rc<RefCell<dyn Instruction>>;
+pub type SafeInstruction = Rc<dyn Instruction>;
 pub struct Instructions {
     instructions: Vec<SafeInstruction>,
 }
@@ -54,35 +46,28 @@ impl Display for Instructions {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut result = String::new();
 
-        for instruction in self.instructions.iter() {
-            // if instruction.type_id() == TypeId::of::<&Rc<RefCell<DEFLABEL>>>() {
-            match instruction.borrow().as_any().downcast_ref::<DEFLABEL>() {
+        for instruction in &self.instructions {
+            match instruction.as_any().downcast_ref::<DEFLABEL>() {
                 Some(label) => {
                     result.push('\n');
                     result.push_str(label.to_string().as_str());
                     result.push('\n');
-                    continue;
                 }
-                None => {}
+                None => match instruction.as_any().downcast_ref::<DEFSYMBOL>() {
+                    Some(symbol) => {
+                        result.push('\n');
+                        result.push_str(symbol.to_string().as_str());
+                        result.push('\n');
+                    }
+                    None => {
+                        result.push('\t');
+                        result.push_str(instruction.to_string().as_str());
+                        result.push('\n');
+                    }
+                },
             }
-            // } else if instruction.type_id() == TypeId::of::<DEFSYMBOL>() {
-            match instruction.borrow().as_any().downcast_ref::<DEFSYMBOL>() {
-                Some(symbol) => {
-                    result.push('\n');
-                    result.push_str(symbol.to_string().as_str());
-                    result.push('\n');
-                    continue;
-                }
-                None => {}
-            }
-            // } else {
-            result.push('\t');
-            result.push_str(instruction.borrow().to_string().as_str());
-            result.push('\n');
-            // }
         }
 
-        // write!(f, "{}", result)
-        write!(f, "{}", "")
+        write!(f, "{}", result)
     }
 }

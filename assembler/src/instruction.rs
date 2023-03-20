@@ -5,12 +5,11 @@ use crate::{
 };
 use std::{
     any::{Any, TypeId},
-    cell::RefCell,
     fmt::Display,
     rc::Rc,
 };
 
-pub trait Resolver {
+pub trait Resolver: ResolverClone {
     fn label_resolver(&self, _: &Label) -> Result<u16, Error> {
         Ok(0)
     }
@@ -19,8 +18,27 @@ pub trait Resolver {
     }
 }
 
+pub trait ResolverClone {
+    fn clone_box(&self) -> Box<dyn Resolver>;
+}
+
+impl<T> ResolverClone for T
+where
+    T: 'static + Resolver + Clone,
+{
+    fn clone_box(&self) -> Box<dyn Resolver> {
+        Box::new(self.clone())
+    }
+}
+
+impl Clone for Box<dyn Resolver> {
+    fn clone(&self) -> Box<dyn Resolver> {
+        self.clone_box()
+    }
+}
+
 pub trait Instruction: Any + Display {
-    fn emit(&self, resolver: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error>;
+    fn emit(&self, resolver: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error>;
     fn size(&self) -> u16;
     fn as_any(&self) -> &dyn Any;
 }
@@ -74,7 +92,7 @@ impl Display for LOAD {
 }
 
 impl Instruction for LOAD {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.memory_address_reg {
                 Register::REG0 => Ok(0x0000),
@@ -144,7 +162,7 @@ impl Display for STORE {
 }
 
 impl Instruction for STORE {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.from_register {
                 Register::REG0 => Ok(0x0010),
@@ -191,7 +209,7 @@ impl<T: Marker> Display for DATA<T> {
 }
 
 impl<T: Marker> Instruction for DATA<T> {
-    fn emit(&self, resolver: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, resolver: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         let instruction = match self.to_register {
             Register::REG0 => Ok(0x0020),
             Register::REG1 => Ok(0x0021),
@@ -204,7 +222,6 @@ impl<T: Marker> Instruction for DATA<T> {
                 instruction,
                 resolver
                     .unwrap()
-                    .borrow()
                     .symbol_resolver(self.data.as_any().downcast_ref::<Symbol>().unwrap())?,
             ])
         } else if TypeId::of::<Number>() == self.data.type_id() {
@@ -250,7 +267,7 @@ impl Display for JR {
 }
 
 impl Instruction for JR {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![match self.register {
             Register::REG0 => Ok(0x0030),
             Register::REG1 => Ok(0x0031),
@@ -290,13 +307,10 @@ impl Display for JMP {
 }
 
 impl Instruction for JMP {
-    fn emit(&self, resolver: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, resolver: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             0x0040,
-            resolver
-                .unwrap()
-                .borrow()
-                .label_resolver(&self.jump_location)?,
+            resolver.unwrap().label_resolver(&self.jump_location)?,
         ])
     }
 
@@ -350,7 +364,7 @@ impl Display for JMPF {
 }
 
 impl Instruction for JMPF {
-    fn emit(&self, resolver: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, resolver: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.flags.join("").as_str() {
                 "Z" => Ok(0x0051),
@@ -370,10 +384,7 @@ impl Instruction for JMPF {
                 "CAEZ" => Ok(0x005F),
                 _ => Err(Error::UnknownFlag(self.flags.join(""))),
             }?,
-            resolver
-                .unwrap()
-                .borrow()
-                .label_resolver(&self.jump_location)?,
+            resolver.unwrap().label_resolver(&self.jump_location)?,
         ])
     }
 
@@ -404,7 +415,7 @@ impl Display for CLF {
 }
 
 impl Instruction for CLF {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![0x0060])
     }
 
@@ -448,7 +459,7 @@ impl Display for IN {
 }
 
 impl Instruction for IN {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.io_mode {
                 IOMode::DataMode => Ok(0x0070),
@@ -498,7 +509,7 @@ impl Display for OUT {
 }
 
 impl Instruction for OUT {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.io_mode {
                 IOMode::DataMode => Ok(0x0078),
@@ -559,7 +570,7 @@ impl Display for ADD {
 }
 
 impl Instruction for ADD {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.register_a {
                 Register::REG0 => Ok(0x0080),
@@ -603,7 +614,7 @@ impl Display for SHL {
 }
 
 impl Instruction for SHL {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![match self.register {
             Register::REG0 => Ok(0x0090),
             Register::REG1 => Ok(0x0095),
@@ -644,7 +655,7 @@ impl Display for SHR {
 }
 
 impl Instruction for SHR {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![match self.register {
             Register::REG0 => Ok(0x00A0),
             Register::REG1 => Ok(0x00A5),
@@ -685,7 +696,7 @@ impl Display for NOT {
 }
 
 impl Instruction for NOT {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![match self.register {
             Register::REG0 => Ok(0x00B0),
             Register::REG1 => Ok(0x00B5),
@@ -745,7 +756,7 @@ impl Display for AND {
 }
 
 impl Instruction for AND {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.register_a {
                 Register::REG0 => Ok(0x00C0),
@@ -808,7 +819,7 @@ impl Display for OR {
 }
 
 impl Instruction for OR {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.register_a {
                 Register::REG0 => Ok(0x00D0),
@@ -871,7 +882,7 @@ impl Display for XOR {
 }
 
 impl Instruction for XOR {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.register_a {
                 Register::REG0 => Ok(0x00E0),
@@ -934,7 +945,7 @@ impl Display for CMP {
 }
 
 impl Instruction for CMP {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![
             match self.register_a {
                 Register::REG0 => Ok(0x00F0),
@@ -973,12 +984,13 @@ impl Display for CALL {
 }
 
 impl Instruction for CALL {
-    fn emit(&self, resolver: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, resolver: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         let next_instruction_address = resolver
+            .clone()
             .as_ref()
             .unwrap()
-            .borrow()
             .symbol_resolver(&Symbol::new(NEXTINSTRUCTION))?;
+
         let composite_instructions: Vec<Box<dyn Instruction>> = vec![
             Box::new(DATA::new(
                 Register::REG3,
@@ -1755,6 +1767,7 @@ mod tests {
             ),
         ];
 
+        #[derive(Clone)]
         struct DummyResolver;
         impl Resolver for DummyResolver {
             fn symbol_resolver(&self, symbol: &Symbol) -> Result<u16, Error> {
@@ -1769,11 +1782,7 @@ mod tests {
         }
 
         for i in instructions {
-            assert_eq!(
-                i.0.emit(Some(Rc::new(RefCell::new(DummyResolver))))
-                    .unwrap(),
-                i.1
-            );
+            assert_eq!(i.0.emit(Some(Rc::new(DummyResolver))).unwrap(), i.1);
         }
     }
 
@@ -1924,6 +1933,7 @@ mod tests {
             (JMP::new(Label::new("bar")), vec![0x0040, 0x0002]),
         ];
 
+        #[derive(Clone)]
         struct DummyResolver;
         impl Resolver for DummyResolver {
             fn label_resolver(&self, label: &Label) -> Result<u16, Error> {
@@ -1936,11 +1946,7 @@ mod tests {
         }
 
         for i in instructions {
-            assert_eq!(
-                i.0.emit(Some(Rc::new(RefCell::new(DummyResolver))))
-                    .unwrap(),
-                i.1
-            );
+            assert_eq!(i.0.emit(Some(Rc::new(DummyResolver))).unwrap(), i.1);
         }
     }
 
@@ -1987,6 +1993,7 @@ mod tests {
             ),
         ];
 
+        #[derive(Clone)]
         struct DummyResolver;
         impl Resolver for DummyResolver {
             fn symbol_resolver(&self, symbol: &Symbol) -> Result<u16, Error> {
@@ -2006,11 +2013,7 @@ mod tests {
         }
 
         for i in instructions {
-            assert_eq!(
-                i.0.emit(Some(Rc::new(RefCell::new(DummyResolver))))
-                    .unwrap(),
-                i.1
-            );
+            assert_eq!(i.0.emit(Some(Rc::new(DummyResolver))).unwrap(), i.1);
         }
     }
 
@@ -2189,6 +2192,7 @@ mod tests {
             ),
         ];
 
+        #[derive(Clone)]
         struct DummyResolver;
         impl Resolver for DummyResolver {
             fn label_resolver(&self, label: &Label) -> Result<u16, Error> {
@@ -2214,11 +2218,7 @@ mod tests {
         }
 
         for i in instructions {
-            assert_eq!(
-                i.0.emit(Some(Rc::new(RefCell::new(DummyResolver))))
-                    .unwrap(),
-                i.1
-            );
+            assert_eq!(i.0.emit(Some(Rc::new(DummyResolver))).unwrap(), i.1);
         }
     }
 }

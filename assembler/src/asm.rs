@@ -4,25 +4,20 @@ use crate::{
     markers::{Label, Marker, Symbol},
     CURRENTINSTRUCTION, DEFLABEL, DEFSYMBOL, NEXTINSTRUCTION,
 };
-
 use std::{
     any::{Any, TypeId},
-    cell::RefCell,
     collections::HashMap,
     rc::Rc,
 };
 
+#[derive(Clone)]
 struct Assembler {
-    assembler_resolver: Rc<RefCell<AssemblerResolver>>,
     reserved_symbols: ReservedSymbols,
-}
-
-struct AssemblerResolver {
     labels: HashMap<String, u16>,
     symbols: HashMap<String, u16>,
 }
 
-impl Resolver for AssemblerResolver {
+impl Resolver for Assembler {
     fn label_resolver(&self, label: &Label) -> Result<u16, Error> {
         if let Some(v) = self.labels.get(&label.name) {
             Ok(*v)
@@ -44,45 +39,33 @@ impl Assembler {
     fn process(
         &mut self,
         code_start_offset: u16,
-        instructions: Option<Vec<Rc<RefCell<dyn Instruction>>>>,
+        instructions: Option<Vec<Rc<dyn Instruction>>>,
     ) -> Result<Vec<u16>, Error> {
-        self.assembler_resolver.borrow_mut().labels = HashMap::new();
-        self.assembler_resolver.borrow_mut().symbols = HashMap::new();
+        self.labels = HashMap::new();
+        self.symbols = HashMap::new();
 
         let mut position: u16 = 0;
         //calculate labels and symbols
         for instruction in instructions.as_ref().unwrap() {
-            position += instruction.borrow().size();
+            position += instruction.size();
 
-            if instruction.type_id() == TypeId::of::<DEFLABEL>() {
-                match instruction.borrow().as_any().downcast_ref::<DEFLABEL>() {
+            if instruction.as_any().type_id() == TypeId::of::<DEFLABEL>() {
+                match instruction.as_any().downcast_ref::<DEFLABEL>() {
                     Some(lable) => {
-                        if self
-                            .assembler_resolver
-                            .borrow()
-                            .labels
-                            .contains_key(&lable.name)
-                        {
+                        if self.labels.contains_key(&lable.name) {
                             return Err(Error::LabelExist(lable.name.clone()));
                         }
 
-                        self.assembler_resolver
-                            .borrow_mut()
-                            .labels
+                        self.labels
                             .insert(lable.name.clone(), position + code_start_offset);
                     }
                     None => return Err(Error::DowncastError),
                 }
             }
-            if instruction.type_id() == TypeId::of::<DEFSYMBOL>() {
-                match instruction.borrow().as_any().downcast_ref::<DEFSYMBOL>() {
+            if instruction.as_any().type_id() == TypeId::of::<DEFSYMBOL>() {
+                match instruction.as_any().downcast_ref::<DEFSYMBOL>() {
                     Some(symbol) => {
-                        if self
-                            .assembler_resolver
-                            .borrow()
-                            .symbols
-                            .contains_key(&symbol.name)
-                        {
+                        if self.symbols.contains_key(&symbol.name) {
                             return Err(Error::SymbolExist(symbol.name.clone()));
                         }
 
@@ -90,10 +73,7 @@ impl Assembler {
                             return Err(Error::SymbolReserved(symbol.name.clone()));
                         }
 
-                        self.assembler_resolver
-                            .borrow_mut()
-                            .symbols
-                            .insert(symbol.name.clone(), symbol.value);
+                        self.symbols.insert(symbol.name.clone(), symbol.value);
                     }
                     None => return Err(Error::DowncastError),
                 };
@@ -103,35 +83,25 @@ impl Assembler {
         let mut emitted = Vec::new();
         let mut i = 0;
         position = 0;
-        for instruction in instructions.as_ref().unwrap().iter() {
+        for instruction in instructions.clone().unwrap().iter() {
             if i.type_id() == TypeId::of::<DEFLABEL>() || i.type_id() == TypeId::of::<DEFSYMBOL>() {
                 continue;
             }
 
-            self.assembler_resolver
-                .borrow_mut()
-                .symbols
+            self.symbols
                 .insert(CURRENTINSTRUCTION.to_string(), position + code_start_offset);
-            self.assembler_resolver.borrow_mut().symbols.insert(
+            self.symbols.insert(
                 NEXTINSTRUCTION.to_string(),
                 get_next_executable_instruction_loc(
-                    *self
-                        .assembler_resolver
-                        .borrow()
-                        .symbols
-                        .get(CURRENTINSTRUCTION)
-                        .unwrap(),
+                    *self.symbols.get(CURRENTINSTRUCTION).unwrap(),
                     i,
-                    instructions.as_ref().unwrap().clone(),
+                    instructions.clone().unwrap(),
                 ),
             );
-            emitted.append(
-                &mut instruction
-                    .borrow()
-                    .emit(Some(self.assembler_resolver.clone()))?,
-            );
 
-            position += instruction.borrow().size();
+            emitted.append(&mut instruction.emit(Some(Rc::new(self.clone())))?);
+
+            position += instruction.size();
             i += 1;
         }
 
@@ -139,6 +109,7 @@ impl Assembler {
     }
 }
 
+#[derive(Clone)]
 struct ReservedSymbols(HashMap<String, Box<dyn Marker>>);
 
 impl ReservedSymbols {
@@ -154,11 +125,11 @@ impl ReservedSymbols {
 fn get_next_executable_instruction_loc(
     current_offset: u16,
     current_instr_index: usize,
-    instructions: Vec<Rc<RefCell<dyn Instruction>>>,
+    instructions: Vec<Rc<dyn Instruction>>,
 ) -> u16 {
     // if at the end then just return the location outside the loop
     if current_instr_index == instructions.len() {
-        return current_offset + instructions[current_instr_index].borrow().size();
+        return current_offset + instructions[current_instr_index].size();
     }
 
     let mut next_instruction_pos = 0;
@@ -170,7 +141,7 @@ fn get_next_executable_instruction_loc(
             continue;
         } else {
             if current_instr_index == i {
-                next_instruction_pos += instruction.borrow().size();
+                next_instruction_pos += instruction.size();
             } else {
                 break;
             }
@@ -181,8 +152,6 @@ fn get_next_executable_instruction_loc(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_assembler() {}
 }

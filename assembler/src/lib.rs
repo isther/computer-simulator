@@ -1,4 +1,4 @@
-use std::{any::Any, cell::RefCell, fmt::Display, rc::Rc};
+use std::{any::Any, fmt::Display, rc::Rc};
 
 mod asm;
 mod error;
@@ -76,7 +76,7 @@ impl Display for DEFLABEL {
 }
 
 impl Instruction for DEFLABEL {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![])
     }
 
@@ -110,7 +110,7 @@ impl Display for DEFSYMBOL {
 }
 
 impl Instruction for DEFSYMBOL {
-    fn emit(&self, _: Option<Rc<RefCell<dyn Resolver>>>) -> Result<Vec<u16>, Error> {
+    fn emit(&self, _: Option<Rc<dyn Resolver>>) -> Result<Vec<u16>, Error> {
         Ok(vec![])
     }
 

@@ -1,8 +1,27 @@
 use std::any::Any;
 use std::fmt::Display;
 
-pub trait Marker: Any + Display {
+pub trait Marker: MarkerClone + Any + Display {
     fn as_any(&self) -> &dyn Any;
+}
+
+pub trait MarkerClone {
+    fn clone_box(&self) -> Box<dyn Marker>;
+}
+
+impl<T> MarkerClone for T
+where
+    T: 'static + Marker + Clone,
+{
+    fn clone_box(&self) -> Box<dyn Marker> {
+        Box::new(self.clone())
+    }
+}
+
+impl Clone for Box<dyn Marker> {
+    fn clone(&self) -> Box<dyn Marker> {
+        self.clone_box()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -30,6 +49,7 @@ impl Display for Label {
     }
 }
 
+#[derive(Clone)]
 pub struct Symbol {
     pub name: String,
 }
@@ -54,6 +74,7 @@ impl Display for Symbol {
     }
 }
 
+#[derive(Clone)]
 pub struct Number {
     pub value: u16,
 }
