@@ -1,9 +1,9 @@
-use crate::common::{
+use super::common::{
     call_routine, deselect_io, initialise_common_code, render_string, reset_linex,
     select_display_adapter, update_pen_position,
 };
 
-use instructions::{
+use crate::instructions::{
     IOMode, Instructions, Label, Number, Register, SafeInstruction, Symbol, ADD, CLF, CMP, DATA,
     DEFLABEL, JMP, JMPF, JR, LOAD, NOT, OUT, SHL, STORE,
 };

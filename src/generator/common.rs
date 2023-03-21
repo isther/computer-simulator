@@ -1,4 +1,4 @@
-use instructions::{
+use crate::instructions::{
     IOMode, Instructions, Label, Number, Register, SafeInstruction, Symbol, ADD, AND, CALL, CLF,
     CMP, DATA, DEFLABEL, DEFSYMBOL, IN, JMP, JMPF, JR, LOAD, NOT, OUT, SHL, STORE, XOR,
 };

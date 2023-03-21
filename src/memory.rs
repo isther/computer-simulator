@@ -14,7 +14,7 @@ pub struct Cell {
 }
 
 impl Cell {
-    fn new(input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
+    pub fn new(input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
         Self {
             value: Register::new("", input_bus, output_bus),
             gates: (0..3)
@@ -25,7 +25,7 @@ impl Cell {
         }
     }
 
-    fn update(&mut self, set: bool, enable: bool) {
+    pub fn update(&mut self, set: bool, enable: bool) {
         self.gates[0].update(true, true);
         self.gates[1].update(self.gates[0].get(), set);
         self.gates[2].update(self.gates[0].get(), enable);

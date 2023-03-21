@@ -6,6 +6,8 @@ use crate::gates::{AND, NOT};
 use std::cell::RefCell;
 use std::rc::Rc;
 
+mod display;
+mod display_ram;
 mod keyboard;
 
 pub trait Peripheral {

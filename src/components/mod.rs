@@ -21,7 +21,7 @@ pub use busone::BusOne;
 pub use comparator::Comparator;
 pub use decoder::{Decoder2x4, Decoder3x8, Decoder8x256};
 pub use gaters::{ANDer, NOTer, ORer, XORer};
-pub use gates::{ANDGate3, ANDGate4, ANDGate8, ORGate3, ORGate4, ORGate5, ORGate6};
+pub use gates::{ANDGate3, ANDGate4, ANDGate5, ANDGate8, ORGate3, ORGate4, ORGate5, ORGate6};
 pub use iobus::{IOBus, Mode};
 pub use register::Register;
 pub use stepper::Stepper;

@@ -1,7 +1,5 @@
-mod assembler;
-
-use assembler::Assembler;
 use clap::Parser;
+use computer_simulator::{get_instructions, Assembler};
 use std::{fs::File, io::prelude::Write, path::Path};
 
 pub const USER_CODE_START: u16 = 0x0500;
@@ -27,20 +25,14 @@ fn main() {
             .unwrap()
             .write_all(to_u8_slice(
                 &mut Assembler::new()
-                    .process(
-                        USER_CODE_START,
-                        generator::get_instructions(&args.program_name),
-                    )
+                    .process(USER_CODE_START, get_instructions(&args.program_name))
                     .unwrap(),
             ))
             .unwrap(),
         true => println!(
             "{}",
             Assembler::new()
-                .string(
-                    USER_CODE_START,
-                    generator::get_instructions(&args.program_name),
-                )
+                .string(USER_CODE_START, get_instructions(&args.program_name),)
                 .unwrap()
         ),
     }

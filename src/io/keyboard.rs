@@ -2,10 +2,7 @@ use super::{
     ANDGate3, ANDGate8, Bit, Bus, Component, Enableable, IOBus, Mode, Register, Settable,
     Updatable, AND, BUS_WIDTH, NOT,
 };
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::thread::sleep;
-use std::time::Duration;
+use std::{cell::RefCell, rc::Rc, sync::Arc, thread::sleep, time::Duration};
 
 // [cpu] <-------------> keyboard adapter <----------- keyboard <----------- [keyPressChannel]
 //         read/write                        write                 notify
@@ -140,12 +137,12 @@ pub struct KeyPress {
 
 struct Keyboard {
     out_bus: Rc<RefCell<Bus>>,
-    key_press: Rc<RefCell<KeyPress>>,
-    quit: Rc<RefCell<bool>>,
+    key_press: KeyPress,
+    quit: bool,
 }
 
 impl Keyboard {
-    fn new(key_press: Rc<RefCell<KeyPress>>, quit: Rc<RefCell<bool>>) -> Self {
+    fn new(key_press: KeyPress, quit: bool) -> Self {
         Self {
             out_bus: Rc::new(RefCell::new(Bus::new(BUS_WIDTH))),
             key_press,
@@ -157,20 +154,9 @@ impl Keyboard {
         println!("Connecting keyboard to bus");
         self.out_bus = bus
     }
-    fn run(&mut self) {
-        loop {
-            sleep(Duration::from_millis(33));
 
-            match self.quit.borrow().eq(&true) {
-                true => println!("Stopping keyboard"),
-                false => {
-                    let key = &*self.key_press.borrow();
-                    if key.is_down {
-                        self.out_bus.borrow_mut().set_value(key.value as u16);
-                    }
-                }
-            }
-        }
+    fn run(&self) {
+        //TODO:sync
     }
 }
 

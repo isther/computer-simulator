@@ -1,7 +1,8 @@
-use instructions::{
+use crate::instructions::{
     Error, Instructions, Label, Marker, Resolver, Symbol, CURRENTINSTRUCTION, DEFLABEL, DEFSYMBOL,
     NEXTINSTRUCTION,
 };
+
 use std::{
     any::{Any, TypeId},
     collections::HashMap,

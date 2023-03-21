@@ -72,6 +72,45 @@ impl ANDGate4 {
     }
 }
 
+pub struct ANDGate5 {
+    and_a: AND,
+    and_b: AND,
+    and_c: AND,
+    and_d: AND,
+    output: Wire,
+}
+
+impl ANDGate5 {
+    pub fn new() -> Self {
+        Self {
+            and_a: AND::new(),
+            and_b: AND::new(),
+            and_c: AND::new(),
+            and_d: AND::new(),
+            output: Wire::new("O".to_string(), false),
+        }
+    }
+
+    pub fn get(&self) -> bool {
+        self.output.get()
+    }
+
+    pub fn update(
+        &mut self,
+        input_a: bool,
+        input_b: bool,
+        input_c: bool,
+        input_d: bool,
+        input_e: bool,
+    ) {
+        self.and_a.update(input_a, input_b);
+        self.and_b.update(self.and_a.get(), input_c);
+        self.and_c.update(self.and_b.get(), input_d);
+        self.and_d.update(self.and_c.get(), input_e);
+        self.output.update(self.and_d.get())
+    }
+}
+
 pub struct ANDGate8 {
     and_a: AND,
     and_b: AND,

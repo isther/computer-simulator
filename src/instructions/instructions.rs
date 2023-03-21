@@ -1,4 +1,4 @@
-use crate::{
+use super::{
     error::Error,
     markers::{Label, Marker, Number, Symbol},
     IOMode, Instruction, Register, Resolver, NEXTINSTRUCTION,
@@ -1053,7 +1053,7 @@ impl Instruction for DEFSYMBOL {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::markers::Number;
+    use crate::instructions::markers::Number;
 
     #[test]
     fn test_instruction_two_reg_string() {

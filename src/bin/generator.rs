@@ -1,5 +1,5 @@
 use clap::Parser;
-use generator::get_instructions;
+use computer_simulator::get_instructions;
 
 // important RAM areas
 // 0x0000 - 0x03FF ASCII table
