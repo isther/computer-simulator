@@ -3,14 +3,20 @@ use crate::components::{
     Updatable, BUS_WIDTH,
 };
 use crate::gates::{AND, NOT};
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::{
+    cell::RefCell,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 mod display;
 mod display_ram;
 mod keyboard;
 
+pub use display::{DisplayAdapter, ScreenControl};
+pub use keyboard::{Keyboard, KeyboardAdapter};
+
 pub trait Peripheral {
-    fn connect(&mut self, io_bus: Rc<RefCell<IOBus>>, bus: Rc<RefCell<Bus>>);
+    fn connect(&mut self, io_bus: Arc<Mutex<IOBus>>, bus: Arc<Mutex<Bus>>);
     fn update(&mut self);
 }

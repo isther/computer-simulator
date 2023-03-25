@@ -3,7 +3,11 @@ use crate::{
     gates::Wire,
     memory::Cell,
 };
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::RefCell,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 // Display RAM is special as the writes (inputs) and reads (outputs) are two separate
 // units that operate independently.
@@ -19,12 +23,12 @@ pub struct DisplayRAM {
     data: Vec<Vec<Cell>>,
     set: Wire,
     enable: Wire,
-    input_bus: Rc<RefCell<Bus>>,
-    output_bus: Rc<RefCell<Bus>>,
+    input_bus: Arc<Mutex<Bus>>,
+    output_bus: Arc<Mutex<Bus>>,
 }
 
 impl DisplayRAM {
-    pub fn new(input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
+    pub fn new(input_bus: Arc<Mutex<Bus>>, output_bus: Arc<Mutex<Bus>>) -> Self {
         Self {
             input_address_register: Register::new("IMAR", input_bus.clone(), output_bus.clone()),
             input_row_decoder: Decoder8x256::new(),

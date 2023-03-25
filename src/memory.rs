@@ -1,9 +1,12 @@
 use crate::components::{Bus, Decoder8x256, Enableable, Register, Settable, Updatable};
 use crate::gates::Wire;
 use crate::gates::AND;
-use std::cell::RefCell;
 use std::fmt::Display;
-use std::rc::Rc;
+use std::{
+    cell::RefCell,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 pub const BUS_WIDTH: i32 = 16;
 
@@ -14,7 +17,7 @@ pub struct Cell {
 }
 
 impl Cell {
-    pub fn new(input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
+    pub fn new(input_bus: Arc<Mutex<Bus>>, output_bus: Arc<Mutex<Bus>>) -> Self {
         Self {
             value: Register::new("", input_bus, output_bus),
             gates: (0..3)
@@ -49,19 +52,19 @@ impl Cell {
 }
 
 pub struct Memory64K {
-    pub address_register: Rc<RefCell<Register>>,
+    pub address_register: Register,
     row_decoder: Decoder8x256,
     col_decoder: Decoder8x256,
     pub data: Vec<Vec<Cell>>,
     set: Wire,
     enable: Wire,
-    pub bus: Rc<RefCell<Bus>>,
+    pub bus: Arc<Mutex<Bus>>,
 }
 
 impl Memory64K {
-    pub fn new(bus: Rc<RefCell<Bus>>) -> Self {
+    pub fn new(bus: Arc<Mutex<Bus>>) -> Self {
         Self {
-            address_register: Rc::new(RefCell::new(Register::new("MAR", bus.clone(), bus.clone()))),
+            address_register: Register::new("MAR", bus.clone(), bus.clone()),
             row_decoder: Decoder8x256::new(),
             col_decoder: Decoder8x256::new(),
             data: (0..256)
@@ -80,30 +83,30 @@ impl Memory64K {
 
 impl Updatable for Memory64K {
     fn update(&mut self) {
-        self.address_register.borrow_mut().update();
+        self.address_register.update();
         self.row_decoder.update(
-            self.address_register.borrow().bit(0),
-            self.address_register.borrow().bit(1),
-            self.address_register.borrow().bit(2),
-            self.address_register.borrow().bit(3),
-            self.address_register.borrow().bit(4),
-            self.address_register.borrow().bit(5),
-            self.address_register.borrow().bit(6),
-            self.address_register.borrow().bit(7),
+            self.address_register.bit(0),
+            self.address_register.bit(1),
+            self.address_register.bit(2),
+            self.address_register.bit(3),
+            self.address_register.bit(4),
+            self.address_register.bit(5),
+            self.address_register.bit(6),
+            self.address_register.bit(7),
         );
         self.col_decoder.update(
-            self.address_register.borrow().bit(8),
-            self.address_register.borrow().bit(9),
-            self.address_register.borrow().bit(10),
-            self.address_register.borrow().bit(11),
-            self.address_register.borrow().bit(12),
-            self.address_register.borrow().bit(13),
-            self.address_register.borrow().bit(14),
-            self.address_register.borrow().bit(15),
+            self.address_register.bit(8),
+            self.address_register.bit(9),
+            self.address_register.bit(10),
+            self.address_register.bit(11),
+            self.address_register.bit(12),
+            self.address_register.bit(13),
+            self.address_register.bit(14),
+            self.address_register.bit(15),
         );
 
         self.data[self.row_decoder.index() as usize][self.col_decoder.index() as usize]
-            .update(self.set.get(), self.enable.get())
+            .update(self.set.get(), self.enable.get());
     }
 }
 
@@ -146,7 +149,7 @@ impl Display for Memory64K {
             for j in 0..256 {
                 str.insert_str(
                     str.len(),
-                    format!("0x{:04X}\t", self.data[i][j].value()).as_str(),
+                    format!("0x{:#>04X}\t", self.data[i][j].value()).as_str(),
                 );
             }
         }
@@ -160,56 +163,53 @@ impl Display for Memory64K {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_cell() {
-        let input_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
-        let output_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+    #[tokio::test]
+    async fn test_cell() {
+        let input_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
+        let output_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let mut cell = Cell::new(input_bus.clone(), output_bus.clone());
 
         //  no input && no output
-        input_bus.borrow_mut().set_value(0xFFFF);
+        input_bus.lock().unwrap().set_value(0xFFFF);
         cell.update(false, false);
-        assert_eq!(output_bus.borrow().get_value(), 0x0000);
+        assert_eq!(output_bus.lock().unwrap().get_value(), 0x0000);
 
         // input && output
-        input_bus.borrow_mut().set_value(0xFFFF);
+        input_bus.lock().unwrap().set_value(0xFFFF);
         cell.update(true, true);
-        assert_eq!(output_bus.borrow().get_value(), 0xFFFF);
+        assert_eq!(output_bus.lock().unwrap().get_value(), 0xFFFF);
 
         // no input && output
-        input_bus.borrow_mut().set_value(0xFF00);
+        input_bus.lock().unwrap().set_value(0xFF00);
         cell.update(false, true);
-        assert_eq!(output_bus.borrow().get_value(), 0xFFFF);
+        assert_eq!(output_bus.lock().unwrap().get_value(), 0xFFFF);
 
         // input && no output
-        input_bus.borrow_mut().set_value(0xFF00);
+        input_bus.lock().unwrap().set_value(0xFF00);
         cell.update(true, false);
-        assert_eq!(output_bus.borrow().get_value(), 0xFFFF);
+        assert_eq!(output_bus.lock().unwrap().get_value(), 0xFFFF);
 
         // no input && output
-        input_bus.borrow_mut().set_value(0x00FF);
+        input_bus.lock().unwrap().set_value(0x00FF);
         cell.update(false, true);
-        assert_eq!(output_bus.borrow().get_value(), 0xFF00);
+        assert_eq!(output_bus.lock().unwrap().get_value(), 0xFF00);
     }
 
     #[test]
     fn test_memory_64k_write() {
-        let bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
-
-        let start = std::time::SystemTime::now();
+        let bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let mut mem = Memory64K::new(bus.clone());
-        println!("Time to create memory: {:?}", start.elapsed().unwrap());
 
         let mut q: u16 = 0xFFFF;
         for i in 0x0000..0xFFFF {
-            mem.address_register.borrow_mut().set();
-            bus.borrow_mut().set_value(i);
+            mem.address_register.set();
+            bus.lock().unwrap().set_value(i);
             mem.update();
 
-            mem.address_register.borrow_mut().unset();
+            mem.address_register.unset();
             mem.update();
 
-            bus.borrow_mut().set_value(q);
+            bus.lock().unwrap().set_value(q);
             mem.set();
             mem.update();
 
@@ -221,11 +221,11 @@ mod tests {
 
         let mut expected: u16 = 0xFFFF;
         for i in 0x0000..0xFFFF {
-            mem.address_register.borrow_mut().set();
-            bus.borrow_mut().set_value(i);
+            mem.address_register.set();
+            bus.lock().unwrap().set_value(i);
             mem.update();
 
-            mem.address_register.borrow_mut().unset();
+            mem.address_register.unset();
             mem.update();
 
             mem.enable();
@@ -234,7 +234,7 @@ mod tests {
             mem.disable();
             mem.update();
 
-            assert_eq!(bus.borrow().get_value(), expected);
+            assert_eq!(bus.lock().unwrap().get_value(), expected);
             expected -= 1;
         }
     }

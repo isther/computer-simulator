@@ -5,14 +5,19 @@ use crate::{
     },
     gates::NOT,
 };
-use std::{cell::RefCell, rc::Rc};
+use std::{
+    cell::RefCell,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
+use tokio::sync::{mpsc, Notify};
 
 // [cpu] -------> display adapter --------> display RAM <--------- screen control ---------> [screenChannel]
 //       write                     write                   read                     write
-struct DisplayAdapter {
-    io_bus: Option<Rc<RefCell<IOBus>>>,
-    main_bus: Option<Rc<RefCell<Bus>>>,
-    screen_bus: Rc<RefCell<Bus>>,
+pub struct DisplayAdapter {
+    io_bus: Arc<Mutex<IOBus>>,
+    main_bus: Arc<Mutex<Bus>>,
+    screen_bus: Arc<Mutex<Bus>>,
     display_ram: Option<Rc<RefCell<DisplayRAM>>>,
     display_adapter_active_bit: Bit,
     input_mar_out_bus: Rc<RefCell<Bus>>,
@@ -29,9 +34,9 @@ struct DisplayAdapter {
 impl DisplayAdapter {
     pub fn new() -> Self {
         DisplayAdapter {
-            io_bus: None,
-            main_bus: None,
-            screen_bus: Rc::new(RefCell::new(Bus::new(BUS_WIDTH))),
+            io_bus: Arc::new(Mutex::new(IOBus::new())),
+            main_bus: Arc::new(Mutex::new(Bus::new(BUS_WIDTH))),
+            screen_bus: Arc::new(Mutex::new(Bus::new(BUS_WIDTH))),
             display_ram: None,
             display_adapter_active_bit: Bit::new(),
             input_mar_out_bus: Rc::new(RefCell::new(Bus::new(BUS_WIDTH))),
@@ -66,10 +71,12 @@ impl DisplayAdapter {
         // if writeToRAM == false then put bus contents in Input-MAR
         self.input_mar_set_not_gates[0].update(self.write_to_ram.get());
 
+        let io_bus = self.io_bus.clone();
+        let io_bus = io_bus.lock().unwrap();
         self.input_mar_set_gate.update(
-            self.io_bus.as_ref().unwrap().borrow().is_data_mode(),
-            self.io_bus.as_ref().unwrap().borrow().is_set(),
-            self.io_bus.as_ref().unwrap().borrow().is_output_mode(),
+            io_bus.is_data_mode(),
+            io_bus.is_set(),
+            io_bus.is_output_mode(),
             self.display_adapter_active_bit.get(),
             self.input_mar_set_not_gates[0].get(),
         );
@@ -105,11 +112,12 @@ impl DisplayAdapter {
 
     fn write_to_display_ram(&mut self) {
         // if writeToRAM == true then put bus contents in RAM
-
+        let io_bus = self.io_bus.clone();
+        let io_bus = io_bus.lock().unwrap();
         self.display_ram_set_gate.update(
-            self.io_bus.as_ref().unwrap().borrow().is_data_mode(),
-            self.io_bus.as_ref().unwrap().borrow().is_set(),
-            self.io_bus.as_ref().unwrap().borrow().is_output_mode(),
+            io_bus.is_data_mode(),
+            io_bus.is_set(),
+            io_bus.is_output_mode(),
             self.display_adapter_active_bit.get(),
             self.write_to_ram.get(),
         );
@@ -133,9 +141,9 @@ impl DisplayAdapter {
 }
 
 impl Peripheral for DisplayAdapter {
-    fn connect(&mut self, io_bus: Rc<RefCell<IOBus>>, main_bus: Rc<RefCell<Bus>>) {
-        self.io_bus = Some(io_bus.clone());
-        self.main_bus = Some(main_bus.clone());
+    fn connect(&mut self, io_bus: Arc<Mutex<IOBus>>, main_bus: Arc<Mutex<Bus>>) {
+        self.io_bus = io_bus.clone();
+        self.main_bus = main_bus.clone();
         self.display_ram = Some(Rc::new(RefCell::new(DisplayRAM::new(
             main_bus.clone(),
             self.screen_bus.clone(),
@@ -150,31 +158,31 @@ impl Peripheral for DisplayAdapter {
 
     fn update(&mut self) {
         // check if bus = 0x0007
+        self.address_select_not_gates[0].update(self.main_bus.lock().unwrap().get_output_wire(8));
+        self.address_select_not_gates[1].update(self.main_bus.lock().unwrap().get_output_wire(9));
+        self.address_select_not_gates[2].update(self.main_bus.lock().unwrap().get_output_wire(10));
+        self.address_select_not_gates[3].update(self.main_bus.lock().unwrap().get_output_wire(11));
+        self.address_select_not_gates[4].update(self.main_bus.lock().unwrap().get_output_wire(12));
 
-        self.address_select_not_gates[0]
-            .update(self.main_bus.as_ref().unwrap().borrow().get_output_wire(8));
-        self.address_select_not_gates[1]
-            .update(self.main_bus.as_ref().unwrap().borrow().get_output_wire(9));
-        self.address_select_not_gates[2]
-            .update(self.main_bus.as_ref().unwrap().borrow().get_output_wire(10));
-        self.address_select_not_gates[3]
-            .update(self.main_bus.as_ref().unwrap().borrow().get_output_wire(11));
-        self.address_select_not_gates[4]
-            .update(self.main_bus.as_ref().unwrap().borrow().get_output_wire(12));
+        let main_bus = self.main_bus.clone();
+        let main_bus = main_bus.lock().unwrap();
         self.address_select_and_gate.update(
             self.address_select_not_gates[0].get(),
             self.address_select_not_gates[1].get(),
             self.address_select_not_gates[2].get(),
             self.address_select_not_gates[3].get(),
             self.address_select_not_gates[4].get(),
-            self.main_bus.as_ref().unwrap().borrow().get_output_wire(13),
-            self.main_bus.as_ref().unwrap().borrow().get_output_wire(14),
-            self.main_bus.as_ref().unwrap().borrow().get_output_wire(15),
+            main_bus.get_output_wire(13),
+            main_bus.get_output_wire(14),
+            main_bus.get_output_wire(15),
         );
+
+        let io_bus = self.io_bus.clone();
+        let io_bus = io_bus.lock().unwrap();
         self.is_address_output_mode_gate.update(
-            self.io_bus.as_ref().unwrap().borrow().is_set(),
-            self.io_bus.as_ref().unwrap().borrow().is_address_mode(),
-            self.io_bus.as_ref().unwrap().borrow().is_output_mode(),
+            io_bus.is_set(),
+            io_bus.is_address_mode(),
+            io_bus.is_output_mode(),
         );
 
         self.display_adapter_active_bit.update(
@@ -194,16 +202,151 @@ impl Peripheral for DisplayAdapter {
     }
 }
 
-struct ScreenControl {
-    adapter: DisplayAdapter,
+pub struct ScreenControl {
+    adapter: Rc<RefCell<DisplayAdapter>>,
     input_bus: Option<Bus>,
-    // 	outputChan  *[160][240]byte
-    // clock: ticker,
-    quit: bool,
+    output_chan: mpsc::Sender<[[u8; 240]; 160]>,
+    clock: u64,
+    quit: Arc<Notify>,
     //y, x
     output: [[u8; 240]; 160],
 }
 
 impl ScreenControl {
-    //TODO:sync
+    pub fn new(
+        adapter: Rc<RefCell<DisplayAdapter>>,
+        output_chan: mpsc::Sender<[[u8; 240]; 160]>,
+        quit: Arc<Notify>,
+    ) -> ScreenControl {
+        ScreenControl {
+            adapter,
+            input_bus: None,
+            output_chan,
+            clock: 33,
+            quit,
+            output: [[0; 240]; 160],
+        }
+    }
+
+    async fn run(&mut self) {
+        loop {
+            tokio::select!(
+                _ = self.quit.notified() => {
+                    println!("Stopping keyboard");
+                    return;
+                },
+                else =>{
+                    tokio::time::sleep(tokio::time::Duration::from_millis(self.clock)).await;
+                    self.update();
+                    self.output_chan.send(self.output).await;
+                },
+            )
+        }
+    }
+
+    fn update(&mut self) {
+        let width_in_bytes = 30; // 30 * 8 = 240
+        let mut y = 0;
+
+        for vertical in (0..0x12C0)
+            .filter(|x| x % width_in_bytes == 0)
+            .collect::<Vec<u16>>()
+        {
+            let mut x = 0;
+            for horizontal in 0..width_in_bytes {
+                self.set_output_ram_address(vertical + horizontal);
+                self.render_pixels_from_ram(&y, &mut x);
+                x += 8;
+            }
+            y += 1;
+        }
+    }
+
+    fn set_output_ram_address(&mut self, address: u16) {
+        self.adapter
+            .borrow_mut()
+            .screen_bus
+            .lock()
+            .unwrap()
+            .set_value(address);
+        self.adapter
+            .borrow_mut()
+            .display_ram
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .input_address_register
+            .set();
+        self.adapter
+            .borrow_mut()
+            .display_ram
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .input_address_register
+            .update();
+        self.adapter
+            .borrow_mut()
+            .display_ram
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .input_address_register
+            .unset();
+        self.adapter
+            .borrow_mut()
+            .display_ram
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .input_address_register
+            .update();
+    }
+
+    fn render_pixels_from_ram(&mut self, y: &u16, x: &mut u16) {
+        self.adapter
+            .borrow_mut()
+            .display_ram
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .enable();
+        self.adapter
+            .borrow_mut()
+            .display_ram
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .update_outgoing();
+
+        for b in 8..16 {
+            match self
+                .adapter
+                .borrow()
+                .screen_bus
+                .lock()
+                .unwrap()
+                .get_output_wire(b)
+            {
+                true => self.output[*y as usize][*x as usize] = 0x01,
+                false => self.output[*y as usize][*x as usize] = 0x00,
+            }
+            *x += 1;
+        }
+
+        self.adapter
+            .borrow_mut()
+            .display_ram
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .disable();
+        self.adapter
+            .borrow_mut()
+            .display_ram
+            .as_ref()
+            .unwrap()
+            .borrow_mut()
+            .update_outgoing();
+    }
 }

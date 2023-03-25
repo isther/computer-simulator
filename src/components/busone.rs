@@ -1,11 +1,15 @@
 use super::{Bus, Component, Enableable, Updatable, Wire, AND, BUS_WIDTH, NOT, OR};
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::{
+    cell::RefCell,
+    fmt::Display,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Clone)]
 pub struct BusOne {
-    pub input_bus: Rc<RefCell<Bus>>,
-    pub output_bus: Rc<RefCell<Bus>>,
+    pub input_bus: Arc<Mutex<Bus>>,
+    pub output_bus: Arc<Mutex<Bus>>,
     pub inputs: [Wire; BUS_WIDTH as usize],
     pub bus1: Wire,
     pub and_gates: [AND; (BUS_WIDTH - 1) as usize],
@@ -16,7 +20,7 @@ pub struct BusOne {
 }
 
 impl BusOne {
-    pub fn new(input_bus: Rc<RefCell<Bus>>, output_bus: Rc<RefCell<Bus>>) -> Self {
+    pub fn new(input_bus: Arc<Mutex<Bus>>, output_bus: Arc<Mutex<Bus>>) -> Self {
         Self {
             input_bus,
             output_bus,
@@ -56,6 +60,12 @@ impl BusOne {
     }
 }
 
+impl Display for BusOne {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "BusOne: {} ", self.value())
+    }
+}
+
 impl Component for BusOne {
     fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
         self.next = Some(component)
@@ -73,7 +83,7 @@ impl Component for BusOne {
 impl Updatable for BusOne {
     fn update(&mut self) {
         for i in (0..BUS_WIDTH).rev() {
-            self.inputs[i as usize].update(self.input_bus.borrow().get_output_wire(i))
+            self.inputs[i as usize].update(self.input_bus.lock().unwrap().get_output_wire(i))
         }
         self.not_gate.update(self.bus1.get());
 
@@ -89,7 +99,8 @@ impl Updatable for BusOne {
 
         for i in (0..BUS_WIDTH).rev() {
             self.output_bus
-                .borrow_mut()
+                .lock()
+                .unwrap()
                 .set_input_wire(i, self.outputs[i as usize].get())
         }
     }

@@ -5,8 +5,12 @@ use super::{
 };
 use crate::io::Peripheral;
 use crate::memory::Memory64K;
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::{
+    cell::RefCell,
+    fmt::Display,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 pub struct CPU {
     gp_reg0: Rc<RefCell<Register>>,
@@ -21,19 +25,19 @@ pub struct CPU {
     flags: Rc<RefCell<Register>>,
 
     clock_state: bool,
-    memory: Rc<RefCell<Memory64K>>,
+    memory: Arc<Mutex<Memory64K>>,
     alu: Rc<RefCell<ALU>>,
     stepper: Stepper,
     busone: Rc<RefCell<BusOne>>,
 
-    main_bus: Rc<RefCell<Bus>>,
-    pub tmp_bus: Rc<RefCell<Bus>>,
-    pub busone_output: Rc<RefCell<Bus>>,
-    pub control_bus: Rc<RefCell<Bus>>,
-    acc_bus: Rc<RefCell<Bus>>,
-    pub alu_to_flags_bus: Rc<RefCell<Bus>>,
-    flags_bus: Rc<RefCell<Bus>>,
-    io_bus: Rc<RefCell<IOBus>>,
+    main_bus: Arc<Mutex<Bus>>,
+    pub tmp_bus: Arc<Mutex<Bus>>,
+    pub busone_output: Arc<Mutex<Bus>>,
+    pub control_bus: Arc<Mutex<Bus>>,
+    acc_bus: Arc<Mutex<Bus>>,
+    pub alu_to_flags_bus: Arc<Mutex<Bus>>,
+    flags_bus: Arc<Mutex<Bus>>,
+    io_bus: Arc<Mutex<IOBus>>,
 
     // CONTROL UNIT
     // inc. gates, wiring, instruction decoding etc
@@ -109,29 +113,35 @@ pub struct CPU {
     peripherals: Vec<Rc<RefCell<dyn Peripheral>>>,
 }
 
-impl CPU {
-    fn println_self(&self) {
-        println!(
-                "step: {} op: {} {} {} ir: {:#X} iar: {:#X} acc: {:#X} reg: {:#X} {:#X} {:#X} {:#X} main_bus: {:#X} acc_bus: {:#X}",
+impl Display for CPU {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            format!(
+                "STEPPER: {}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\nBUS1: {}\n{}\n{}\n",
                 self.stepper,
-                self.alu_op_and_gates[2].get() as i32,
-                self.alu_op_and_gates[1].get() as i32,
-                self.alu_op_and_gates[0].get() as i32,
-                self.ir.borrow().value(),
-                self.iar.borrow().value(),
-                self.acc.borrow().value(),
-                self.gp_reg0.borrow().value(),
-                self.gp_reg1.borrow().value(),
-                self.gp_reg2.borrow().value(),
-                self.gp_reg3.borrow().value(),
-                self.main_bus.borrow().get_value(),
-                self.acc_bus.borrow().get_value(),
-            );
+                self.iar.borrow(),
+                self.memory.lock().unwrap().address_register,
+                self.ir.borrow(),
+                self.acc.borrow(),
+                self.tmp.borrow(),
+                self.gp_reg0.borrow(),
+                self.gp_reg1.borrow(),
+                self.gp_reg2.borrow(),
+                self.gp_reg3.borrow(),
+                self.busone.borrow(),
+                self.flags.borrow(),
+                self.alu.borrow(),
+            ),
+        )
     }
+}
 
-    pub fn new(main_bus: Rc<RefCell<Bus>>, memory: Rc<RefCell<Memory64K>>) -> Self {
+impl CPU {
+    pub fn new(main_bus: Arc<Mutex<Bus>>, memory: Arc<Mutex<Memory64K>>) -> Self {
         // TMP
-        let tmp_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let tmp_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let tmp = Rc::new(RefCell::new(Register::new(
             "TMP",
             main_bus.clone(),
@@ -145,7 +155,7 @@ impl CPU {
         CPU::update_set_status(tmp.clone(), false);
 
         // ACC
-        let acc_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let acc_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let acc = Rc::new(RefCell::new(Register::new(
             "ACC",
             acc_bus.clone(),
@@ -154,7 +164,7 @@ impl CPU {
 
         // IR
         //
-        let control_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let control_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let ir = Rc::new(RefCell::new(Register::new(
             "IR",
             main_bus.clone(),
@@ -163,8 +173,8 @@ impl CPU {
         ir.borrow_mut().disable();
 
         // FLAGS
-        let alu_to_flags_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
-        let flags_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let alu_to_flags_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
+        let flags_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let flags = Rc::new(RefCell::new(Register::new(
             "FLAGS",
             alu_to_flags_bus.clone(),
@@ -177,7 +187,7 @@ impl CPU {
         CPU::update_set_status(flags.clone(), false);
 
         // BUS one
-        let busone_output = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let busone_output = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let busone = Rc::new(RefCell::new(BusOne::new(
             tmp_bus.clone(),
             busone_output.clone(),
@@ -233,7 +243,7 @@ impl CPU {
             acc_bus,
             alu_to_flags_bus,
             flags_bus,
-            io_bus: Rc::new(RefCell::new(IOBus::new())),
+            io_bus: Arc::new(Mutex::new(IOBus::new())),
             step4_gates: (0..8)
                 .map(|_| AND::new())
                 .collect::<Vec<AND>>()
@@ -320,6 +330,26 @@ impl CPU {
         }
     }
 
+    fn update_enable_status_arc_mutex<T>(enableable: Arc<Mutex<T>>, state: bool)
+    where
+        T: Enableable,
+    {
+        match state {
+            true => enableable.lock().unwrap().enable(),
+            false => enableable.lock().unwrap().disable(),
+        }
+    }
+
+    fn update_set_status_arc_mutex<T>(set: Arc<Mutex<T>>, state: bool)
+    where
+        T: Settable,
+    {
+        match state {
+            true => set.lock().unwrap().set(),
+            false => set.lock().unwrap().unset(),
+        }
+    }
+
     fn update_enable_status<T>(enableable: Rc<RefCell<T>>, state: bool)
     where
         T: Enableable,
@@ -357,8 +387,7 @@ impl CPU {
     }
 
     pub fn set_iar(&mut self, address: u16) {
-        self.main_bus.borrow_mut().set_value(address);
-
+        self.main_bus.lock().unwrap().set_value(address);
         Self::update_set_status(self.iar.clone(), true);
         Self::update_on(self.iar.clone());
         Self::update_set_status(self.iar.clone(), false);
@@ -478,13 +507,13 @@ impl CPU {
         Self::update_on(self.iar.clone());
 
         // MAR
-        Self::update_on(self.memory.borrow().address_register.clone());
+        self.memory.lock().unwrap().address_register.update();
 
         // IR
         Self::update_on(self.ir.clone());
 
         // RAM
-        Self::update_on(self.memory.clone());
+        self.memory.lock().unwrap().update();
 
         // TMP
         Self::update_on(self.tmp.clone());
@@ -519,10 +548,7 @@ impl CPU {
     }
 
     fn clear_main_bus(&mut self) {
-        // for i in 0..BUS_WIDTH {
-        //     self.main_bus.borrow_mut().set_input_wire(i, false);
-        // }
-        self.main_bus.borrow_mut().set_value(0);
+        self.main_bus.lock().unwrap().set_value(0);
     }
 
     fn update_instruction_decoder3x8(&mut self) {
@@ -546,7 +572,8 @@ impl CPU {
 
     fn update_io_bus(&mut self) {
         self.io_bus
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .update(self.ir.borrow().bit(12), self.ir.borrow().bit(13))
     }
 
@@ -605,7 +632,7 @@ impl CPU {
         self.io_bus_enable_gate
             .update(state, self.step5_gate3_and.get());
 
-        Self::update_enable_status(self.io_bus.clone(), self.io_bus_enable_gate.get());
+        Self::update_enable_status_arc_mutex(self.io_bus.clone(), self.io_bus_enable_gate.get());
     }
 
     fn run_enable_on_iar(&mut self, state: bool) {
@@ -655,7 +682,7 @@ impl CPU {
         );
         self.ram_enable_and_gate
             .update(state, self.ram_enable_or_gate.get());
-        Self::update_enable_status(self.memory.clone(), self.ram_enable_and_gate.get());
+        Self::update_enable_status_arc_mutex(self.memory.clone(), self.ram_enable_and_gate.get());
     }
 
     fn run_enable_on_register_b(&mut self) {
@@ -785,7 +812,8 @@ impl CPU {
         self.flag_state_gates[0].update(
             self.ir.borrow().bit(12),
             self.flags_bus
-                .borrow()
+                .lock()
+                .unwrap()
                 .get_output_wire(FlagState::Carry as i32),
         );
 
@@ -793,7 +821,8 @@ impl CPU {
         self.flag_state_gates[1].update(
             self.ir.borrow().bit(13),
             self.flags_bus
-                .borrow()
+                .lock()
+                .unwrap()
                 .get_output_wire(FlagState::ALarger as i32),
         );
 
@@ -801,7 +830,8 @@ impl CPU {
         self.flag_state_gates[2].update(
             self.ir.borrow().bit(14),
             self.flags_bus
-                .borrow()
+                .lock()
+                .unwrap()
                 .get_output_wire(FlagState::Equal as i32),
         );
 
@@ -809,10 +839,10 @@ impl CPU {
         self.flag_state_gates[3].update(
             self.ir.borrow().bit(15),
             self.flags_bus
-                .borrow()
+                .lock()
+                .unwrap()
                 .get_output_wire(FlagState::Zero as i32),
         );
-
         self.flag_state_or_gate.update(
             self.flag_state_gates[0].get(),
             self.flag_state_gates[1].get(),
@@ -824,7 +854,8 @@ impl CPU {
     fn run_set_on_io(&mut self, state: bool) {
         self.io_bus_set_gate
             .update(state, self.step4_gate3_and.get());
-        Self::update_set_status(self.io_bus.clone(), self.io_bus_set_gate.get());
+
+        Self::update_set_status_arc_mutex(self.io_bus.clone(), self.io_bus_set_gate.get());
     }
 
     fn run_set_on_mar(&mut self, state: bool) {
@@ -838,10 +869,11 @@ impl CPU {
         );
         self.mar_set_and_gate
             .update(state, self.mar_set_or_gate.get());
-        Self::update_set_status(
-            self.memory.borrow().address_register.clone(),
-            self.mar_set_and_gate.get(),
-        );
+
+        match self.mar_set_and_gate.get() {
+            true => self.memory.lock().unwrap().address_register.set(),
+            false => self.memory.lock().unwrap().address_register.unset(),
+        }
     }
 
     fn run_set_on_iar(&mut self, state: bool) {
@@ -879,7 +911,8 @@ impl CPU {
     fn run_set_on_ram(&mut self, state: bool) {
         self.ram_set_and_gate
             .update(state, self.step5_gates[2].get());
-        Self::update_set_status(self.memory.clone(), self.ram_set_and_gate.get());
+
+        Self::update_set_status_arc_mutex(self.memory.clone(), self.ram_set_and_gate.get());
     }
 
     fn run_set_on_tmp(&mut self, state: bool) {
@@ -890,7 +923,8 @@ impl CPU {
 
         self.carry_temp.update(
             self.flags_bus
-                .borrow()
+                .lock()
+                .unwrap()
                 .get_output_wire(FlagState::Carry as i32),
             self.tmp_set_and_gate.get(),
         );
@@ -961,8 +995,8 @@ mod tests {
     use super::*;
 
     fn get_cpu() -> CPU {
-        let main_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
-        let memory = Rc::new(RefCell::new(Memory64K::new(main_bus.clone())));
+        let main_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
+        let memory = Arc::new(Mutex::new(Memory64K::new(main_bus.clone())));
         CPU::new(main_bus.clone(), memory.clone())
     }
 
@@ -2399,20 +2433,26 @@ mod tests {
         test_cpu_multiply(5, 0x000F, 0x000F);
     }
 
-    fn set_memory_location(memory: Rc<RefCell<Memory64K>>, address: u16, value: u16) {
-        memory.borrow().address_register.borrow_mut().set();
-        memory.borrow().bus.borrow_mut().set_value(address);
-        memory.borrow_mut().update();
+    fn set_memory_location(memory: Arc<Mutex<Memory64K>>, address: u16, value: u16) {
+        memory.lock().unwrap().address_register.set();
+        memory
+            .lock()
+            .unwrap()
+            .bus
+            .lock()
+            .unwrap()
+            .set_value(address);
+        memory.lock().unwrap().update();
 
-        memory.borrow().address_register.borrow_mut().unset();
-        memory.borrow_mut().update();
+        memory.lock().unwrap().address_register.unset();
+        memory.lock().unwrap().update();
 
-        memory.borrow().bus.borrow_mut().set_value(value);
-        memory.borrow_mut().set();
-        memory.borrow_mut().update();
+        memory.lock().unwrap().bus.lock().unwrap().set_value(value);
+        memory.lock().unwrap().set();
+        memory.lock().unwrap().update();
 
-        memory.borrow_mut().unset();
-        memory.borrow_mut().update();
+        memory.lock().unwrap().unset();
+        memory.lock().unwrap().update();
     }
 
     impl CPU {
@@ -2471,23 +2511,19 @@ mod tests {
         }
 
         fn set_cpu_memory_location(&mut self, address: u16, value: u16) {
-            self.memory.borrow_mut().address_register.borrow_mut().set();
-            self.main_bus.borrow_mut().set_value(address);
-            self.memory.borrow_mut().update();
+            self.memory.lock().unwrap().address_register.set();
+            self.main_bus.lock().unwrap().set_value(address);
+            self.memory.lock().unwrap().update();
 
-            self.memory
-                .borrow_mut()
-                .address_register
-                .borrow_mut()
-                .unset();
-            self.memory.borrow_mut().update();
+            self.memory.lock().unwrap().address_register.unset();
+            self.memory.lock().unwrap().update();
 
-            self.main_bus.borrow_mut().set_value(value);
-            self.memory.borrow_mut().set();
-            self.memory.borrow_mut().update();
+            self.main_bus.lock().unwrap().set_value(value);
+            self.memory.lock().unwrap().set();
+            self.memory.lock().unwrap().update();
 
-            self.memory.borrow_mut().unset();
-            self.memory.borrow_mut().update();
+            self.memory.lock().unwrap().unset();
+            self.memory.lock().unwrap().update();
         }
 
         fn set_cpu_register(&mut self, register: u16, value: u16) {
@@ -2496,7 +2532,7 @@ mod tests {
                     self.gp_reg0.borrow_mut().set();
                     self.gp_reg0.borrow_mut().update();
 
-                    self.main_bus.borrow_mut().set_value(value);
+                    self.main_bus.lock().unwrap().set_value(value);
                     self.gp_reg0.borrow_mut().update();
 
                     self.gp_reg0.borrow_mut().unset();
@@ -2506,7 +2542,7 @@ mod tests {
                     self.gp_reg1.borrow_mut().set();
                     self.gp_reg1.borrow_mut().update();
 
-                    self.main_bus.borrow_mut().set_value(value);
+                    self.main_bus.lock().unwrap().set_value(value);
                     self.gp_reg1.borrow_mut().update();
 
                     self.gp_reg1.borrow_mut().unset();
@@ -2516,7 +2552,7 @@ mod tests {
                     self.gp_reg2.borrow_mut().set();
                     self.gp_reg2.borrow_mut().update();
 
-                    self.main_bus.borrow_mut().set_value(value);
+                    self.main_bus.lock().unwrap().set_value(value);
                     self.gp_reg2.borrow_mut().update();
 
                     self.gp_reg2.borrow_mut().unset();
@@ -2526,7 +2562,7 @@ mod tests {
                     self.gp_reg3.borrow_mut().set();
                     self.gp_reg3.borrow_mut().update();
 
-                    self.main_bus.borrow_mut().set_value(value);
+                    self.main_bus.lock().unwrap().set_value(value);
                     self.gp_reg3.borrow_mut().update();
 
                     self.gp_reg3.borrow_mut().unset();
@@ -2600,33 +2636,34 @@ mod tests {
             expected_is_equal: bool,
             expected_is_zero: bool,
         ) {
+            let flags_bus = self.flags_bus.lock().unwrap();
             assert_eq!(
-                self.flags_bus.borrow().get_output_wire(0),
+                flags_bus.get_output_wire(0),
                 expected_carry,
                 "Expected carry flag to be: {} but got {}",
                 expected_carry,
-                self.flags_bus.borrow().get_output_wire(0)
+                flags_bus.get_output_wire(0)
             );
             assert_eq!(
-                self.flags_bus.borrow().get_output_wire(1),
+                flags_bus.get_output_wire(1),
                 expected_is_larger,
                 "Expected is_larger flag to be: {} but got {}",
                 expected_is_larger,
-                self.flags_bus.borrow().get_output_wire(1)
+                flags_bus.get_output_wire(1)
             );
             assert_eq!(
-                self.flags_bus.borrow().get_output_wire(2),
+                flags_bus.get_output_wire(2),
                 expected_is_equal,
                 "Expected is_equal flag to be: {} but got {}",
                 expected_is_equal,
-                self.flags_bus.borrow().get_output_wire(2)
+                flags_bus.get_output_wire(2)
             );
             assert_eq!(
-                self.flags_bus.borrow().get_output_wire(3),
+                flags_bus.get_output_wire(3),
                 expected_is_zero,
                 "Expected is_zero flag to be: {} but got {}",
                 expected_is_zero,
-                self.flags_bus.borrow().get_output_wire(3)
+                flags_bus.get_output_wire(3)
             )
         }
     }

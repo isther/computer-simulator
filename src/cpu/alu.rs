@@ -3,8 +3,12 @@ use super::{
     ORer, RightShifter, XORer, BUS_WIDTH,
 };
 use crate::gates::{Wire, AND};
-use std::cell::RefCell;
-use std::rc::Rc;
+use std::{
+    cell::RefCell,
+    fmt::Display,
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 enum Operation {
@@ -50,10 +54,10 @@ impl From<Operation> for i32 {
 }
 
 pub struct ALU {
-    pub input_a_bus: Rc<RefCell<Bus>>,
-    pub input_b_bus: Rc<RefCell<Bus>>,
-    pub output_bus: Rc<RefCell<Bus>>,
-    pub flags_output_bus: Rc<RefCell<Bus>>,
+    pub input_a_bus: Arc<Mutex<Bus>>,
+    pub input_b_bus: Arc<Mutex<Bus>>,
+    pub output_bus: Arc<Mutex<Bus>>,
+    pub flags_output_bus: Arc<Mutex<Bus>>,
     pub op: [Wire; 3],
 
     pub carry_in: Wire,
@@ -78,12 +82,36 @@ pub struct ALU {
     and_gates: [AND; 3],
 }
 
+impl Display for ALU {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut op = String::new();
+        for i in (0..=2).rev() {
+            match self.op[i].get() {
+                true => op += "1",
+                false => op += "0",
+            }
+        }
+        let flags_output_bus = self.flags_output_bus.lock().unwrap();
+        write!(f, "ALU OP: {}, A: {}, B: {}, OUT: {}, carryin: {}, carryout: {}, larger: {}, eq: {}, zero: {}",
+               op,
+               self.input_a_bus.lock().unwrap().get_value(),
+               self.input_b_bus.lock().unwrap().get_value(),
+               self.output_bus.lock().unwrap().get_value(),
+               self.carry_in.get(),
+               flags_output_bus.get_output_wire(0),
+               flags_output_bus.get_output_wire(1),
+               flags_output_bus.get_output_wire(2),
+               flags_output_bus.get_output_wire(3),
+               )
+    }
+}
+
 impl ALU {
     pub fn new(
-        input_a_bus: Rc<RefCell<Bus>>,
-        input_b_bus: Rc<RefCell<Bus>>,
-        output_bus: Rc<RefCell<Bus>>,
-        flags_output_bus: Rc<RefCell<Bus>>,
+        input_a_bus: Arc<Mutex<Bus>>,
+        input_b_bus: Arc<Mutex<Bus>>,
+        output_bus: Arc<Mutex<Bus>>,
+        flags_output_bus: Arc<Mutex<Bus>>,
     ) -> Self {
         Self {
             input_a_bus,
@@ -129,13 +157,17 @@ impl ALU {
         T: Component,
     {
         for i in (0..BUS_WIDTH).rev() {
-            c.borrow_mut()
-                .set_input_wire(i as i32, self.input_a_bus.borrow().get_output_wire(i));
+            c.borrow_mut().set_input_wire(
+                i as i32,
+                self.input_a_bus.lock().unwrap().get_output_wire(i),
+            );
         }
 
         for i in (BUS_WIDTH..BUS_WIDTH * 2).rev() {
-            c.borrow_mut()
-                .set_input_wire(i as i32, self.input_b_bus.borrow().get_output_wire(i - 16));
+            c.borrow_mut().set_input_wire(
+                i as i32,
+                self.input_b_bus.lock().unwrap().get_output_wire(i - 16),
+            );
         }
     }
 
@@ -200,28 +232,33 @@ impl ALU {
                 self.is_zero
                     .set_input_wire(i, self.enablers[enabler as usize].get_output_wire(i));
                 self.output_bus
-                    .borrow_mut()
+                    .lock()
+                    .unwrap()
                     .set_input_wire(i, self.enablers[enabler as usize].get_output_wire(i));
             }
         } else {
             for i in 0..BUS_WIDTH {
                 self.is_zero.set_input_wire(i, true);
-                self.output_bus.borrow_mut().set_input_wire(i, false);
+                self.output_bus.lock().unwrap().set_input_wire(i, false);
             }
         }
         self.is_zero.update();
 
         self.flags_output_bus
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .set_input_wire(0, self.carry_out.get());
         self.flags_output_bus
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .set_input_wire(1, self.a_is_larger.get());
         self.flags_output_bus
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .set_input_wire(2, self.is_equal.get());
         self.flags_output_bus
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .set_input_wire(3, self.is_zero.get_output_wire(0))
     }
 
@@ -259,7 +296,7 @@ impl ALU {
         for i in (0..BUS_WIDTH).rev() {
             self.notter
                 .borrow_mut()
-                .set_input_wire(i, self.input_a_bus.borrow().get_output_wire(i))
+                .set_input_wire(i, self.input_a_bus.lock().unwrap().get_output_wire(i))
         }
         self.notter.borrow_mut().update();
         self.wire_to_enabler(self.notter.clone(), 3);
@@ -269,7 +306,7 @@ impl ALU {
         for i in (0..BUS_WIDTH).rev() {
             self.right_shifer
                 .borrow_mut()
-                .set_input_wire(i, self.input_a_bus.borrow().get_output_wire(i));
+                .set_input_wire(i, self.input_a_bus.lock().unwrap().get_output_wire(i));
         }
         self.right_shifer.borrow_mut().update(self.carry_in.get());
         self.wire_to_enabler(self.right_shifer.clone(), 2);
@@ -279,7 +316,7 @@ impl ALU {
         for i in (0..BUS_WIDTH).rev() {
             self.left_shifer
                 .borrow_mut()
-                .set_input_wire(i, self.input_a_bus.borrow().get_output_wire(i));
+                .set_input_wire(i, self.input_a_bus.lock().unwrap().get_output_wire(i));
         }
         self.left_shifer.borrow_mut().update(self.carry_in.get());
         self.wire_to_enabler(self.left_shifer.clone(), 1);
@@ -412,7 +449,7 @@ mod tests {
         op_test(o, 0xA9A9, 0x5757, true, 0x0000, false, true, false, false);
     }
 
-    fn op_test(
+    async fn op_test(
         op: Operation,
         input_a: u16,
         input_b: u16,
@@ -424,10 +461,10 @@ mod tests {
         expected_carry_out: bool,
         expected_zero: bool,
     ) {
-        let input_a_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
-        let input_b_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
-        let output_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
-        let flags_bus = Rc::new(RefCell::new(Bus::new(BUS_WIDTH)));
+        let input_a_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
+        let input_b_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
+        let output_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
+        let flags_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let mut alu = Box::new(ALU::new(
             input_a_bus.clone(),
             input_b_bus.clone(),
@@ -435,19 +472,19 @@ mod tests {
             flags_bus.clone(),
         ));
 
-        input_a_bus.as_ref().borrow_mut().set_value(input_a);
-        input_b_bus.as_ref().borrow_mut().set_value(input_b);
+        input_a_bus.lock().unwrap().set_value(input_a);
+        input_b_bus.lock().unwrap().set_value(input_b);
 
         set_operation(alu.as_mut(), op as u16);
 
         alu.carry_in.update(carry_in);
         alu.update();
 
-        let output = get_value_of_bus(output_bus.as_ref());
-        let carry_out = alu.flags_output_bus.borrow().get_output_wire(0);
-        let is_larger = alu.flags_output_bus.borrow().get_output_wire(1);
-        let equal = alu.flags_output_bus.borrow().get_output_wire(2);
-        let zero = alu.flags_output_bus.borrow().get_output_wire(3);
+        let output = output_bus.lock().unwrap().get_value();
+        let carry_out = alu.flags_output_bus.lock().unwrap().get_output_wire(0);
+        let is_larger = alu.flags_output_bus.lock().unwrap().get_output_wire(1);
+        let equal = alu.flags_output_bus.lock().unwrap().get_output_wire(2);
+        let zero = alu.flags_output_bus.lock().unwrap().get_output_wire(3);
 
         assert_eq!(
             expected_output, output,

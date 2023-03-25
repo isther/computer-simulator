@@ -10,6 +10,7 @@ mod alu;
 mod cpu;
 
 use alu::ALU;
+pub use cpu::CPU;
 
 pub enum FlagState {
     Carry = 0,
