@@ -166,9 +166,9 @@ pub struct ORGate3 {
     pub input_a: Wire,
     pub input_b: Wire,
     pub input_c: Wire,
-    or_a: OR,
-    or_b: OR,
-    output: Wire,
+    pub or_a: OR,
+    pub or_b: OR,
+    pub output: Wire,
 }
 
 impl ORGate3 {
@@ -200,10 +200,10 @@ pub struct ORGate4 {
     pub input_b: Wire,
     pub input_c: Wire,
     pub input_d: Wire,
-    or_a: OR,
-    or_b: OR,
-    or_c: OR,
-    output: Wire,
+    pub or_a: OR,
+    pub or_b: OR,
+    pub or_c: OR,
+    pub output: Wire,
 }
 
 impl ORGate4 {
@@ -239,11 +239,11 @@ pub struct ORGate5 {
     pub input_c: Wire,
     pub input_d: Wire,
     pub input_e: Wire,
-    or_a: OR,
-    or_b: OR,
-    or_c: OR,
-    or_d: OR,
-    output: Wire,
+    pub or_a: OR,
+    pub or_b: OR,
+    pub or_c: OR,
+    pub or_d: OR,
+    pub output: Wire,
 }
 
 impl ORGate5 {
@@ -290,12 +290,12 @@ pub struct ORGate6 {
     pub input_d: Wire,
     pub input_e: Wire,
     pub input_f: Wire,
-    or_a: OR,
-    or_b: OR,
-    or_c: OR,
-    or_d: OR,
-    or_e: OR,
-    output: Wire,
+    pub or_a: OR,
+    pub or_b: OR,
+    pub or_c: OR,
+    pub or_d: OR,
+    pub or_e: OR,
+    pub output: Wire,
 }
 
 impl ORGate6 {

@@ -1,10 +1,7 @@
-use crate::components::{
-    ANDGate3, ANDer, Adder, Bit, Bus, BusOne, Comparator, Component, Decoder2x4, Decoder3x8,
-    Enableable, Enabler, IOBus, IsZero, LeftShifter, NOTer, ORGate3, ORGate4, ORGate5, ORGate6,
-    ORer, Register, RightShifter, Settable, Stepper, Updatable, XORer, BUS_WIDTH,
+use crate::{
+    components::Decoder3x8,
+    gates::{AND, NOT},
 };
-
-use crate::gates::{Wire, AND, NOT, OR};
 
 mod alu;
 mod cpu;
@@ -30,10 +27,10 @@ impl From<FlagState> for i32 {
     }
 }
 
-struct InstructionDecoder3x8 {
-    decoder: Decoder3x8,
-    selector_gates: [AND; 8],
-    bit0_not_gate: NOT,
+pub struct InstructionDecoder3x8 {
+    pub decoder: Decoder3x8,
+    pub selector_gates: [AND; 8],
+    pub bit0_not_gate: NOT,
 }
 
 impl InstructionDecoder3x8 {

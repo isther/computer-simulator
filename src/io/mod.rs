@@ -1,13 +1,5 @@
-use crate::components::{
-    ANDGate3, ANDGate8, Bit, Bus, Component, Enableable, IOBus, Mode, Register, Settable,
-    Updatable, BUS_WIDTH,
-};
-use crate::gates::{AND, NOT};
-use std::{
-    cell::RefCell,
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use crate::components::{Bus, IOBus};
+use std::sync::{Arc, Mutex};
 
 mod display;
 mod display_ram;

@@ -18,9 +18,9 @@ pub struct DisplayAdapter {
     io_bus: Arc<Mutex<IOBus>>,
     main_bus: Arc<Mutex<Bus>>,
     screen_bus: Arc<Mutex<Bus>>,
-    display_ram: Option<Rc<RefCell<DisplayRAM>>>,
+    display_ram: Option<DisplayRAM>,
     display_adapter_active_bit: Bit,
-    input_mar_out_bus: Rc<RefCell<Bus>>,
+    input_mar_out_bus: Bus,
     address_select_and_gate: ANDGate8,
     address_select_not_gates: [NOT; 5],
     is_address_output_mode_gate: ANDGate3,
@@ -39,7 +39,7 @@ impl DisplayAdapter {
             screen_bus: Arc::new(Mutex::new(Bus::new(BUS_WIDTH))),
             display_ram: None,
             display_adapter_active_bit: Bit::new(),
-            input_mar_out_bus: Rc::new(RefCell::new(Bus::new(BUS_WIDTH))),
+            input_mar_out_bus: Bus::new(BUS_WIDTH),
             address_select_and_gate: ANDGate8::new(),
             address_select_not_gates: (0..5)
                 .map(|_| NOT::new())
@@ -83,27 +83,23 @@ impl DisplayAdapter {
 
         if self.input_mar_set_gate.get() {
             self.display_ram
-                .as_ref()
+                .as_mut()
                 .unwrap()
-                .borrow_mut()
                 .input_address_register
                 .set();
             self.display_ram
-                .as_ref()
+                .as_mut()
                 .unwrap()
-                .borrow_mut()
                 .input_address_register
                 .update();
             self.display_ram
-                .as_ref()
+                .as_mut()
                 .unwrap()
-                .borrow_mut()
                 .input_address_register
                 .unset();
             self.display_ram
-                .as_ref()
+                .as_mut()
                 .unwrap()
-                .borrow_mut()
                 .input_address_register
                 .update();
             self.toggle_write_to_ram();
@@ -123,18 +119,10 @@ impl DisplayAdapter {
         );
 
         if self.display_ram_set_gate.get() {
-            self.display_ram.as_ref().unwrap().borrow_mut().set();
-            self.display_ram
-                .as_ref()
-                .unwrap()
-                .borrow_mut()
-                .update_incoming();
-            self.display_ram.as_ref().unwrap().borrow_mut().unset();
-            self.display_ram
-                .as_ref()
-                .unwrap()
-                .borrow_mut()
-                .update_incoming();
+            self.display_ram.as_mut().unwrap().set();
+            self.display_ram.as_mut().unwrap().update_incoming();
+            self.display_ram.as_mut().unwrap().unset();
+            self.display_ram.as_mut().unwrap().update_incoming();
             self.toggle_write_to_ram();
         }
     }
@@ -144,10 +132,7 @@ impl Peripheral for DisplayAdapter {
     fn connect(&mut self, io_bus: Arc<Mutex<IOBus>>, main_bus: Arc<Mutex<Bus>>) {
         self.io_bus = io_bus.clone();
         self.main_bus = main_bus.clone();
-        self.display_ram = Some(Rc::new(RefCell::new(DisplayRAM::new(
-            main_bus.clone(),
-            self.screen_bus.clone(),
-        ))));
+        self.display_ram = Some(DisplayRAM::new(main_bus.clone(), self.screen_bus.clone()));
 
         self.display_adapter_active_bit.update(false, true);
         self.display_adapter_active_bit.update(false, false);
@@ -203,7 +188,7 @@ impl Peripheral for DisplayAdapter {
 }
 
 pub struct ScreenControl {
-    adapter: Rc<RefCell<DisplayAdapter>>,
+    adapter: Arc<Mutex<DisplayAdapter>>,
     input_bus: Option<Bus>,
     output_chan: mpsc::Sender<[[u8; 240]; 160]>,
     clock: u64,
@@ -214,7 +199,7 @@ pub struct ScreenControl {
 
 impl ScreenControl {
     pub fn new(
-        adapter: Rc<RefCell<DisplayAdapter>>,
+        adapter: Arc<Mutex<DisplayAdapter>>,
         output_chan: mpsc::Sender<[[u8; 240]; 160]>,
         quit: Arc<Notify>,
     ) -> ScreenControl {
@@ -228,7 +213,7 @@ impl ScreenControl {
         }
     }
 
-    async fn run(&mut self) {
+    pub async fn run(&mut self) {
         loop {
             tokio::select!(
                 _ = self.quit.notified() => {
@@ -238,7 +223,7 @@ impl ScreenControl {
                 else =>{
                     tokio::time::sleep(tokio::time::Duration::from_millis(self.clock)).await;
                     self.update();
-                    self.output_chan.send(self.output).await;
+                    self.output_chan.send(self.output).await.unwrap();
                 },
             )
         }
@@ -264,65 +249,67 @@ impl ScreenControl {
 
     fn set_output_ram_address(&mut self, address: u16) {
         self.adapter
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .screen_bus
             .lock()
             .unwrap()
             .set_value(address);
         self.adapter
-            .borrow_mut()
-            .display_ram
-            .as_ref()
+            .lock()
             .unwrap()
-            .borrow_mut()
+            .display_ram
+            .as_mut()
+            .unwrap()
             .input_address_register
             .set();
         self.adapter
-            .borrow_mut()
-            .display_ram
-            .as_ref()
+            .lock()
             .unwrap()
-            .borrow_mut()
+            .display_ram
+            .as_mut()
+            .unwrap()
             .input_address_register
             .update();
         self.adapter
-            .borrow_mut()
-            .display_ram
-            .as_ref()
+            .lock()
             .unwrap()
-            .borrow_mut()
+            .display_ram
+            .as_mut()
+            .unwrap()
             .input_address_register
             .unset();
         self.adapter
-            .borrow_mut()
-            .display_ram
-            .as_ref()
+            .lock()
             .unwrap()
-            .borrow_mut()
+            .display_ram
+            .as_mut()
+            .unwrap()
             .input_address_register
             .update();
     }
 
     fn render_pixels_from_ram(&mut self, y: &u16, x: &mut u16) {
         self.adapter
-            .borrow_mut()
-            .display_ram
-            .as_ref()
+            .lock()
             .unwrap()
-            .borrow_mut()
+            .display_ram
+            .as_mut()
+            .unwrap()
             .enable();
         self.adapter
-            .borrow_mut()
-            .display_ram
-            .as_ref()
+            .lock()
             .unwrap()
-            .borrow_mut()
+            .display_ram
+            .as_mut()
+            .unwrap()
             .update_outgoing();
 
         for b in 8..16 {
             match self
                 .adapter
-                .borrow()
+                .lock()
+                .unwrap()
                 .screen_bus
                 .lock()
                 .unwrap()
@@ -335,18 +322,18 @@ impl ScreenControl {
         }
 
         self.adapter
-            .borrow_mut()
-            .display_ram
-            .as_ref()
+            .lock()
             .unwrap()
-            .borrow_mut()
+            .display_ram
+            .as_mut()
+            .unwrap()
             .disable();
         self.adapter
-            .borrow_mut()
-            .display_ram
-            .as_ref()
+            .lock()
             .unwrap()
-            .borrow_mut()
+            .display_ram
+            .as_mut()
+            .unwrap()
             .update_outgoing();
     }
 }

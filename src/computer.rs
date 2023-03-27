@@ -21,8 +21,8 @@ struct PrintStateConfig {
 struct SimpleComputer {
     main_bus: Arc<Mutex<Bus>>,
     cpu: CPU,
-    memory: Arc<Mutex<Memory64K>>,
-    display_adapter: Rc<RefCell<DisplayAdapter>>,
+    memory: Rc<RefCell<Memory64K>>,
+    display_adapter: Arc<Mutex<DisplayAdapter>>,
     screen_control: ScreenControl,
     keyboard_adapter: KeyboardAdapter,
     screen_channel: mpsc::Sender<[[u8; 240]; 160]>,
@@ -32,8 +32,8 @@ struct SimpleComputer {
 impl SimpleComputer {
     fn new(screen_channel: mpsc::Sender<[[u8; 240]; 160]>, quit_channel: Arc<Notify>) -> Self {
         let main_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
-        let memory = Arc::new(Mutex::new(Memory64K::new(main_bus.clone())));
-        let display_adapter = Rc::new(RefCell::new(DisplayAdapter::new()));
+        let memory = Rc::new(RefCell::new(Memory64K::new(main_bus.clone())));
+        let display_adapter = Arc::new(Mutex::new(DisplayAdapter::new()));
         let mut res = Self {
             main_bus: main_bus.clone(),
             cpu: CPU::new(main_bus.clone(), memory.clone()),
@@ -79,22 +79,22 @@ impl SimpleComputer {
     }
 
     fn put_value_in_ram(&mut self, address: u16, value: u16) {
-        self.memory.lock().unwrap().address_register.set();
+        self.memory.borrow_mut().address_register.set();
         self.main_bus.lock().unwrap().set_value(address);
-        self.memory.lock().unwrap().update();
+        self.memory.borrow_mut().update();
 
-        self.memory.lock().unwrap().address_register.unset();
-        self.memory.lock().unwrap().update();
+        self.memory.borrow_mut().address_register.unset();
+        self.memory.borrow_mut().update();
 
         self.main_bus.lock().unwrap().set_value(value);
-        self.memory.lock().unwrap().set();
-        self.memory.lock().unwrap().update();
+        self.memory.borrow_mut().set();
+        self.memory.borrow_mut().update();
 
-        self.memory.lock().unwrap().address_register.unset();
-        self.memory.lock().unwrap().update();
+        self.memory.borrow_mut().address_register.unset();
+        self.memory.borrow_mut().update();
     }
 
-    fn run(&mut self, tick_interval: Arc<Notify>, print_state_config: PrintStateConfig) {
+    async fn run(&mut self, tick_interval: Arc<Notify>, print_state_config: PrintStateConfig) {
         println!("Starting computer....");
         self.put_value_in_ram(0xFEFE, 0x0040); //JMP back to code region start if IAR reaches the end
         self.put_value_in_ram(0xFEFF, CODE_REGION_START);
@@ -102,7 +102,7 @@ impl SimpleComputer {
         // start at offet of user code
         self.cpu.set_iar(CODE_REGION_START);
 
-        // 	go c.screenControl.Run()
+        //BUG: self.screen_control.run();
 
         let mut steps = 0;
         loop {

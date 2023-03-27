@@ -196,7 +196,7 @@ impl Assembler {
                     }
                 }
                 result += "}\t";
-                // TODO: Output format
+                // BUG: Output format
                 match instruction.size() {
                     4 => result += "\t",
                     _ => result += "\t".repeat(3).as_str(),

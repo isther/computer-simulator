@@ -1,8 +1,10 @@
-use super::{
-    ANDer, Adder, Bus, Comparator, Component, Decoder3x8, Enabler, IsZero, LeftShifter, NOTer,
-    ORer, RightShifter, XORer, BUS_WIDTH,
+use crate::{
+    components::{
+        ANDer, Adder, Bus, Comparator, Component, Decoder3x8, Enabler, IsZero, LeftShifter, NOTer,
+        ORer, RightShifter, XORer, BUS_WIDTH,
+    },
+    gates::{Wire, AND},
 };
-use crate::gates::{Wire, AND};
 use std::{
     cell::RefCell,
     fmt::Display,
@@ -20,6 +22,25 @@ enum Operation {
     OR = 5,
     XOR = 6,
     CMP = 7,
+}
+
+impl Display for Operation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Operation::ADD => "ADD",
+                Operation::SHL => "SHL",
+                Operation::SHR => "SHR",
+                Operation::NOT => "NOT",
+                Operation::AND => "AND",
+                Operation::OR => "OR",
+                Operation::XOR => "XOR",
+                Operation::CMP => "CMP",
+            }
+        )
+    }
 }
 
 impl From<i32> for Operation {
@@ -62,47 +83,40 @@ pub struct ALU {
 
     pub carry_in: Wire,
 
-    carry_out: Wire,
-    a_is_larger: Wire,
-    is_equal: Wire,
+    pub carry_out: Wire,
+    pub a_is_larger: Wire,
+    pub is_equal: Wire,
 
-    op_decoder: Decoder3x8,
+    pub op_decoder: Decoder3x8,
 
-    comparator: Rc<RefCell<Comparator>>,
-    xorer: Rc<RefCell<XORer>>,
-    orer: Rc<RefCell<ORer>>,
-    ander: Rc<RefCell<ANDer>>,
-    notter: Rc<RefCell<NOTer>>,
-    left_shifer: Rc<RefCell<LeftShifter>>,
-    right_shifer: Rc<RefCell<RightShifter>>,
-    adder: Rc<RefCell<Adder>>,
+    pub comparator: Rc<RefCell<Comparator>>,
+    pub xorer: Rc<RefCell<XORer>>,
+    pub orer: Rc<RefCell<ORer>>,
+    pub ander: Rc<RefCell<ANDer>>,
+    pub notter: Rc<RefCell<NOTer>>,
+    pub left_shifer: Rc<RefCell<LeftShifter>>,
+    pub right_shifer: Rc<RefCell<RightShifter>>,
+    pub adder: Rc<RefCell<Adder>>,
 
-    is_zero: IsZero,
-    enablers: Box<Vec<Enabler>>, //7
-    and_gates: [AND; 3],
+    pub is_zero: IsZero,
+    pub enablers: Box<Vec<Enabler>>, //7
+    pub and_gates: [AND; 3],
 }
 
 impl Display for ALU {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut op = String::new();
-        for i in (0..=2).rev() {
-            match self.op[i].get() {
-                true => op += "1",
-                false => op += "0",
-            }
-        }
         let flags_output_bus = self.flags_output_bus.lock().unwrap();
-        write!(f, "ALU OP: {}, A: {}, B: {}, OUT: {}, carryin: {}, carryout: {}, larger: {}, eq: {}, zero: {}",
-               op,
-               self.input_a_bus.lock().unwrap().get_value(),
-               self.input_b_bus.lock().unwrap().get_value(),
-               self.output_bus.lock().unwrap().get_value(),
-               self.carry_in.get(),
-               flags_output_bus.get_output_wire(0),
-               flags_output_bus.get_output_wire(1),
-               flags_output_bus.get_output_wire(2),
-               flags_output_bus.get_output_wire(3),
-               )
+        write!(f, "ALU OP: {:?} A: {:>#06X} B: {:>#06X} OUT: {:>#06X} carryin: {} carryout: {} larger: {} eq: {} zero: {}",
+            Operation::from(self.op_decoder.index()),
+            self.input_a_bus.lock().unwrap().get_value(),
+            self.input_b_bus.lock().unwrap().get_value(),
+            self.output_bus.lock().unwrap().get_value(),
+            self.carry_in.get() as i32,
+            flags_output_bus.get_output_wire(0) as i32,
+            flags_output_bus.get_output_wire(1) as i32,
+            flags_output_bus.get_output_wire(2) as i32,
+            flags_output_bus.get_output_wire(3) as i32,
+        )
     }
 }
 
@@ -333,7 +347,6 @@ impl ALU {
 mod tests {
     use super::*;
     use std::cell::RefCell;
-    use std::rc::Rc;
 
     #[test]
     fn test_alu_add() {
@@ -449,7 +462,7 @@ mod tests {
         op_test(o, 0xA9A9, 0x5757, true, 0x0000, false, true, false, false);
     }
 
-    async fn op_test(
+    fn op_test(
         op: Operation,
         input_a: u16,
         input_b: u16,

@@ -2,13 +2,7 @@ use crate::components::{Bus, Decoder8x256, Enableable, Register, Settable, Updat
 use crate::gates::Wire;
 use crate::gates::AND;
 use std::fmt::Display;
-use std::{
-    cell::RefCell,
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
-
-pub const BUS_WIDTH: i32 = 16;
+use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone)]
 pub struct Cell {
@@ -162,9 +156,10 @@ impl Display for Memory64K {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::components::BUS_WIDTH;
 
-    #[tokio::test]
-    async fn test_cell() {
+    #[test]
+    fn test_cell() {
         let input_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let output_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let mut cell = Cell::new(input_bus.clone(), output_bus.clone());

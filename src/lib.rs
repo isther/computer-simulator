@@ -15,6 +15,3 @@ mod computer;
 
 pub use assembler::Assembler;
 pub use generator::get_instructions;
-
-use std::{cell::RefCell, rc::Rc, sync::Arc};
-use tokio::sync::Mutex;

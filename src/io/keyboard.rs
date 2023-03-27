@@ -7,13 +7,10 @@ use crate::{
 };
 use std::{
     cell::RefCell,
-    future::Future,
-    pin::Pin,
     rc::Rc,
     sync::{Arc, Mutex},
-    task::{Context, Poll},
 };
-use tokio::sync::{mpsc, Notify};
+use tokio::sync::mpsc;
 
 // [cpu] <-------------> keyboard adapter <----------- keyboard <----------- [keyPressChannel]
 //         read/write                        write                 notify
@@ -187,9 +184,10 @@ impl Keyboard {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tokio::sync::Notify;
 
-    #[tokio::test]
-    async fn test_key_adapter() {
+    #[test]
+    fn test_key_adapter() {
         let io_bus = Rc::new(RefCell::new(IOBus::new()));
         let main_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let mut key_adapter = KeyboardAdapter::new();
@@ -220,7 +218,6 @@ mod tests {
 
     #[tokio::test]
     async fn test_key_board() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
         let out_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let (keypress_sender, keypress_receiver) = mpsc::channel(32);
         let quit = Arc::new(Notify::new());

@@ -62,11 +62,7 @@ impl Component for Bus {
 
 impl Display for Bus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "bus: {}",
-            String::from_iter(self.wires.iter().map(|v| format!("{}", v.get() as u32))),
-        )
+        write!(f, "bus: {:>#06X}", self.get_value())
     }
 }
 

@@ -77,11 +77,11 @@ impl Display for Register {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}: {} E: {} S: {}",
+            "[{}]: {:>#06X} E: {} S: {}",
             self.name,
             self.value(),
-            self.enable.get(),
-            self.set.get()
+            self.enable.get() as i32,
+            self.set.get() as i32
         )
     }
 }

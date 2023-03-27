@@ -3,11 +3,7 @@ use crate::{
     gates::Wire,
     memory::Cell,
 };
-use std::{
-    cell::RefCell,
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 
 // Display RAM is special as the writes (inputs) and reads (outputs) are two separate
 // units that operate independently.
@@ -16,15 +12,15 @@ pub struct DisplayRAM {
     input_row_decoder: Decoder8x256,
     input_col_decoder: Decoder8x256,
 
-    output_address_register: Register,
-    output_row_decoder: Decoder8x256,
-    output_col_decoder: Decoder8x256,
+    pub output_address_register: Register,
+    pub output_row_decoder: Decoder8x256,
+    pub output_col_decoder: Decoder8x256,
 
     data: Vec<Vec<Cell>>,
     set: Wire,
-    enable: Wire,
-    input_bus: Arc<Mutex<Bus>>,
-    output_bus: Arc<Mutex<Bus>>,
+    pub enable: Wire,
+    pub input_bus: Arc<Mutex<Bus>>,
+    pub output_bus: Arc<Mutex<Bus>>,
 }
 
 impl DisplayRAM {
