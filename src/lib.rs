@@ -1,4 +1,4 @@
-#![allow(unused)]
+// #![allow(unused)]
 #![feature(async_closure)]
 
 mod assembler;
@@ -13,7 +13,6 @@ mod io;
 mod memory;
 
 mod computer;
-mod glfw_io;
 
 pub use assembler::Assembler;
 pub use generator::get_instructions;

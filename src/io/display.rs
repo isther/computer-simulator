@@ -5,11 +5,7 @@ use crate::{
     },
     gates::NOT,
 };
-use std::{
-    cell::RefCell,
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, Notify};
 
 // [cpu] -------> display adapter --------> display RAM <--------- screen control ---------> [screenChannel]
@@ -20,7 +16,7 @@ pub struct DisplayAdapter {
     screen_bus: Arc<Mutex<Bus>>,
     display_ram: Option<DisplayRAM>,
     display_adapter_active_bit: Bit,
-    input_mar_out_bus: Bus,
+    pub input_mar_out_bus: Bus,
     address_select_and_gate: ANDGate8,
     address_select_not_gates: [NOT; 5],
     is_address_output_mode_gate: ANDGate3,

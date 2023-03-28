@@ -1,8 +1,6 @@
 use super::{Bus, Component, Enableable, Enabler, Settable, Updatable, Wire, Word, BUS_WIDTH};
 use std::{
-    cell::RefCell,
     fmt::Display,
-    rc::Rc,
     sync::{Arc, Mutex},
 };
 
@@ -12,7 +10,7 @@ pub struct Register {
     pub set: Wire,
     pub enable: Wire,
     pub word: Word,
-    pub enabler: Rc<RefCell<Enabler>>,
+    pub enabler: Arc<Mutex<Enabler>>,
     pub outputs: [Wire; BUS_WIDTH as usize],
     pub input_bus: Arc<Mutex<Bus>>,
     pub output_bus: Arc<Mutex<Bus>>,
@@ -25,7 +23,7 @@ impl Register {
             set: Wire::new("S".to_string(), false),
             enable: Wire::new("E".to_string(), false),
             word: Word::new(),
-            enabler: Rc::new(RefCell::new(Enabler::new())),
+            enabler: Arc::new(Mutex::new(Enabler::new())),
             outputs: (0..BUS_WIDTH)
                 .map(|_| Wire::new("Z".to_string(), false))
                 .collect::<Vec<Wire>>()
@@ -114,10 +112,12 @@ impl Updatable for Register {
         }
 
         self.word.update(self.set.get());
-        self.enabler.borrow_mut().update(self.enable.get());
+        self.enabler.lock().unwrap().update(self.enable.get());
 
-        for i in 0..self.enabler.borrow().outputs.len() {
-            self.outputs[i].update(self.enabler.borrow().outputs[i].get())
+        let len = { self.enabler.lock().unwrap().outputs.len() };
+        for i in 0..len {
+            println!("GOGOGO");
+            self.outputs[i].update(self.enabler.lock().unwrap().outputs[i].get())
         }
 
         if self.enable.get() {

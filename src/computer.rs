@@ -4,11 +4,7 @@ use crate::{
     io::{DisplayAdapter, Keyboard, KeyboardAdapter, ScreenControl},
     memory::Memory64K,
 };
-use std::{
-    cell::RefCell,
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 use tokio::sync::{mpsc, Notify};
 
 const CODE_REGION_START: u16 = 0x0500;
@@ -23,7 +19,7 @@ struct SimpleComputer {
     cpu: CPU,
     memory: Arc<Mutex<Memory64K>>,
     display_adapter: Arc<Mutex<DisplayAdapter>>,
-    screen_control: ScreenControl,
+    screen_control: Arc<Mutex<ScreenControl>>,
     keyboard_adapter: KeyboardAdapter,
     screen_channel: mpsc::Sender<[[u8; 240]; 160]>,
     quit_channel: Arc<Notify>,
@@ -39,24 +35,23 @@ impl SimpleComputer {
             cpu: CPU::new(main_bus.clone(), memory.clone()),
             memory: memory.clone(),
             display_adapter: display_adapter.clone(),
-            screen_control: ScreenControl::new(
+            screen_control: Arc::new(Mutex::new(ScreenControl::new(
                 display_adapter.clone(),
                 screen_channel.clone(),
                 quit_channel.clone(),
-            ),
+            ))),
             keyboard_adapter: KeyboardAdapter::new(),
             screen_channel,
             quit_channel,
         };
-
         res.cpu.connect_peripheral(res.display_adapter.clone());
-
         res
     }
 
-    fn connect_keyboard(&mut self, keyboard: &Rc<RefCell<Keyboard>>) {
+    fn connect_keyboard(&mut self, keyboard: &Arc<Mutex<Keyboard>>) {
         keyboard
-            .borrow_mut()
+            .lock()
+            .unwrap()
             .connect(self.keyboard_adapter.keyboard_in_bus.clone());
     }
 
@@ -102,7 +97,7 @@ impl SimpleComputer {
         // start at offet of user code
         self.cpu.set_iar(CODE_REGION_START);
 
-        //BUG: tokio::spawn(self.screen_control.run());
+        //BUG: self.screen_control.lock().unwrap().run();
 
         let mut steps = 0;
         loop {

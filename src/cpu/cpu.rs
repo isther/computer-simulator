@@ -9,9 +9,7 @@ use crate::{
     memory::Memory64K,
 };
 use std::{
-    cell::RefCell,
     fmt::Display,
-    rc::Rc,
     sync::{Arc, Mutex},
 };
 
@@ -25,13 +23,13 @@ pub struct CPU {
     acc: Register,
     iar: Register, // Instruction address register
     ir: Register,  // Instruction register
-    flags: Register,
+    pub flags: Register,
 
-    clock_state: bool,
+    pub clock_state: bool,
     memory: Arc<Mutex<Memory64K>>,
     alu: ALU,
     stepper: Stepper,
-    busone: BusOne,
+    pub busone: BusOne,
 
     // Bus
     pub main_bus: Arc<Mutex<Bus>>,
@@ -40,81 +38,81 @@ pub struct CPU {
     pub control_bus: Arc<Mutex<Bus>>,
     pub acc_bus: Arc<Mutex<Bus>>,
     pub alu_to_flags_bus: Arc<Mutex<Bus>>,
-    flags_bus: Arc<Mutex<Bus>>,
-    io_bus: Arc<Mutex<IOBus>>,
+    pub flags_bus: Arc<Mutex<Bus>>,
+    pub io_bus: Arc<Mutex<IOBus>>,
 
     // CONTROL UNIT
     // inc. gates, wiring, instruction decoding etc
-    step4_gates: [AND; 8],
-    step4_gate3_and: ANDGate3,
-    step5_gates: [AND; 6],
-    step5_gate3_and: ANDGate3,
-    step6_gates: [ANDGate3; 2],
-    step6_gates2_and: AND,
+    pub step4_gates: [AND; 8],
+    pub step4_gate3_and: ANDGate3,
+    pub step5_gates: [AND; 6],
+    pub step5_gate3_and: ANDGate3,
+    pub step6_gates: [ANDGate3; 2],
+    pub step6_gates2_and: AND,
 
-    instr_decoder3x8: InstructionDecoder3x8,
-    instruction_decoder_enables2x4: [Decoder2x4; 2],
-    instruction_decoder_set2x4: Decoder2x4,
+    pub instr_decoder3x8: InstructionDecoder3x8,
+    pub instruction_decoder_enables2x4: [Decoder2x4; 2],
+    pub instruction_decoder_set2x4: Decoder2x4,
 
-    ir_instruction_and_gate: ANDGate3,
-    ir_instruction_not_gate: NOT,
+    pub ir_instruction_and_gate: ANDGate3,
+    pub ir_instruction_not_gate: NOT,
 
-    io_bus_enable_gate: AND,
-    register_a_enable_or_gate: ORGate3,
-    register_b_enable_or_gate: ORGate4,
-    register_b_set_or_gate: ORGate4,
-    register_a_enable: Wire,
-    register_b_enable: Wire,
-    acc_enable_or_gate: ORGate4,
-    acc_enable_and_gate: AND,
-    bus_one_enable_or_gate: ORGate4,
-    iar_enable_or_gate: ORGate4,
-    iar_enable_and_gate: AND,
-    ram_enable_or_gate: ORGate5,
-    ram_enable_and_gate: AND,
-    gp_reg_enable_and_gates: [ANDGate3; 8],
-    gp_reg_enable_or_gates: [OR; 4],
-    gp_reg_set_and_gates: [ANDGate3; 4],
+    pub io_bus_enable_gate: AND,
+    pub register_a_enable_or_gate: ORGate3,
+    pub register_b_enable_or_gate: ORGate4,
+    pub register_b_set_or_gate: ORGate4,
+    pub register_a_enable: Wire,
+    pub register_b_enable: Wire,
+    pub acc_enable_or_gate: ORGate4,
+    pub acc_enable_and_gate: AND,
+    pub bus_one_enable_or_gate: ORGate4,
+    pub iar_enable_or_gate: ORGate4,
+    pub iar_enable_and_gate: AND,
+    pub ram_enable_or_gate: ORGate5,
+    pub ram_enable_and_gate: AND,
+    pub gp_reg_enable_and_gates: [ANDGate3; 8],
+    pub gp_reg_enable_or_gates: [OR; 4],
+    pub gp_reg_set_and_gates: [ANDGate3; 4],
 
-    io_bus_set_gate: AND,
+    pub io_bus_set_gate: AND,
 
     // IR
-    ir_set_and_gate: AND,
-    ir_bit4_not_gate: NOT,
+    pub ir_set_and_gate: AND,
+    pub ir_bit4_not_gate: NOT,
 
     // MAR
-    mar_set_and_gate: AND,
-    mar_set_or_gate: ORGate6,
+    pub mar_set_and_gate: AND,
+    pub mar_set_or_gate: ORGate6,
 
     // IAR
-    iar_set_and_gate: AND,
-    iar_set_or_gate: ORGate6,
+    pub iar_set_and_gate: AND,
+    pub iar_set_or_gate: ORGate6,
 
     // ACC
-    acc_set_and_gate: AND,
-    acc_set_or_gate: ORGate4,
+    pub acc_set_and_gate: AND,
+    pub acc_set_or_gate: ORGate4,
 
     // RAM
-    ram_set_and_gate: AND,
+    pub ram_set_and_gate: AND,
 
     // TMP
-    tmp_set_and_gate: AND,
+    pub tmp_set_and_gate: AND,
 
     // FLAGS
-    flags_set_and_gate: AND,
-    flags_set_or_gate: OR,
+    pub flags_set_and_gate: AND,
+    pub flags_set_or_gate: OR,
 
-    register_b_set: Wire,
+    pub register_b_set: Wire,
 
-    flag_state_gates: [AND; 4],
-    flag_state_or_gate: ORGate4,
+    pub flag_state_gates: [AND; 4],
+    pub flag_state_or_gate: ORGate4,
 
-    alu_op_and_gates: [ANDGate3; 3],
+    pub alu_op_and_gates: [ANDGate3; 3],
 
-    carry_temp: Bit,
-    carry_and_gate: AND,
+    pub carry_temp: Bit,
+    pub carry_and_gate: AND,
 
-    peripherals: Vec<Arc<Mutex<dyn Peripheral>>>,
+    pub peripherals: Vec<Arc<Mutex<dyn Peripheral>>>,
 }
 
 impl CPU {
@@ -938,7 +936,6 @@ impl Display for CPU {
     }
 }
 
-// INFO: This is a test module for CPU
 #[cfg(test)]
 mod tests {
     use super::*;

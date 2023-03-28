@@ -1,7 +1,8 @@
 use crate::gates::{Wire, AND, NAND, NOT, OR};
-use std::cell::RefCell;
-use std::fmt::Debug;
-use std::rc::Rc;
+use std::{
+    fmt::Debug,
+    sync::{Arc, Mutex},
+};
 
 mod adder;
 mod bus;
@@ -43,8 +44,8 @@ pub trait Updatable {
     fn update(&mut self);
 }
 
-pub trait Component: ComponentClone {
-    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>);
+pub trait Component: ComponentClone + Send {
+    fn connect_output(&mut self, component: Arc<Mutex<dyn Component>>);
     fn set_input_wire(&mut self, i: i32, value: bool);
     fn get_output_wire(&self, i: i32) -> bool;
 }
@@ -123,7 +124,7 @@ pub struct Enabler {
     inputs: [Wire; BUS_WIDTH as usize],
     pub gates: [AND; BUS_WIDTH as usize],
     outputs: [Wire; BUS_WIDTH as usize],
-    next: Option<Rc<RefCell<dyn Component>>>,
+    next: Option<Arc<Mutex<dyn Component>>>,
 }
 
 impl Enabler {
@@ -157,7 +158,8 @@ impl Enabler {
         match &self.next {
             Some(next) => {
                 for i in 0..self.outputs.len() {
-                    next.borrow_mut()
+                    next.lock()
+                        .unwrap()
                         .set_input_wire(i as i32, self.outputs[i].get());
                 }
             }
@@ -181,7 +183,7 @@ impl Debug for Enabler {
 }
 
 impl Component for Enabler {
-    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
+    fn connect_output(&mut self, component: Arc<Mutex<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
@@ -199,7 +201,7 @@ pub struct LeftShifter {
     outputs: [Wire; BUS_WIDTH as usize],
     pub shift_in: Wire,
     pub shift_out: Wire,
-    next: Option<Rc<RefCell<dyn Component>>>,
+    next: Option<Arc<Mutex<dyn Component>>>,
 }
 
 impl LeftShifter {
@@ -238,7 +240,7 @@ impl LeftShifter {
 }
 
 impl Component for LeftShifter {
-    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
+    fn connect_output(&mut self, component: Arc<Mutex<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
@@ -256,7 +258,7 @@ pub struct RightShifter {
     outputs: [Wire; BUS_WIDTH as usize],
     pub shift_in: Wire,
     pub shift_out: Wire,
-    next: Option<Rc<RefCell<dyn Component>>>,
+    next: Option<Arc<Mutex<dyn Component>>>,
 }
 
 impl RightShifter {
@@ -295,7 +297,7 @@ impl RightShifter {
 }
 
 impl Component for RightShifter {
-    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
+    fn connect_output(&mut self, component: Arc<Mutex<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
@@ -357,7 +359,7 @@ impl IsZero {
 }
 
 impl Component for IsZero {
-    fn connect_output(&mut self, _: Rc<RefCell<dyn Component>>) {}
+    fn connect_output(&mut self, component: Arc<Mutex<dyn Component>>) {}
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.inputs[i as usize].update(value)
     }

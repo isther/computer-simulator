@@ -8,7 +8,7 @@ mod keyboard;
 pub use display::{DisplayAdapter, ScreenControl};
 pub use keyboard::{KeyPress, Keyboard, KeyboardAdapter};
 
-pub trait Peripheral {
+pub trait Peripheral: Send {
     fn connect(&mut self, io_bus: Arc<Mutex<IOBus>>, bus: Arc<Mutex<Bus>>);
     fn update(&mut self);
 }

@@ -1,8 +1,9 @@
 use super::Component;
 use crate::gates::Wire;
-use std::cell::RefCell;
-use std::fmt::Display;
-use std::rc::Rc;
+use std::{
+    fmt::Display,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Clone, Debug)]
 pub struct Bus {
@@ -51,7 +52,7 @@ impl Bus {
 }
 
 impl Component for Bus {
-    fn connect_output(&mut self, _: Rc<RefCell<dyn Component>>) {}
+    fn connect_output(&mut self, component: Arc<Mutex<dyn Component>>) {}
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.wires[i as usize].update(value)
     }

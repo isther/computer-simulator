@@ -1,8 +1,6 @@
 use super::{Bus, Component, Enableable, Updatable, Wire, AND, BUS_WIDTH, NOT, OR};
 use std::{
-    cell::RefCell,
     fmt::Display,
-    rc::Rc,
     sync::{Arc, Mutex},
 };
 
@@ -16,7 +14,7 @@ pub struct BusOne {
     pub not_gate: NOT,
     pub or_gate: OR,
     pub outputs: [Wire; BUS_WIDTH as usize],
-    pub next: Option<Rc<RefCell<dyn Component>>>,
+    pub next: Option<Arc<Mutex<dyn Component>>>,
 }
 
 impl BusOne {
@@ -67,7 +65,7 @@ impl Display for BusOne {
 }
 
 impl Component for BusOne {
-    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
+    fn connect_output(&mut self, component: Arc<Mutex<dyn Component>>) {
         self.next = Some(component)
     }
 

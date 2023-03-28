@@ -6,9 +6,7 @@ use crate::{
     gates::{Wire, AND},
 };
 use std::{
-    cell::RefCell,
     fmt::Display,
-    rc::Rc,
     sync::{Arc, Mutex},
 };
 
@@ -89,14 +87,14 @@ pub struct ALU {
 
     pub op_decoder: Decoder3x8,
 
-    pub comparator: Rc<RefCell<Comparator>>,
-    pub xorer: Rc<RefCell<XORer>>,
-    pub orer: Rc<RefCell<ORer>>,
-    pub ander: Rc<RefCell<ANDer>>,
-    pub notter: Rc<RefCell<NOTer>>,
-    pub left_shifer: Rc<RefCell<LeftShifter>>,
-    pub right_shifer: Rc<RefCell<RightShifter>>,
-    pub adder: Rc<RefCell<Adder>>,
+    pub comparator: Arc<Mutex<Comparator>>,
+    pub xorer: Arc<Mutex<XORer>>,
+    pub orer: Arc<Mutex<ORer>>,
+    pub ander: Arc<Mutex<ANDer>>,
+    pub notter: Arc<Mutex<NOTer>>,
+    pub left_shifer: Arc<Mutex<LeftShifter>>,
+    pub right_shifer: Arc<Mutex<RightShifter>>,
+    pub adder: Arc<Mutex<Adder>>,
 
     pub is_zero: IsZero,
     pub enablers: Box<Vec<Enabler>>, //7
@@ -142,14 +140,14 @@ impl ALU {
             a_is_larger: Wire::new("a_is_larger".to_string(), false),
             is_equal: Wire::new("is_equal".to_string(), false),
             op_decoder: Decoder3x8::new(),
-            comparator: Rc::new(RefCell::new(Comparator::new())),
-            xorer: Rc::new(RefCell::new(XORer::new())),
-            orer: Rc::new(RefCell::new(ORer::new())),
-            ander: Rc::new(RefCell::new(ANDer::new())),
-            notter: Rc::new(RefCell::new(NOTer::new())),
-            left_shifer: Rc::new(RefCell::new(LeftShifter::new())),
-            right_shifer: Rc::new(RefCell::new(RightShifter::new())),
-            adder: Rc::new(RefCell::new(Adder::new())),
+            comparator: Arc::new(Mutex::new(Comparator::new())),
+            xorer: Arc::new(Mutex::new(XORer::new())),
+            orer: Arc::new(Mutex::new(ORer::new())),
+            ander: Arc::new(Mutex::new(ANDer::new())),
+            notter: Arc::new(Mutex::new(NOTer::new())),
+            left_shifer: Arc::new(Mutex::new(LeftShifter::new())),
+            right_shifer: Arc::new(Mutex::new(RightShifter::new())),
+            adder: Arc::new(Mutex::new(Adder::new())),
             is_zero: IsZero::new(),
             enablers: Box::new(
                 (0..7)
@@ -166,31 +164,32 @@ impl ALU {
         }
     }
 
-    pub fn set_wire_on_component<T>(&self, c: Rc<RefCell<T>>)
+    pub fn set_wire_on_component<T>(&self, c: Arc<Mutex<T>>)
     where
         T: Component,
     {
         for i in (0..BUS_WIDTH).rev() {
-            c.borrow_mut().set_input_wire(
+            c.lock().unwrap().set_input_wire(
                 i as i32,
                 self.input_a_bus.lock().unwrap().get_output_wire(i),
             );
         }
 
         for i in (BUS_WIDTH..BUS_WIDTH * 2).rev() {
-            c.borrow_mut().set_input_wire(
+            c.lock().unwrap().set_input_wire(
                 i as i32,
                 self.input_b_bus.lock().unwrap().get_output_wire(i - 16),
             );
         }
     }
 
-    pub fn wire_to_enabler<T>(&mut self, c: Rc<RefCell<T>>, enabler_index: i32)
+    pub fn wire_to_enabler<T>(&mut self, c: Arc<Mutex<T>>, enabler_index: i32)
     where
         T: Component,
     {
         for i in 0..BUS_WIDTH {
-            self.enablers[enabler_index as usize].set_input_wire(i, c.borrow().get_output_wire(i))
+            self.enablers[enabler_index as usize]
+                .set_input_wire(i, c.lock().unwrap().get_output_wire(i))
         }
     }
 }
@@ -220,21 +219,21 @@ impl ALU {
             match enabler {
                 Operation::ADD => {
                     self.and_gates[0].update(
-                        self.adder.borrow().get_carry_out(),
+                        self.adder.lock().unwrap().get_carry_out(),
                         self.op_decoder.get_output_wire(Operation::ADD.into()),
                     );
                     self.carry_out.update(self.and_gates[0].get());
                 }
                 Operation::SHR => {
                     self.and_gates[1].update(
-                        self.right_shifer.borrow().get(),
+                        self.right_shifer.lock().unwrap().get(),
                         self.op_decoder.get_output_wire(Operation::SHR.into()),
                     );
                     self.carry_out.update(self.and_gates[1].get());
                 }
                 Operation::SHL => {
                     self.and_gates[2].update(
-                        self.left_shifer.borrow().get(),
+                        self.left_shifer.lock().unwrap().get(),
                         self.op_decoder.get_output_wire(Operation::SHL.into()),
                     );
                     self.carry_out.update(self.and_gates[2].get());
@@ -283,62 +282,70 @@ impl ALU {
 
     fn update_comparator(&mut self) {
         self.set_wire_on_component(self.comparator.clone());
-        self.comparator.borrow_mut().update();
-        self.a_is_larger.update(self.comparator.borrow().larger());
-        self.is_equal.update(self.comparator.borrow().equal());
+        self.comparator.lock().unwrap().update();
+        self.a_is_larger
+            .update(self.comparator.lock().unwrap().larger());
+        self.is_equal
+            .update(self.comparator.lock().unwrap().equal());
     }
 
     fn update_xorer(&mut self) {
         self.set_wire_on_component(self.xorer.clone());
-        self.xorer.borrow_mut().update();
+        self.xorer.lock().unwrap().update();
         self.wire_to_enabler(self.xorer.clone(), 6);
     }
 
     fn update_orer(&mut self) {
         self.set_wire_on_component(self.orer.clone());
-        self.orer.borrow_mut().update();
+        self.orer.lock().unwrap().update();
         self.wire_to_enabler(self.orer.clone(), 5);
     }
 
     fn update_ander(&mut self) {
         self.set_wire_on_component(self.ander.clone());
-        self.ander.borrow_mut().update();
+        self.ander.lock().unwrap().update();
         self.wire_to_enabler(self.ander.clone(), 4);
     }
 
     fn update_notter(&mut self) {
         for i in (0..BUS_WIDTH).rev() {
             self.notter
-                .borrow_mut()
+                .lock()
+                .unwrap()
                 .set_input_wire(i, self.input_a_bus.lock().unwrap().get_output_wire(i))
         }
-        self.notter.borrow_mut().update();
+        self.notter.lock().unwrap().update();
         self.wire_to_enabler(self.notter.clone(), 3);
     }
 
     fn update_right_shifter(&mut self) {
         for i in (0..BUS_WIDTH).rev() {
             self.right_shifer
-                .borrow_mut()
+                .lock()
+                .unwrap()
                 .set_input_wire(i, self.input_a_bus.lock().unwrap().get_output_wire(i));
         }
-        self.right_shifer.borrow_mut().update(self.carry_in.get());
+        self.right_shifer
+            .lock()
+            .unwrap()
+            .update(self.carry_in.get());
         self.wire_to_enabler(self.right_shifer.clone(), 2);
     }
 
     fn update_left_shifter(&mut self) {
         for i in (0..BUS_WIDTH).rev() {
             self.left_shifer
-                .borrow_mut()
+                .lock()
+                .unwrap()
                 .set_input_wire(i, self.input_a_bus.lock().unwrap().get_output_wire(i));
         }
-        self.left_shifer.borrow_mut().update(self.carry_in.get());
+        self.left_shifer.lock().unwrap().update(self.carry_in.get());
         self.wire_to_enabler(self.left_shifer.clone(), 1);
     }
 
     fn update_adder(&mut self) {
         self.set_wire_on_component(self.adder.clone());
-        self.adder.borrow_mut().update(self.carry_in.get());
+        self.adder.lock().unwrap().update(self.carry_in.get());
         self.wire_to_enabler(self.adder.clone(), 0);
     }
 }
@@ -346,7 +353,6 @@ impl ALU {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::cell::RefCell;
 
     #[test]
     fn test_alu_add() {
@@ -534,18 +540,5 @@ mod tests {
                 _ => alu.op[i].update(true),
             }
         }
-    }
-
-    fn get_value_of_bus(bus: &RefCell<Bus>) -> u16 {
-        let mut x: u16 = 0;
-        let mut result: u16 = 0;
-        for i in (0..BUS_WIDTH).rev() {
-            match bus.borrow().get_output_wire(i) {
-                true => result = result | (1 << x),
-                false => result = result ^ (result & (1 << x)),
-            };
-            x += 1;
-        }
-        result
     }
 }

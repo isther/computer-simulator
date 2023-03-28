@@ -1,8 +1,9 @@
 use super::Component;
 use crate::gates::{Wire, AND, OR, XOR};
-use std::cell::RefCell;
-use std::fmt::Display;
-use std::rc::Rc;
+use std::{
+    fmt::Display,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Clone)]
 pub struct Adder {
@@ -11,7 +12,7 @@ pub struct Adder {
     pub adds: [FullAdder; 16],
     carry_out: Wire,
     outputs: [Wire; 16],
-    next: Option<Rc<RefCell<dyn Component>>>,
+    next: Option<Arc<Mutex<dyn Component>>>,
 }
 
 impl Adder {
@@ -91,7 +92,7 @@ carry_out: {}",
 }
 
 impl Component for Adder {
-    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
+    fn connect_output(&mut self, component: Arc<Mutex<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {

@@ -5,11 +5,7 @@ use crate::{
     },
     gates::{AND, NOT},
 };
-use std::{
-    cell::RefCell,
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use std::sync::{Arc, Mutex};
 use tokio::sync::mpsc;
 
 // [cpu] <-------------> keyboard adapter <----------- keyboard <----------- [keyPressChannel]
@@ -17,7 +13,7 @@ use tokio::sync::mpsc;
 pub struct KeyboardAdapter {
     pub keyboard_in_bus: Arc<Mutex<Bus>>,
 
-    io_bus: Rc<RefCell<IOBus>>,
+    io_bus: Arc<Mutex<IOBus>>,
     main_bus: Arc<Mutex<Bus>>,
 
     memory_bit: Bit,
@@ -36,7 +32,7 @@ impl KeyboardAdapter {
     pub fn new() -> Self {
         Self {
             keyboard_in_bus: Arc::new(Mutex::new(Bus::new(BUS_WIDTH))),
-            io_bus: Rc::new(RefCell::new(IOBus::new())),
+            io_bus: Arc::new(Mutex::new(IOBus::new())),
             main_bus: Arc::new(Mutex::new(Bus::new(BUS_WIDTH))),
             memory_bit: Bit::new(),
             key_code_register: Register::new(
@@ -61,7 +57,7 @@ impl KeyboardAdapter {
         }
     }
 
-    fn connect(&mut self, io_bus: Rc<RefCell<IOBus>>, main_bus: Arc<Mutex<Bus>>) {
+    fn connect(&mut self, io_bus: Arc<Mutex<IOBus>>, main_bus: Arc<Mutex<Bus>>) {
         self.io_bus = io_bus;
         self.main_bus = main_bus;
 
@@ -91,28 +87,20 @@ impl KeyboardAdapter {
             main_bus.get_output_wire(15),
         );
 
+        let io_bus = self.io_bus.lock().unwrap();
         self.and_gate2.update(
-            self.io_bus.borrow().get_output_wire(Mode::ClockSet.into()),
-            self.io_bus
-                .borrow()
-                .get_output_wire(Mode::DataOrAddress.into()),
-            self.io_bus.borrow().get_output_wire(Mode::Mode.into()),
+            io_bus.get_output_wire(Mode::ClockSet.into()),
+            io_bus.get_output_wire(Mode::DataOrAddress.into()),
+            io_bus.get_output_wire(Mode::Mode.into()),
         );
         self.memory_bit
             .update(self.and_gate1.get(), self.and_gate2.get());
 
-        self.not_gates_for_and_gate3[0].update(
-            self.io_bus
-                .borrow()
-                .get_output_wire(Mode::DataOrAddress.into()),
-        );
-        self.not_gates_for_and_gate3[1]
-            .update(self.io_bus.borrow().get_output_wire(Mode::Mode.into()));
+        self.not_gates_for_and_gate3[0].update(io_bus.get_output_wire(Mode::DataOrAddress.into()));
+        self.not_gates_for_and_gate3[1].update(io_bus.get_output_wire(Mode::Mode.into()));
 
         self.and_gate3.update(
-            self.io_bus
-                .borrow()
-                .get_output_wire(Mode::ClockEnable.into()),
+            io_bus.get_output_wire(Mode::ClockEnable.into()),
             self.not_gates_for_and_gate3[0].get(),
             self.not_gates_for_and_gate3[1].get(),
         );
@@ -188,7 +176,7 @@ mod tests {
 
     #[test]
     fn test_key_adapter() {
-        let io_bus = Rc::new(RefCell::new(IOBus::new()));
+        let io_bus = Arc::new(Mutex::new(IOBus::new()));
         let main_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let mut key_adapter = KeyboardAdapter::new();
         key_adapter.connect(io_bus.clone(), main_bus.clone());
@@ -200,14 +188,14 @@ mod tests {
             .set_value(0x1234);
         key_adapter.update();
 
-        io_bus.borrow_mut().set();
-        io_bus.borrow_mut().update(true, true);
+        io_bus.lock().unwrap().set();
+        io_bus.lock().unwrap().update(true, true);
         key_adapter.update();
-        io_bus.borrow_mut().unset();
+        io_bus.lock().unwrap().unset();
         key_adapter.update();
 
-        io_bus.borrow_mut().enable();
-        io_bus.borrow_mut().update(false, false);
+        io_bus.lock().unwrap().enable();
+        io_bus.lock().unwrap().update(false, false);
         key_adapter.update();
 
         key_adapter.update();

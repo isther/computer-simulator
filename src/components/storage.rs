@@ -1,7 +1,8 @@
 use super::{Component, Wire, NAND};
-use std::cell::RefCell;
-use std::fmt::Debug;
-use std::rc::Rc;
+use std::{
+    fmt::Debug,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Debug, Clone)]
 pub struct Bit {
@@ -41,7 +42,7 @@ pub struct Word {
     inputs: [Wire; 16],
     pub bits: [Bit; 16],
     outputs: [Wire; 16],
-    next: Option<Rc<RefCell<dyn Component>>>,
+    next: Option<Arc<Mutex<dyn Component>>>,
 }
 
 impl Debug for Word {
@@ -85,7 +86,8 @@ impl Word {
         match &self.next {
             Some(next) => {
                 for i in 0..self.outputs.len() {
-                    next.borrow_mut()
+                    next.lock()
+                        .unwrap()
                         .set_input_wire(i as i32, self.outputs[i].get());
                 }
             }
@@ -95,7 +97,7 @@ impl Word {
 }
 
 impl Component for Word {
-    fn connect_output(&mut self, component: Rc<RefCell<dyn Component>>) {
+    fn connect_output(&mut self, component: Arc<Mutex<dyn Component>>) {
         self.next = Some(component)
     }
     fn set_input_wire(&mut self, i: i32, value: bool) {
