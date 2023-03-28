@@ -28,11 +28,12 @@ pub struct CPU {
     flags: Register,
 
     clock_state: bool,
-    memory: Rc<RefCell<Memory64K>>,
+    memory: Arc<Mutex<Memory64K>>,
     alu: ALU,
     stepper: Stepper,
     busone: BusOne,
 
+    // Bus
     pub main_bus: Arc<Mutex<Bus>>,
     pub tmp_bus: Arc<Mutex<Bus>>,
     pub busone_output: Arc<Mutex<Bus>>,
@@ -117,7 +118,7 @@ pub struct CPU {
 }
 
 impl CPU {
-    pub fn new(main_bus: Arc<Mutex<Bus>>, memory: Rc<RefCell<Memory64K>>) -> Self {
+    pub fn new(main_bus: Arc<Mutex<Bus>>, memory: Arc<Mutex<Memory64K>>) -> Self {
         // TMP
         let tmp_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let mut tmp = Register::new("TMP", main_bus.clone(), tmp_bus.clone());
@@ -133,7 +134,6 @@ impl CPU {
         let acc = Register::new("ACC", acc_bus.clone(), main_bus.clone());
 
         // IR
-        //
         let control_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let mut ir = Register::new("IR", main_bus.clone(), control_bus.clone());
         ir.disable();
@@ -175,7 +175,7 @@ impl CPU {
             alu,
             stepper: Stepper::new(),
             busone,
-            main_bus: main_bus.clone(),
+            main_bus,
             tmp_bus,
             busone_output,
             control_bus,
@@ -289,16 +289,6 @@ impl CPU {
         }
     }
 
-    fn update_enable_status_rc_refcell<T>(enableable: Rc<RefCell<T>>, state: bool)
-    where
-        T: Enableable,
-    {
-        match state {
-            true => enableable.borrow_mut().enable(),
-            false => enableable.borrow_mut().disable(),
-        }
-    }
-
     fn update_set_status<T>(set: &mut T, state: bool)
     where
         T: Settable,
@@ -309,13 +299,13 @@ impl CPU {
         }
     }
 
-    fn update_set_status_rc_refcell<T>(set: Rc<RefCell<T>>, state: bool)
+    fn update_set_status_arc_mutex<T>(set: Arc<Mutex<T>>, state: bool)
     where
         T: Settable,
     {
         match state {
-            true => set.borrow_mut().set(),
-            false => set.borrow_mut().unset(),
+            true => set.lock().unwrap().set(),
+            false => set.lock().unwrap().unset(),
         }
     }
 
@@ -326,11 +316,11 @@ impl CPU {
         u.update()
     }
 
-    fn update_on_rc_refcell<T>(u: Rc<RefCell<T>>)
+    fn update_on_arc_mutex<T>(u: Arc<Mutex<T>>)
     where
         T: Updatable,
     {
-        u.borrow_mut().update()
+        u.lock().unwrap().update()
     }
 
     pub fn connect_peripheral<T>(&mut self, p: Arc<Mutex<T>>)
@@ -344,9 +334,7 @@ impl CPU {
     }
 
     pub fn set_iar(&mut self, address: u16) {
-        {
-            self.main_bus.lock().unwrap().set_value(address);
-        }
+        self.main_bus.lock().unwrap().set_value(address);
 
         Self::update_set_status(&mut self.iar, true);
         Self::update_on(&mut self.iar);
@@ -467,13 +455,13 @@ impl CPU {
         Self::update_on(&mut self.iar);
 
         // MAR
-        Self::update_on(&mut self.memory.borrow_mut().address_register);
+        Self::update_on(&mut self.memory.lock().unwrap().address_register);
 
         // IR
         Self::update_on(&mut self.ir);
 
         // RAM
-        Self::update_on_rc_refcell(self.memory.clone());
+        Self::update_on_arc_mutex(self.memory.clone());
 
         // TMP
         Self::update_on(&mut self.tmp);
@@ -635,7 +623,7 @@ impl CPU {
         );
         self.ram_enable_and_gate
             .update(state, self.ram_enable_or_gate.get());
-        Self::update_enable_status_rc_refcell(self.memory.clone(), self.ram_enable_and_gate.get());
+        Self::update_enable_status_arc_mutex(self.memory.clone(), self.ram_enable_and_gate.get());
     }
 
     fn run_enable_on_register_b(&mut self) {
@@ -756,40 +744,29 @@ impl CPU {
     }
 
     fn refresh_flag_state_gates(&mut self) {
+        let flags_bus = self.flags_bus.lock().unwrap();
         // C
         self.flag_state_gates[0].update(
             self.ir.bit(12),
-            self.flags_bus
-                .lock()
-                .unwrap()
-                .get_output_wire(FlagState::Carry as i32),
+            flags_bus.get_output_wire(FlagState::Carry as i32),
         );
 
         // A
         self.flag_state_gates[1].update(
             self.ir.bit(13),
-            self.flags_bus
-                .lock()
-                .unwrap()
-                .get_output_wire(FlagState::ALarger as i32),
+            flags_bus.get_output_wire(FlagState::ALarger as i32),
         );
 
         // E
         self.flag_state_gates[2].update(
             self.ir.bit(14),
-            self.flags_bus
-                .lock()
-                .unwrap()
-                .get_output_wire(FlagState::Equal as i32),
+            flags_bus.get_output_wire(FlagState::Equal as i32),
         );
 
         // Z
         self.flag_state_gates[3].update(
             self.ir.bit(15),
-            self.flags_bus
-                .lock()
-                .unwrap()
-                .get_output_wire(FlagState::Zero as i32),
+            flags_bus.get_output_wire(FlagState::Zero as i32),
         );
 
         self.flag_state_or_gate.update(
@@ -803,7 +780,7 @@ impl CPU {
     fn run_set_on_io(&mut self, state: bool) {
         self.io_bus_set_gate
             .update(state, self.step4_gate3_and.get());
-        Self::update_enable_status_arc_mutex(self.io_bus.clone(), self.io_bus_set_gate.get());
+        Self::update_set_status_arc_mutex(self.io_bus.clone(), self.io_bus_set_gate.get());
     }
 
     fn run_set_on_mar(&mut self, state: bool) {
@@ -819,8 +796,8 @@ impl CPU {
             .update(state, self.mar_set_or_gate.get());
 
         match self.mar_set_and_gate.get() {
-            true => self.memory.borrow_mut().address_register.set(),
-            false => self.memory.borrow_mut().address_register.unset(),
+            true => self.memory.lock().unwrap().address_register.set(),
+            false => self.memory.lock().unwrap().address_register.unset(),
         }
     }
 
@@ -859,7 +836,7 @@ impl CPU {
     fn run_set_on_ram(&mut self, state: bool) {
         self.ram_set_and_gate
             .update(state, self.step5_gates[2].get());
-        Self::update_set_status_rc_refcell(self.memory.clone(), self.ram_set_and_gate.get());
+        Self::update_set_status_arc_mutex(self.memory.clone(), self.ram_set_and_gate.get());
     }
 
     fn run_set_on_tmp(&mut self, state: bool) {
@@ -943,11 +920,13 @@ impl Display for CPU {
         let acc_bus_value = self.acc_bus.lock().unwrap().get_value();
         write!(
             f,
-            "step: {}\n{} {} {}\n{} {} {} {}\n<main_bus>: {:>#06X} <acc_bus>: {:>#06X}\n{}",
+            "step: {}\n{} {} {} {} {}\n{} {} {} {}\n<main_bus>: {:>#06X} <acc_bus>: {:>#06X}\n{}",
             self.stepper,
-            self.ir,
             self.iar,
+            self.memory.lock().unwrap().address_register,
+            self.ir,
             self.acc,
+            self.tmp,
             self.gp_reg0,
             self.gp_reg1,
             self.gp_reg2,
@@ -959,13 +938,14 @@ impl Display for CPU {
     }
 }
 
+// INFO: This is a test module for CPU
 #[cfg(test)]
 mod tests {
     use super::*;
 
     fn get_cpu() -> CPU {
         let main_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
-        let memory = Rc::new(RefCell::new(Memory64K::new(main_bus.clone())));
+        let memory = Arc::new(Mutex::new(Memory64K::new(main_bus.clone())));
         CPU::new(main_bus.clone(), memory.clone())
     }
 
@@ -2402,24 +2382,26 @@ mod tests {
         test_cpu_multiply(5, 0x000F, 0x000F);
     }
 
-    fn set_memory_location(memory: Rc<RefCell<Memory64K>>, address: u16, value: u16) {
-        memory.borrow_mut().address_register.set();
-        {
-            memory.borrow().bus.lock().unwrap().set_value(address);
-        }
-        memory.borrow_mut().update();
+    fn set_memory_location(memory: Arc<Mutex<Memory64K>>, address: u16, value: u16) {
+        memory.lock().unwrap().address_register.set();
+        memory
+            .lock()
+            .unwrap()
+            .bus
+            .lock()
+            .unwrap()
+            .set_value(address);
+        memory.lock().unwrap().update();
 
-        memory.borrow_mut().address_register.unset();
-        memory.borrow_mut().update();
+        memory.lock().unwrap().address_register.unset();
+        memory.lock().unwrap().update();
 
-        {
-            memory.borrow().bus.lock().unwrap().set_value(value);
-        }
-        memory.borrow_mut().set();
-        memory.borrow_mut().update();
+        memory.lock().unwrap().bus.lock().unwrap().set_value(value);
+        memory.lock().unwrap().set();
+        memory.lock().unwrap().update();
 
-        memory.borrow_mut().unset();
-        memory.borrow_mut().update();
+        memory.lock().unwrap().unset();
+        memory.lock().unwrap().update();
     }
 
     impl CPU {
@@ -2478,23 +2460,23 @@ mod tests {
         }
 
         fn set_cpu_memory_location(&mut self, address: u16, value: u16) {
-            self.memory.borrow_mut().address_register.set();
+            self.memory.lock().unwrap().address_register.set();
             {
                 self.main_bus.lock().unwrap().set_value(address);
             }
-            self.memory.borrow_mut().update();
+            self.memory.lock().unwrap().update();
 
-            self.memory.borrow_mut().address_register.unset();
-            self.memory.borrow_mut().update();
+            self.memory.lock().unwrap().address_register.unset();
+            self.memory.lock().unwrap().update();
 
             {
                 self.main_bus.lock().unwrap().set_value(value);
             }
-            self.memory.borrow_mut().set();
-            self.memory.borrow_mut().update();
+            self.memory.lock().unwrap().set();
+            self.memory.lock().unwrap().update();
 
-            self.memory.borrow_mut().unset();
-            self.memory.borrow_mut().update();
+            self.memory.lock().unwrap().unset();
+            self.memory.lock().unwrap().update();
         }
 
         fn set_cpu_register(&mut self, register: u16, value: u16) {

@@ -6,7 +6,7 @@ mod display_ram;
 mod keyboard;
 
 pub use display::{DisplayAdapter, ScreenControl};
-pub use keyboard::{Keyboard, KeyboardAdapter};
+pub use keyboard::{KeyPress, Keyboard, KeyboardAdapter};
 
 pub trait Peripheral {
     fn connect(&mut self, io_bus: Arc<Mutex<IOBus>>, bus: Arc<Mutex<Bus>>);

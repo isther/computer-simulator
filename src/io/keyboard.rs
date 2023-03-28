@@ -139,7 +139,7 @@ impl KeyboardAdapter {
 }
 
 #[derive(Clone, Copy, Debug)]
-struct KeyPress {
+pub struct KeyPress {
     pub value: i32,
     pub is_down: bool,
 }

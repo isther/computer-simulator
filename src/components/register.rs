@@ -44,7 +44,7 @@ impl Register {
         self.word.get_output_wire(index)
     }
 
-    pub fn word_value(&self) -> u16 {
+    pub fn value(&self) -> u16 {
         let mut value: u16 = 0;
         let mut x: u16 = 0;
 
@@ -58,7 +58,7 @@ impl Register {
         value
     }
 
-    pub fn value(&self) -> u16 {
+    pub fn output_value(&self) -> u16 {
         let mut value: u16 = 0;
         let mut x: u16 = 0;
 
@@ -144,7 +144,7 @@ mod tests {
         register.set();
         register.enable();
         register.update();
-        assert_eq!(register.value(), 0xABCD);
+        assert_eq!(register.output_value(), 0xABCD);
 
         register.disable();
         register.update();
@@ -152,7 +152,7 @@ mod tests {
         bus.lock().unwrap().set_value(0x00FF);
 
         assert_eq!(bus.lock().unwrap().get_value(), 0x00FF);
-        assert_eq!(register.value(), 0x0000);
+        assert_eq!(register.output_value(), 0x0000);
     }
 
     #[test]
@@ -168,12 +168,12 @@ mod tests {
         bus.lock().unwrap().set_value(0x0EEE);
         register.unset();
         register.update();
-        assert_eq!(register.word_value(), 0x00FF, "value should not change");
+        assert_eq!(register.value(), 0x00FF, "value should not change");
 
         bus.lock().unwrap().set_value(0xFF00);
         register.set();
         register.update();
-        assert_eq!(register.value(), 0x0000, "value should change");
+        assert_eq!(register.output_value(), 0x0000, "value should change");
     }
 
     #[test]
@@ -192,6 +192,6 @@ mod tests {
         bus.lock().unwrap().set_value(0x00FF);
 
         assert_eq!(bus.lock().unwrap().get_value(), 0x00FF);
-        assert_eq!(register.value(), 0xABCD);
+        assert_eq!(register.output_value(), 0xABCD);
     }
 }
