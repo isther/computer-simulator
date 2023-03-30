@@ -1,5 +1,5 @@
 use super::{Enableable, Settable};
-use crate::gates::Wire;
+use crate::computer::gates::Wire;
 
 pub enum Mode {
     ClockSet,

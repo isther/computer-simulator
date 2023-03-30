@@ -1,4 +1,4 @@
-use crate::components::{Bus, IOBus};
+use crate::computer::components::{Bus, IOBus};
 use std::sync::{Arc, Mutex};
 
 mod display;

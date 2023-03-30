@@ -1,4 +1,4 @@
-use crate::{
+use crate::computer::{
     components::{
         ANDGate3, ANDGate8, Bit, Bus, Component, Enableable, IOBus, Mode, Register, Settable,
         Updatable, BUS_WIDTH,
@@ -6,10 +6,11 @@ use crate::{
     gates::{AND, NOT},
 };
 use std::sync::{Arc, Mutex};
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, Notify};
 
 // [cpu] <-------------> keyboard adapter <----------- keyboard <----------- [keyPressChannel]
 //         read/write                        write                 notify
+#[derive(Clone)]
 pub struct KeyboardAdapter {
     pub keyboard_in_bus: Arc<Mutex<Bus>>,
 
@@ -135,10 +136,18 @@ pub struct KeyPress {
 pub struct Keyboard {
     out_bus: Option<Arc<Mutex<Bus>>>,
     key_press: mpsc::Receiver<KeyPress>,
-    quit: Arc<tokio::sync::Notify>,
+    quit: Arc<Notify>,
 }
 
 impl Keyboard {
+    pub fn new(key_press: mpsc::Receiver<KeyPress>, quit: Arc<Notify>) -> Self {
+        Self {
+            out_bus: None,
+            key_press,
+            quit,
+        }
+    }
+
     pub fn connect(&mut self, bus: Arc<Mutex<Bus>>) -> &mut Self {
         println!("Connecting keyboard to bus");
         self.out_bus = Some(bus);

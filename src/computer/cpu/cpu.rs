@@ -1,5 +1,5 @@
 use super::{FlagState, InstructionDecoder3x8, ALU};
-use crate::{
+use crate::computer::{
     components::{
         ANDGate3, Bit, Bus, BusOne, Component, Decoder2x4, Enableable, IOBus, ORGate3, ORGate4,
         ORGate5, ORGate6, Register, Settable, Stepper, Updatable, BUS_WIDTH,
@@ -13,6 +13,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+#[derive(Clone)]
 pub struct CPU {
     gp_reg0: Register,
     gp_reg1: Register,

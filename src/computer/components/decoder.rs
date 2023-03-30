@@ -1,7 +1,7 @@
 use super::{ANDGate3, ANDGate4};
-use crate::gates::{Wire, AND, NOT};
+use crate::computer::gates::{Wire, AND, NOT};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Decoder2x4 {
     pub input_a: Wire,
     pub input_b: Wire,

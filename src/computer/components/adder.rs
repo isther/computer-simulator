@@ -1,5 +1,5 @@
+use super::super::gates::{Wire, AND, OR, XOR};
 use super::Component;
-use crate::gates::{Wire, AND, OR, XOR};
 use std::{
     fmt::Display,
     sync::{Arc, Mutex},

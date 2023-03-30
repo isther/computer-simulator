@@ -1,4 +1,4 @@
-use crate::{
+use crate::computer::{
     components::{
         ANDer, Adder, Bus, Comparator, Component, Decoder3x8, Enabler, IsZero, LeftShifter, NOTer,
         ORer, RightShifter, XORer, BUS_WIDTH,
@@ -72,6 +72,7 @@ impl From<Operation> for i32 {
     }
 }
 
+#[derive(Clone)]
 pub struct ALU {
     pub input_a_bus: Arc<Mutex<Bus>>,
     pub input_b_bus: Arc<Mutex<Bus>>,

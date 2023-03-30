@@ -1,4 +1,4 @@
-use crate::{
+use crate::computer::{
     components::Decoder3x8,
     gates::{AND, NOT},
 };
@@ -27,6 +27,7 @@ impl From<FlagState> for i32 {
     }
 }
 
+#[derive(Clone)]
 pub struct InstructionDecoder3x8 {
     pub decoder: Decoder3x8,
     pub selector_gates: [AND; 8],

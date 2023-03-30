@@ -1,5 +1,5 @@
 use super::{ANDGate3, Component, BUS_WIDTH};
-use crate::gates::{Wire, AND, NOT, OR, XOR};
+use crate::computer::gates::{Wire, AND, NOT, OR, XOR};
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone)]
@@ -156,7 +156,7 @@ impl Compare2 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::components::set_component_value_32;
+    use crate::computer::components::set_component_value_32;
 
     #[test]
     fn test_comparator() {

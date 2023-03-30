@@ -1,5 +1,5 @@
 use super::{display_ram::DisplayRAM, Peripheral};
-use crate::{
+use crate::computer::{
     components::{
         ANDGate3, ANDGate5, ANDGate8, Bit, Bus, Component, IOBus, Settable, Updatable, BUS_WIDTH,
     },
@@ -183,6 +183,7 @@ impl Peripheral for DisplayAdapter {
     }
 }
 
+#[derive(Clone)]
 pub struct ScreenControl {
     adapter: Arc<Mutex<DisplayAdapter>>,
     input_bus: Option<Bus>,

@@ -1,6 +1,7 @@
 use super::{Bit, Wire, AND, NOT, OR};
 use std::fmt::Display;
 
+#[derive(Clone)]
 pub struct Stepper {
     pub input_or_gates: [OR; 2],
     pub reset: Wire,

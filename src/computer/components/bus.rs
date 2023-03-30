@@ -1,5 +1,5 @@
+use super::super::gates::Wire;
 use super::Component;
-use crate::gates::Wire;
 use std::{
     fmt::Display,
     sync::{Arc, Mutex},
@@ -52,7 +52,7 @@ impl Bus {
 }
 
 impl Component for Bus {
-    fn connect_output(&mut self, component: Arc<Mutex<dyn Component>>) {}
+    fn connect_output(&mut self, _: Arc<Mutex<dyn Component>>) {}
     fn set_input_wire(&mut self, i: i32, value: bool) {
         self.wires[i as usize].update(value)
     }
@@ -69,8 +69,8 @@ impl Display for Bus {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::components::BUS_WIDTH;
+    use super::super::BUS_WIDTH;
+    use super::super::*;
 
     #[test]
     fn test_bus() {

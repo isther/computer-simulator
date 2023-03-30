@@ -1,4 +1,6 @@
-use super::{Bus, Component, Enableable, Updatable, Wire, AND, BUS_WIDTH, NOT, OR};
+use crate::computer::components::{
+    Bus, Component, Enableable, Updatable, Wire, AND, BUS_WIDTH, NOT, OR,
+};
 use std::{
     fmt::Display,
     sync::{Arc, Mutex},

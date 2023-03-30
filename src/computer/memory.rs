@@ -1,6 +1,6 @@
-use crate::components::{Bus, Decoder8x256, Enableable, Register, Settable, Updatable};
-use crate::gates::Wire;
-use crate::gates::AND;
+use super::components::{Bus, Decoder8x256, Enableable, Register, Settable, Updatable};
+use super::gates::Wire;
+use super::gates::AND;
 use std::fmt::Display;
 use std::sync::{Arc, Mutex};
 
@@ -156,7 +156,7 @@ impl Display for Memory64K {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::components::BUS_WIDTH;
+    use crate::computer::components::BUS_WIDTH;
 
     #[test]
     fn test_cell() {

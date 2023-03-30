@@ -1,4 +1,4 @@
-use crate::{
+use crate::computer::{
     components::{Bus, Decoder8x256, Register, Updatable},
     gates::Wire,
     memory::Cell,

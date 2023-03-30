@@ -1,32 +1,36 @@
-use crate::{
+use super::{
     components::{Bus, Settable, Updatable, BUS_WIDTH},
     cpu::CPU,
     io::{DisplayAdapter, Keyboard, KeyboardAdapter, ScreenControl},
     memory::Memory64K,
 };
 use std::sync::{Arc, Mutex};
-use tokio::sync::{mpsc, Notify};
+use tokio::{
+    sync::{mpsc, Notify},
+    time::Interval,
+};
 
 const CODE_REGION_START: u16 = 0x0500;
 
-struct PrintStateConfig {
-    print_state: bool,
-    print_state_every: u16,
+pub struct PrintStateConfig {
+    pub print_state: bool,
+    pub print_state_every: u16,
 }
 
-struct SimpleComputer {
+#[derive(Clone)]
+pub struct Computer {
     main_bus: Arc<Mutex<Bus>>,
     cpu: CPU,
     memory: Arc<Mutex<Memory64K>>,
     display_adapter: Arc<Mutex<DisplayAdapter>>,
-    screen_control: Arc<Mutex<ScreenControl>>,
+    pub screen_control: ScreenControl,
     keyboard_adapter: KeyboardAdapter,
     screen_channel: mpsc::Sender<[[u8; 240]; 160]>,
-    quit_channel: Arc<Notify>,
+    quit: Arc<Notify>,
 }
 
-impl SimpleComputer {
-    fn new(screen_channel: mpsc::Sender<[[u8; 240]; 160]>, quit_channel: Arc<Notify>) -> Self {
+impl Computer {
+    pub fn new(screen_channel: mpsc::Sender<[[u8; 240]; 160]>, quit: Arc<Notify>) -> Self {
         let main_bus = Arc::new(Mutex::new(Bus::new(BUS_WIDTH)));
         let memory = Arc::new(Mutex::new(Memory64K::new(main_bus.clone())));
         let display_adapter = Arc::new(Mutex::new(DisplayAdapter::new()));
@@ -35,27 +39,24 @@ impl SimpleComputer {
             cpu: CPU::new(main_bus.clone(), memory.clone()),
             memory: memory.clone(),
             display_adapter: display_adapter.clone(),
-            screen_control: Arc::new(Mutex::new(ScreenControl::new(
+            screen_control: ScreenControl::new(
                 display_adapter.clone(),
                 screen_channel.clone(),
-                quit_channel.clone(),
-            ))),
+                quit.clone(),
+            ),
             keyboard_adapter: KeyboardAdapter::new(),
             screen_channel,
-            quit_channel,
+            quit,
         };
         res.cpu.connect_peripheral(res.display_adapter.clone());
         res
     }
 
-    fn connect_keyboard(&mut self, keyboard: &Arc<Mutex<Keyboard>>) {
-        keyboard
-            .lock()
-            .unwrap()
-            .connect(self.keyboard_adapter.keyboard_in_bus.clone());
+    pub fn connect_keyboard(&mut self, keyboard: &mut Keyboard) {
+        keyboard.connect(self.keyboard_adapter.keyboard_in_bus.clone());
     }
 
-    fn load_to_ram(&mut self, offset: u16, values: Vec<u16>) {
+    pub fn load_to_ram(&mut self, offset: u16, values: Vec<u16>) {
         if offset < 0x0500 {
             panic!("0x0000 - 0x04FF is a reserved memory area");
         }
@@ -86,10 +87,15 @@ impl SimpleComputer {
         self.memory.lock().unwrap().update();
 
         self.memory.lock().unwrap().address_register.unset();
-        self.memory.lock().unwrap();
+        self.memory.lock().unwrap().update();
     }
 
-    async fn run(&mut self, tick_interval: Arc<Notify>, print_state_config: PrintStateConfig) {
+    pub async fn run(
+        &mut self,
+        mut screen_control: ScreenControl,
+        mut tick_interval: Interval,
+        print_state_config: PrintStateConfig,
+    ) {
         println!("Starting computer....");
         self.put_value_in_ram(0xFEFE, 0x0040); //JMP back to code region start if IAR reaches the end
         self.put_value_in_ram(0xFEFF, CODE_REGION_START);
@@ -97,11 +103,16 @@ impl SimpleComputer {
         // start at offet of user code
         self.cpu.set_iar(CODE_REGION_START);
 
-        //BUG: self.screen_control.lock().unwrap().run();
+        {
+            tokio::spawn(async move {
+                screen_control.run().await;
+            });
+        }
 
         let mut steps = 0;
         loop {
-            // 		<-tickInterval
+            tick_interval.tick().await;
+
             self.cpu.step();
 
             if print_state_config.print_state {

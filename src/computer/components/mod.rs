@@ -1,4 +1,4 @@
-use crate::gates::{Wire, AND, NAND, NOT, OR};
+use crate::computer::gates::{Wire, AND, NAND, NOT, OR};
 use std::{
     fmt::Debug,
     sync::{Arc, Mutex},

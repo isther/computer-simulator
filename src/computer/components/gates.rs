@@ -1,4 +1,4 @@
-use crate::gates::{Wire, AND, OR};
+use crate::computer::gates::{Wire, AND, OR};
 
 #[derive(Debug, Clone)]
 pub struct ANDGate3 {
@@ -111,6 +111,7 @@ impl ANDGate5 {
     }
 }
 
+#[derive(Clone)]
 pub struct ANDGate8 {
     and_a: AND,
     and_b: AND,
@@ -162,6 +163,7 @@ impl ANDGate8 {
     }
 }
 
+#[derive(Clone)]
 pub struct ORGate3 {
     pub input_a: Wire,
     pub input_b: Wire,
@@ -195,6 +197,7 @@ impl ORGate3 {
     }
 }
 
+#[derive(Clone)]
 pub struct ORGate4 {
     pub input_a: Wire,
     pub input_b: Wire,
@@ -233,6 +236,7 @@ impl ORGate4 {
     }
 }
 
+#[derive(Clone)]
 pub struct ORGate5 {
     pub input_a: Wire,
     pub input_b: Wire,
@@ -283,6 +287,7 @@ impl ORGate5 {
     }
 }
 
+#[derive(Clone)]
 pub struct ORGate6 {
     pub input_a: Wire,
     pub input_b: Wire,

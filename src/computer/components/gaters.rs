@@ -1,5 +1,5 @@
 use super::{Component, BUS_WIDTH};
-use crate::gates::{Wire, AND, NOT, OR, XOR};
+use crate::computer::gates::{Wire, AND, NOT, OR, XOR};
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone)]
