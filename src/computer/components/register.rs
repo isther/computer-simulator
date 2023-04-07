@@ -116,7 +116,6 @@ impl Updatable for Register {
 
         let len = { self.enabler.lock().unwrap().outputs.len() };
         for i in 0..len {
-            println!("GOGOGO");
             self.outputs[i].update(self.enabler.lock().unwrap().outputs[i].get())
         }
 
