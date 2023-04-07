@@ -195,11 +195,13 @@ impl Assembler {
                         result += " ";
                     }
                 }
-                result += "}\t";
+                result += "}";
                 // BUG: Output format
                 match instruction.size() {
                     4 => result += "\t",
-                    _ => result += "\t".repeat(3).as_str(),
+                    2 => result += "\t".repeat(2).as_str(),
+                    1 => result += "\t".repeat(3).as_str(),
+                    _ => result += "\t",
                 }
                 result += instruction.to_string().as_str();
                 position += instruction.size();
