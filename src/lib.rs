@@ -17,3 +17,5 @@ pub use assembler::Assembler;
 pub use computer::{Computer, Keyboard, PrintStateConfig};
 pub use generator::get_instructions;
 pub use glfw::glfw_run;
+
+pub const USER_CODE_START: u16 = 0x0500;

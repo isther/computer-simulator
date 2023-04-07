@@ -1,8 +1,6 @@
 use clap::Parser;
-use computer_simulator::{get_instructions, Assembler};
+use computer_simulator::{get_instructions, Assembler, USER_CODE_START};
 use std::{fs::File, io::prelude::Write, path::Path};
-
-pub const USER_CODE_START: u16 = 0x0500;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
