@@ -2,15 +2,15 @@ use crate::computer::KeyPress;
 use glium::{
     glutin::{
         dpi::LogicalSize,
-        event::{Event, StartCause, VirtualKeyCode, WindowEvent},
+        event::{ElementState, Event, StartCause, VirtualKeyCode, WindowEvent},
         event_loop::{ControlFlow, EventLoop},
         window::WindowBuilder,
         ContextBuilder,
     },
     Surface,
 };
-use std::sync::Arc;
-use tokio::sync::{mpsc, Mutex, Notify};
+use std::sync::{Arc, Mutex};
+use tokio::sync::{mpsc, Notify};
 
 const HEIGHT: f64 = 160.0;
 const WIDTH: f64 = 240.0;
@@ -54,7 +54,8 @@ pub fn glfw_run(
     }
     implement_vertex!(Vertex, position);
 
-    let darw_points = Arc::new(std::sync::Mutex::new(Vec::<Vertex>::new()));
+    let darw_points = Arc::new(Mutex::new(Vec::<Vertex>::new()));
+    let (key_press_local_sender, key_press_local_receiver) = std::sync::mpsc::sync_channel(1);
     {
         let darw_points = darw_points.clone();
         tokio::spawn(async move {
@@ -76,6 +77,14 @@ pub fn glfw_run(
                         }
                     }
                 }
+            }
+        });
+
+        let key_press_local_receiver = Arc::new(Mutex::new(key_press_local_receiver));
+        tokio::spawn(async move {
+            loop {
+                let key_press = key_press_local_receiver.lock().unwrap().recv().unwrap();
+                key_press_sender.send(key_press).await;
             }
         });
 
@@ -131,8 +140,21 @@ pub fn glfw_run(
                         || (input.virtual_keycode.unwrap() >= VirtualKeyCode::Key1
                             && input.virtual_keycode.unwrap() <= VirtualKeyCode::Key0)
                     {
-                        println!("WindowEvent Key: {:?}", input);
-                        //TODO:Send keypress
+                        // Send keypress
+                        match input.state {
+                            ElementState::Pressed => {
+                                key_press_local_sender.send(KeyPress {
+                                    value: input.virtual_keycode.unwrap() as i32,
+                                    is_down: true,
+                                });
+                            }
+                            ElementState::Released => {
+                                key_press_local_sender.send(KeyPress {
+                                    value: input.virtual_keycode.unwrap() as i32,
+                                    is_down: false,
+                                });
+                            }
+                        }
                     }
                 }
                 _ => return,
